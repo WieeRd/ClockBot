@@ -39,18 +39,30 @@ async def 여긴어디(ctx):
     await ctx.send("여긴 [{}]의 #{} 이라는 곳이라네".format(server, channel))
 
 @bot.command()
-async def 주사위(ctx, *arg):
-    if(len(arg)<1):
-        await ctx.send("범위가 주어지지 않았어.")
-        return
+async def 동전(ctx):
+    if(random.randint(0,1)):
+        await ctx.send("앞면")
+    else:
+        await ctx.send("뒷면")
 
+@bot.command()
+async def 주사위(ctx, arg=None):
+    if(arg == None):
+        await ctx.send("범위를 설정하세요. ex) !주사위 6")
+        return
     try:
-        val = int(arg[0])
+        val = int(arg)
+        if(val<1): raise ValueError
     except ValueError:
-        await ctx.send("너는 \"{}\" 이게 숫자로 보이냐?".format(arg[0]))
+        ctx.send("정\"{}\"면체 주사위를 본 적이 있습니까 휴먼".format(val))
         return
-
-    await ctx.send(">> {}".format(random.randint(1, val)))
+    if(val == 1):
+        ctx.send("그게 의미가 있긴 합니까 휴먼")
+    elif(val == 2):
+        ctx.send("!동전")
+        동전(ctx)
+    else:
+        ctx.send("
 
 @bot.command()
 async def 야(ctx):

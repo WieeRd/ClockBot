@@ -4,7 +4,9 @@ import random
 from datetime import datetime
 from discord.ext import commands
 
-token = "Nzk3MDE1ODk4NDE3NTI4ODMy.X_gU5g.cGpS63kPBWpW_tpPEJhDXWwj2kE"
+f = open("token.txt", 'r')
+token = f.readline()
+f.close()
 
 bot = commands.Bot(description="Yippee ki yay he yay kyaaah", command_prefix="!", pm_help = True)
 

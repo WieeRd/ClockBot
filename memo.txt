@@ -1,0 +1,13 @@
+797015898417528832
+Nzk3MDE1ODk4NDE3NTI4ODMy.X_gU5g.5InEOgAXCqdMdidkKCkwlmwC3Io
+
+https://dojang.io/course/view.php?id=7
+
+https://discordpy.readthedocs.io/en/latest/
+https://github.com/Rapptz/discord.py
+
+https://github.com/OtakoidTony/WordChainBot
+https://m.blog.naver.com/njw1204/221364710539
+
+
+한글 입력기 사용이 불가능한 상태일 때[32] 영문 자판으로 입력한 글을 한글로 바꾸어 주는 봇이다.

@@ -54,15 +54,15 @@ async def 주사위(ctx, arg=None):
         val = int(arg)
         if(val<1): raise ValueError
     except ValueError:
-        ctx.send("정\"{}\"면체 주사위를 본 적이 있습니까 휴먼".format(val))
+        await ctx.send("정\"{}\"면체 주사위를 본 적이 있습니까 휴먼".format(arg))
         return
     if(val == 1):
-        ctx.send("그게 의미가 있긴 합니까 휴먼")
+        await ctx.send("그게 의미가 있긴 합니까 휴먼")
     elif(val == 2):
-        ctx.send("!동전")
-        동전(ctx)
+        await ctx.send("!동전")
+        await 동전(ctx)
     else:
-        ctx.send("
+        await ctx.send(">> {}".format(random.randint(1,val)))
 
 @bot.command()
 async def 야(ctx):

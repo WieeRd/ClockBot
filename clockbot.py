@@ -34,6 +34,9 @@ async def 닉값(ctx):
 
 @bot.command()
 async def 여긴어디(ctx):
+    if(ctx.guild == None): # DM messege
+        await ctx.send("후훗... 여긴... 너와 나 단 둘뿐이야")
+        return
     server = ctx.guild.name
     channel = ctx.channel.name
     await ctx.send("여긴 [{}]의 #{} 이라는 곳이라네".format(server, channel))

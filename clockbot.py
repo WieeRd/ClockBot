@@ -23,6 +23,10 @@ async def on_command_error(ctx, error):
     raise error
 
 @bot.command()
+async def test(ctx, *, arg):
+    print(arg)
+
+@bot.command()
 async def 시계(ctx):
     now = datetime.now()
     now_str = now.strftime("%H:%M:%S")
@@ -78,6 +82,7 @@ async def 오라(ctx):
 @bot.command()
 async def 무다(ctx):
     await ctx.send("오라")
+
 
 f = open("token.txt", 'r')
 token = f.readline()

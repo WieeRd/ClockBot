@@ -1,4 +1,4 @@
-cat main.py chat.py misc.py run.py > clockbot.py
+cat "src/main.py" "src/*_*.py" "src/run.py" > clockbot.py
 python clockbot.py
 echo Exit code was %ERRORLEVEL%
 pause>nul

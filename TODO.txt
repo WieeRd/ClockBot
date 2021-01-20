@@ -81,3 +81,4 @@
  - 음성인식 봇 연구
  - 로그 남기기 : '<~> invoked command !~'
  - f string 배우기
+ - user id: 컨버터

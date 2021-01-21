@@ -29,7 +29,7 @@ async def 동전(ctx):
 @bot.command()
 async def 주사위(ctx, arg=None):
     if(arg == None):
-        await ctx.send("범위를 설정하세요. ex) !주사위 6")
+        await ctx.send("사용법: !주사위 <숫자>")
         return
     try:
         val = int(arg)
@@ -45,3 +45,19 @@ async def 주사위(ctx, arg=None):
     else:
         await ctx.send(f">> {random.randint(1,val)}")
 
+@bot.command()
+async def 추첨(ctx, *args):
+    max = len(args)
+    if(max==0):
+        await ctx.send("사용법: !추첨 ABC or !추첨 A B C")
+    elif(max==1):
+        rng = len(args[0]) - 1
+        if(rng>1):
+            select = random.randint(0, rng)
+            await ctx.send(f"{args[0][select]} 당첨")
+        else:
+            await ctx.send("대체 뭘 기대하는 겁니까 휴먼")
+    else:
+        rng = len(args) - 1
+        select = random.randint(0, rng)
+        await ctx.send(f"{args[select]} 당첨")

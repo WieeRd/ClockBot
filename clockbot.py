@@ -1,12 +1,18 @@
-# Main
-
 import discord
 import asyncio
-import random
-from datetime import datetime
+import os, sys, traceback
 from discord.ext import commands
 
-bot = commands.Bot(command_prefix="!", pm_help = False)
+bot = commands.Bot(command_prefix="!", description="Pretty useless bot.")
+
+init_exts = ['cogs.chat', 'cogs.misc']
+
+for extension in init_exts:
+    try:
+        bot.load_extension(extension)
+    except Exception as e:
+        print(f"Failed loading {extension}")
+        print(f"{type(e).__name__}: {e}")
 
 @bot.event
 async def on_ready():
@@ -24,7 +30,6 @@ async def on_command_error(ctx, error):
         return
     raise error
 
-
 # Testing range
 
 @bot.command()
@@ -32,3 +37,9 @@ async def test(ctx, *, arg):
     print(arg)
     await ctx.send("```" + arg + "```")
 
+# Token & Run
+
+f = open("token.txt", 'r')
+token = f.readline()
+f.close()
+bot.run(token)

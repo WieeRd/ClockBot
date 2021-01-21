@@ -6,18 +6,20 @@ from datetime import datetime
 
 #02 Miscellaneous features
 
+num_emoji = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+
 class misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    async def 시계(self, ctx):
+    @commands.command(name="시계", aliases=["닉값"])
+    async def time(self, ctx):
         now = datetime.now()
         now_str = now.strftime("%H:%M:%S")
         await ctx.send(f"현재시각 {now_str}")
 
-    @commands.command()
-    async def 여긴어디(self, ctx):
+    @commands.command(name="여긴어디")
+    async def where(self, ctx):
         if(ctx.guild == None): # DM message
             await ctx.send("후훗... 여긴... 너와 나 단 둘뿐이야")
             return
@@ -25,15 +27,15 @@ class misc(commands.Cog):
         channel = ctx.channel.name
         await ctx.send(f"여긴 [{server}]의 #{channel} 이라는 곳이라네")
 
-    @commands.command()
-    async def 동전(self, ctx):
+    @commands.command(name="동전")
+    async def coin(self, ctx):
         if(randint(0,1)):
             await ctx.send("앞면")
         else:
             await ctx.send("뒷면")
 
-    @commands.command()
-    async def 주사위(self, ctx, arg=None):
+    @commands.command(name="주사위")
+    async def dice(self, ctx, arg=None):
         if(arg == None):
             await ctx.send("사용법: !주사위 <숫자>")
             return
@@ -54,22 +56,39 @@ class misc(commands.Cog):
         else:
             await ctx.send(f">> {randint(1,val)}")
 
-    @commands.command()
-    async def 추첨(self, ctx, *args):
-        max = len(args)
-        if(max==0):
+    @commands.command(name="추첨")
+    async def choose(self, ctx, *args):
+        choices = len(args)
+        if(choices==0):
             await ctx.send("사용법: !추첨 ABC or !추첨 A B C")
-        elif(max==1):
-            rng = len(args[0]) - 1
-            if(rng>1):
-                select = randint(0, rng)
-                await ctx.send(f"{args[0][select]} 당첨")
+        elif(choices==1):
+            if(len(args[0])>1):
+                await ctx.send(f"{choice(args[0])} 당첨")
             else:
                 await ctx.send("대체 뭘 기대하는 겁니까 휴먼")
         else:
-            rng = len(args) - 1
-            select = randint(0, rng)
-            await ctx.send(f"{args[select]} 당첨")
+            await ctx.send(f"{choice(args)} 당첨")
+    
+    @commands.command(name="크게", aliases=["빼액"])
+    async def yell(self, ctx, *, arg=None):
+        if(arg == None):
+            await ctx.send("사용법: !소리질러 \"ABC123!?\"")
+            return
+        arg = arg.lower()
+        ret = ""
+        for c in arg:
+            if c.isalpha():
+                ret += f":regional_indicator_{c}:"
+            elif c.isdigit():
+                ret += f":{num_emoji[int(c)]}:"
+            elif c == ' ':
+                ret += " "*13
+            elif c == '?':
+                ret += ":grey_question:"
+            elif c == '!':
+                ret += ":grey_exclamation:"
+        await ctx.send(ret)
+
 
 def setup(bot):
     bot.add_cog(misc(bot))

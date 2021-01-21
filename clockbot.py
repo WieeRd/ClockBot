@@ -26,7 +26,7 @@ async def on_disconnect():
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
-        await ctx.send("그딴거 없다")
+        # await ctx.send("그딴거 없다")
         return
     raise error
 

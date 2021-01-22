@@ -6,45 +6,34 @@ from discord.ext import commands
 bot = commands.Bot(command_prefix="!", description="Pretty useless bot.")
 init_exts = ['cogs.chat', 'cogs.misc', 'cogs.owner']
 
-# Empty Cog used as 'flag'
-class flags(commands.Cog):
-    def __init__(self, bot):
-        pass
-    restart = False
-    exitcode = 0
-    lastSession = None
-
-bot.add_cog(flags(bot))
+counter = 0
+print("Loading extensions...")
+for extension in init_exts:
+    try:
+        bot.load_extension(extension)
+        counter += 1
+    except Exception as e:
+        print(f"Failed loading {extension}")
+        print(f"{type(e).__name__}: {e}")
+print(f"Loaded [{counter}/{len(init_exts)}] extensions")
 
 @bot.event
-async def on_ready():
-    flags = bot.get_cog('flags')
-    if(flags.restart):
-        flags.restart = False
-        await flags.lastSession.send("I'm back!")
-
-    counter = 0
-    print("Loading extensions...")
-    for extension in init_exts:
-        try:
-            bot.load_extension(extension)
-            counter += 1
-        except Exception as e:
-            print(f"Failed loading {extension}")
-            print(f"{type(e).__name__}: {e}")
-    print(f"Loaded [{counter}/{len(init_exts)}] extensions")
-
-    print(f"{bot.user.name} is now online")
-    await bot.change_presence(activity=discord.Game(name="인생낭비"))
+async def on_connect():
+    print(f"logging in as {bot.user.name}...")
 
 @bot.event
 async def on_disconnect():
     print(f"{bot.user.name} has lost connection")
 
 @bot.event
+async def on_ready():
+    await bot.change_presence(activity=discord.Game(name="인생낭비"))
+    print(f"{bot.user.name} is now online")
+
+@bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
-        return
+        return # Unknown command; just ignore it
     raise error
 
 # Testing range
@@ -60,16 +49,10 @@ f = open("token.txt", 'r')
 token = f.readline()
 f.close()
 
-while True:
-    print("Connecting...")
-    bot.run(token)
-    print(f"{bot.user.name} has been disconnected")
+print("Connecting...")
+bot.run(token)
+print(f"{bot.user.name} has been disconnected")
 
-    flags = bot.get_cog('flags')
-    if(flags.restart):
-        for extension in init_exts:
-            bot.unload_extension(extension)
-        continue
-    break
-
+flags = bot.get_cog('flags')
+print(f"Restart = {flags.restart}")
 print("Client terminated\n")

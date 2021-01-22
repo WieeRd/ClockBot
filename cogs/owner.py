@@ -3,8 +3,13 @@ import asyncio
 import os, sys
 from discord.ext import commands
 
-# Owner only commands
+# Empty Cog used as 'flag'
+class flags(commands.Cog):
+    def __init__(self, bot):
+        pass
+    restart = False
 
+# Owner only commands
 class owner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -35,11 +40,10 @@ class owner(commands.Cog):
         await ctx.send("I'll be back")
         flags = self.bot.get_cog('flags')
         flags.restart = True
-        flags.lastSession = ctx
 
         await self.bot.logout()
 
 
 def setup(bot):
     bot.add_cog(owner(bot))
-    # bot.add_cog(flags(bot))
+    bot.add_cog(flags(bot))

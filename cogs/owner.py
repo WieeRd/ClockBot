@@ -8,6 +8,7 @@ class flags(commands.Cog):
     def __init__(self, bot):
         pass
     restart = False
+    exitcode = 0
 
 # Owner only commands
 class owner(commands.Cog):

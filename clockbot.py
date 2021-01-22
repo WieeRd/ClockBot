@@ -19,11 +19,11 @@ print(f"Loaded [{counter}/{len(init_exts)}] extensions")
 
 @bot.event
 async def on_connect():
-    print(f"logging in as {bot.user.name}...")
+    print("Connecting...")
 
 @bot.event
 async def on_disconnect():
-    print(f"{bot.user.name} has lost connection")
+    print("{bot.user.name} has been disconnected")
 
 @bot.event
 async def on_ready():
@@ -49,10 +49,10 @@ f = open("token.txt", 'r')
 token = f.readline()
 f.close()
 
-print("Connecting...")
+print("Launching client...")
 bot.run(token)
-print(f"{bot.user.name} has been disconnected")
+print("Client terminated")
 
 flags = bot.get_cog('flags')
-print(f"Restart = {flags.restart}")
-print("Client terminated\n")
+print(f"Exitcode : {flags.exitcode}")
+print("Program end.\n")

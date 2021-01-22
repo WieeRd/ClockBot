@@ -4,6 +4,9 @@ from discord.ext import commands
 from random import *
 from datetime import datetime
 
+from modules.num2korean import num2korean
+from modules.korean2num import korean2num
+
 #02 Miscellaneous features
 
 num_emoji = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
@@ -88,6 +91,23 @@ class misc(commands.Cog):
             elif c == '!':
                 ret += ":grey_exclamation:"
         await ctx.send(ret)
+
+    @commands.command(name='수한')
+    async def n2kr(self, ctx, val):
+        num = 0;
+        try:
+            num = int(val)
+        except ValueError:
+            await ctx.send("사용법: !수한 <정수>")
+            return
+        await ctx.send(f"{num2korean(num)}")
+
+    @commands.command(name='한수')
+    async def kr2n(self, ctx, kr_str=None):
+        if(kr_str==None):
+            await ctx.send("사용법: !한수 <한국어 숫자>")
+            return
+        await ctx.send(f"{korean2num(kr_str)}")
 
 
 def setup(bot):

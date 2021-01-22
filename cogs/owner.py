@@ -5,10 +5,6 @@ from discord.ext import commands
 
 # Owner only commands
 
-class restart(commands.Cog):
-    def __init__(self, bot):
-        pass
-
 class owner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -21,13 +17,29 @@ class owner(commands.Cog):
     @commands.command(name="종료")
     @commands.is_owner()
     async def shutdown(self, ctx):
-        print("Shutdown command has been invoked")
+        print("Shutdown command has been called")
         await ctx.send("장비를 정지합니다")
-        # Windows fucking floods my screen with RuntimeErrors
+
+        # Windows have bug with logout(), can't properly shutdown
         if(sys.platform == "win32"):
+            # stops RuntimeErrors from flooding my screen
             sys.stderr = open(os.devnull, 'w')
             sys.stdout = open(os.devnull, 'w')
+
         await self.bot.logout()
+
+    @commands.command(name="재시작")
+    @commands.is_owner()
+    async def restart(self, ctx):
+        print("Restart command has been called")
+        await ctx.send("I'll be back")
+        flags = self.bot.get_cog('flags')
+        flags.restart = True
+        flags.lastSession = ctx
+
+        await self.bot.logout()
+
 
 def setup(bot):
     bot.add_cog(owner(bot))
+    # bot.add_cog(flags(bot))

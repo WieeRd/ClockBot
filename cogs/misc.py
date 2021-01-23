@@ -112,3 +112,7 @@ class misc(commands.Cog):
 
 def setup(bot):
     bot.add_cog(misc(bot))
+    print(f"Successfully loaded {__name__}.py")
+
+def teardown(bot):
+    print(f"{__name__}.py has been unloaded")

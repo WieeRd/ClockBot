@@ -15,10 +15,36 @@ class owner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # @commands.event
+    # @commands.event - not required
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.NotOwner):
             await ctx.send("에러: WieeRd 전용 커맨드")
+
+    @commands.command(name="로드")
+    @commands.is_owner()
+    async def load(self, ctx, *extensions):
+        for ext in extensions:
+            try:
+                self.bot.load_extension(ext)
+            except Exception as e:
+                print(f"Failed loading {extension}")
+                print(f"{type(e).__name__}: {e}")
+                
+    @commands.command(name="언로드")
+    @commands.is_owner()
+    async def unload(self, ctx, *extensions):
+        for ext in extensions:
+            try:
+                self.bot.unload_extension(ext)
+            except:
+                print(f"Failed unloading {extension}")
+                print(f"{type(e).__name__}: {e}")
+
+    @commands.command(name="리로드")
+    @commands.is_owner()
+    async def reload(self, ctx, *extensions):
+        await unload(self, ctx, *extensions)
+        await load(self, ctx, *extensions)
 
     @commands.command(name="종료")
     @commands.is_owner()
@@ -48,3 +74,7 @@ class owner(commands.Cog):
 def setup(bot):
     bot.add_cog(owner(bot))
     bot.add_cog(flags(bot))
+    print(f"Successfully loaded {__name__}.py")
+
+def teardown(bot):
+    print(f"{__name__}.py has been unloaded")

@@ -23,7 +23,7 @@ async def on_connect():
 
 @bot.event
 async def on_disconnect():
-    print("{bot.user.name} has been disconnected")
+    print("Lost connection")
 
 @bot.event
 async def on_ready():
@@ -39,9 +39,17 @@ async def on_command_error(ctx, error):
 # Testing range
 
 @bot.command()
-async def test(ctx, *, arg):
+async def test(ctx, *, arg=":thinking:"):
     print(arg)
     await ctx.send("```" + arg + "```")
+
+flags = bot.get_cog('flags')
+print(flags)
+print(flags.restart)
+
+@bot.command()
+async def test2(ctx, *arg):
+    print(arg)
 
 # Token & Run
 
@@ -53,6 +61,4 @@ print("Launching client...")
 bot.run(token)
 print("Client terminated")
 
-flags = bot.get_cog('flags')
-print(f"Exitcode : {flags.exitcode}")
-print("Program end.\n")
+print(flags.restart)

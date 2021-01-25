@@ -22,7 +22,7 @@ class chat(commands.Cog):
 
 def setup(bot):
     bot.add_cog(chat(bot))
-    print(f"Successfully loaded {__name__}")
+    print(f"{__name__} has been loaded")
 
 def teardown(bot):
     print(f"{__name__} has been unloaded")

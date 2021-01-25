@@ -17,6 +17,15 @@ for extension in init_exts:
         print(f"{type(e).__name__}: {e}")
 print(f"Loaded [{counter}/{len(init_exts)}] extensions")
 
+# Empty Cog used as 'flag'
+class flags(commands.Cog):
+    def __init__(self, bot):
+        pass
+    restart = False
+
+bot.add_cog(flags(bot))
+flags = bot.get_cog('flags')
+
 @bot.event
 async def on_connect():
     print("Connected to discord")
@@ -52,3 +61,8 @@ f.close()
 print("Launching client...")
 bot.run(token)
 print("Client terminated")
+
+if(flags.restart):
+    exit(-1)
+else:
+    exit(0)

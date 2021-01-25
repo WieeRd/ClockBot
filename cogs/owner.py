@@ -10,6 +10,14 @@ class flags(commands.Cog):
     restart = False
     exitcode = 0
 
+def manage_extension(bot, func, *extensions):
+    for ext in extensions:
+        try:
+            bot.func(ext)
+        except Exception as e:
+            print(f"Failed {ext}")
+            print(f"{type(e).__name__}: {e}")
+
 # Owner only commands
 class owner(commands.Cog):
     def __init__(self, bot):
@@ -27,7 +35,7 @@ class owner(commands.Cog):
             try:
                 self.bot.load_extension(ext)
             except Exception as e:
-                print(f"Failed loading {extension}")
+                print(f"Failed loading {ext}")
                 print(f"{type(e).__name__}: {e}")
                 
     @commands.command(name="언로드")
@@ -37,14 +45,14 @@ class owner(commands.Cog):
             try:
                 self.bot.unload_extension(ext)
             except:
-                print(f"Failed unloading {extension}")
+                print(f"Failed unloading {ext}")
                 print(f"{type(e).__name__}: {e}")
 
     @commands.command(name="리로드")
     @commands.is_owner()
     async def reload(self, ctx, *extensions):
-        await unload(self, ctx, *extensions)
-        await load(self, ctx, *extensions)
+        await self.unload(ctx, *extensions)
+        await self.load(ctx, *extensions)
 
     @commands.command(name="종료")
     @commands.is_owner()
@@ -74,7 +82,7 @@ class owner(commands.Cog):
 def setup(bot):
     bot.add_cog(owner(bot))
     bot.add_cog(flags(bot))
-    print(f"Successfully loaded {__name__}.py")
+    print(f"Successfully loaded {__name__}")
 
 def teardown(bot):
-    print(f"{__name__}.py has been unloaded")
+    print(f"{__name__} has been unloaded")

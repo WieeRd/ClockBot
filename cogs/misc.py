@@ -55,7 +55,7 @@ class misc(commands.Cog):
             await ctx.send("그게 의미가 있긴 합니까 휴먼")
         elif(val == 2):
             await ctx.send("!동전")
-            await 동전(ctx)
+            await self.coin(ctx)
         else:
             await ctx.send(f">> {randint(1,val)}")
 
@@ -112,7 +112,7 @@ class misc(commands.Cog):
 
 def setup(bot):
     bot.add_cog(misc(bot))
-    print(f"Successfully loaded {__name__}.py")
+    print(f"Successfully loaded {__name__}")
 
 def teardown(bot):
-    print(f"{__name__}.py has been unloaded")
+    print(f"{__name__} has been unloaded")

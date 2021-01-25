@@ -19,7 +19,7 @@ print(f"Loaded [{counter}/{len(init_exts)}] extensions")
 
 @bot.event
 async def on_connect():
-    print("Connecting...")
+    print("Connected to discord")
 
 @bot.event
 async def on_disconnect():
@@ -43,14 +43,6 @@ async def test(ctx, *, arg=":thinking:"):
     print(arg)
     await ctx.send("```" + arg + "```")
 
-flags = bot.get_cog('flags')
-print(flags)
-print(flags.restart)
-
-@bot.command()
-async def test2(ctx, *arg):
-    print(arg)
-
 # Token & Run
 
 f = open("token.txt", 'r')
@@ -60,5 +52,3 @@ f.close()
 print("Launching client...")
 bot.run(token)
 print("Client terminated")
-
-print(flags.restart)

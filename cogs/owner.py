@@ -19,9 +19,10 @@ class owner(commands.Cog):
         for ext in extensions:
             try:
                 self.bot.load_extension(ext)
+                await ctx.send(f"{ext} has been loaded")
             except Exception as e:
-                print(f"Failed loading {ext}")
-                print(f"{type(e).__name__}: {e}")
+                await ctx.send(f"Failed loading {ext}")
+                await ctx.send(f"{type(e).__name__}: {e}")
                 
     @commands.command(name="언로드")
     @commands.is_owner()
@@ -29,9 +30,10 @@ class owner(commands.Cog):
         for ext in extensions:
             try:
                 self.bot.unload_extension(ext)
+                await ctx.send(f"{ext} has been unloaded")
             except:
-                print(f"Failed unloading {ext}")
-                print(f"{type(e).__name__}: {e}")
+                await ctx.send(f"Failed unloading {ext}")
+                await ctx.send(f"{type(e).__name__}: {e}")
 
     @commands.command(name="리로드")
     @commands.is_owner()
@@ -39,9 +41,10 @@ class owner(commands.Cog):
         for ext in extensions:
             try:
                 self.bot.reload_extension(ext)
+                await ctx.send(f"{ext} has been reloaded")
             except:
-                print(f"Failed unloading {ext}")
-                print(f"{type(e).__name__}: {e}")
+                await ctx.send(f"Failed reloading {ext}")
+                await ctx.send(f"{type(e).__name__}: {e}")
 
     @commands.command(name="종료")
     @commands.is_owner()

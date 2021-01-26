@@ -4,8 +4,18 @@ import os, sys, traceback
 from discord.ext import commands
 
 bot = commands.Bot(command_prefix="!", description="Pretty useless bot.")
-init_exts = ['cogs.chat', 'cogs.misc', 'cogs.owner']
 
+# Empty Cog used as 'flag' global variable
+class flags(commands.Cog):
+    def __init__(self, bot):
+        pass
+    exitcode = None
+
+bot.add_cog(flags(bot))
+flags = bot.get_cog('flags')
+
+# Load extensions
+init_exts = ['cogs.chat', 'cogs.misc', 'cogs.owner']
 counter = 0
 print("Loading extensions...")
 for extension in init_exts:
@@ -16,15 +26,6 @@ for extension in init_exts:
         print(f"Failed loading {extension}")
         print(f"{type(e).__name__}: {e}")
 print(f"Loaded [{counter}/{len(init_exts)}] extensions")
-
-# Empty Cog used as 'flag' global variable
-class flags(commands.Cog):
-    def __init__(self, bot):
-        pass
-    exitcode = None
-
-bot.add_cog(flags(bot))
-flags = bot.get_cog('flags')
 
 @bot.event
 async def on_connect():

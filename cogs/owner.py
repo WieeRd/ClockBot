@@ -7,7 +7,7 @@ from discord.ext import commands
 class owner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.flags = self.bot.get_cog('flags')
+        self.flags = bot.get_cog('flags')
 
     # @commands.event - not required
     async def on_command_error(self, ctx, error):

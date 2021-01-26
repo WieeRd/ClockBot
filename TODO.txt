@@ -92,12 +92,19 @@
  - 로그 남기기 : '<~> invoked command !~'
  - user id: 컨버터
  - command description
+ - info 카테고리
 
 !. 메모
  mention: <@!id>
  channel: <#id>
  role: <@&id>
  
+ git ls-remote -q // remote commit hash
+ git rev-parse HEAD // local commit hash
+ git rev-list hash1...hash2 | wc -l
+ windows 'wc -l' equivalent : find /c /v ""
+ actually I can just use --count
+
  To get a user object from their ID, you need Client.get_user_info (id).
  fetch_user(), get_user() maybe?
  To get the a user from a username ('ZERO') and discriminator ('#6885') use the utility function discord.utils.get (iterable, **attrs).

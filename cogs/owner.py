@@ -63,6 +63,14 @@ class owner(commands.Cog):
         await ctx.send("I'll be back")
         await self.bot.logout()
 
+    @commands.command()
+    @commands.is_owner()
+    async def update(self, ctx):
+        print("Update command has been called")
+        self.flags.exitcode = 'update'
+        await ctx.send("업데이트 설치중... [2/999]\n***절대 전원을 끄지 마세요***( ͡° ͜ʖ ͡°)")
+        #await self.bot.logout()
+
 
 def setup(bot):
     bot.add_cog(owner(bot))

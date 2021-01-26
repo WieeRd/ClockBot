@@ -1,8 +1,8 @@
 import discord
 import asyncio
+import time
+import random
 from discord.ext import commands
-from random import *
-from datetime import datetime
 
 from lib.num2korean import num2korean
 from lib.korean2num import korean2num
@@ -17,8 +17,8 @@ class misc(commands.Cog):
 
     @commands.command(name="시계", aliases=["닉값"])
     async def time(self, ctx):
-        now = datetime.now()
-        now_str = now.strftime("%H:%M:%S")
+        now = time.localtime()
+        now_str = time.strftime('%Y-%m-%d %a, %I:%M:%S %p', now)
         await ctx.send(f"현재시각 {now_str}")
 
     @commands.command(name="여긴어디")
@@ -49,7 +49,7 @@ class misc(commands.Cog):
             val = int(arg)
             if(val<1): raise ValueError
         except ValueError:
-            await ctx.send(f"정\"{arg}\"면체 주사위를 본 적이 있습니까 휴먼")
+            await ctx.send(f"\"{arg}\"면체 주사위를 본 적이 있습니까 휴먼")
             return
         if(val == 1):
             await ctx.send("그게 의미가 있긴 합니까 휴먼")
@@ -57,7 +57,7 @@ class misc(commands.Cog):
             await ctx.send("!동전")
             await self.coin(ctx)
         else:
-            await ctx.send(f">> {randint(1,val)}")
+            await ctx.send(f">> {random.randint(1,val)}")
     
     @commands.command(name="추첨")
     async def choose(self, ctx, *argv):
@@ -75,7 +75,7 @@ class misc(commands.Cog):
 
         choice_set = set(choice_lst)
         if len(choice_set)>1:
-            await ctx.send(f"{choice(choice_lst)} 당첨")
+            await ctx.send(f"{random.choice(choice_lst)} 당첨")
         else:
             await ctx.send("대체 뭘 기대하는 겁니까 휴먼")
     

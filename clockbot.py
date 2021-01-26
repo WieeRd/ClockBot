@@ -1,8 +1,10 @@
 import discord
 import asyncio
+import time
 import os, sys, traceback
 from discord.ext import commands
 
+launch_time = time.time()
 bot = commands.Bot(command_prefix="!", description="Pretty useless bot.")
 
 # Empty Cog used as 'flag' global variable
@@ -10,6 +12,7 @@ class flags(commands.Cog):
     def __init__(self, bot):
         pass
     exitcode = None
+    start_time = 0
 
 bot.add_cog(flags(bot))
 flags = bot.get_cog('flags')
@@ -39,6 +42,9 @@ async def on_disconnect():
 async def on_ready():
     await bot.change_presence(activity=discord.Game(name="인생낭비"))
     print(f"{bot.user.name} is now online")
+    flags.start_time = time.time()
+    load_time = (flags.start_time - launch_time)*1000
+    print(f"Time elapsed: {int(load_time)}ms")
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -52,6 +58,18 @@ async def on_command_error(ctx, error):
 async def test(ctx, *, arg=":thinking:"):
     print(arg)
     await ctx.send("```" + arg + "```")
+
+@bot.command()
+async def ping(ctx):
+    await ctx.send(f"pong! {int(bot.latency*1000)}ms")
+
+@bot.command()
+async def uptime(ctx):
+    uptime = time.time() - flags.start_time
+    hh, rem = divmod(uptime, 3600)
+    mm, ss = divmod(rem, 60)
+    hh, mm, ss = int(hh), int(mm), int(ss)
+    await ctx.send(f"{hh:02d}:{mm:02d}:{ss:02d}")
 
 # Token & Run
 

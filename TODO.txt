@@ -32,7 +32,7 @@
  - 주사위: !주사위 <숫자>
 	- 글자수제한 이스터에그
  - 시계: !시계 or !닉값
-	+ 세부화
+	- 세부화
  	+ 세계시간(!시계 <도시>) :구글 크롤링
  - 여긴어디: !여긴어디
 	+ DM 이스터에그 얀데레 대사 모으기
@@ -80,6 +80,7 @@
  + 원격 재시작, 업데이트(깃허브)
 	- exit() 종료코드로 어떻게 되지 않을까?
 	- ㅇㅇ 될듯
+ + print & ctx.send("```" + txt + "```") 통합 함수
 	
 8. 마인크래프트 서버
  + 밀키웨이크래프트 참고
@@ -108,3 +109,5 @@
  To get a user object from their ID, you need Client.get_user_info (id).
  fetch_user(), get_user() maybe?
  To get the a user from a username ('ZERO') and discriminator ('#6885') use the utility function discord.utils.get (iterable, **attrs).
+
+ brief, description -> help command

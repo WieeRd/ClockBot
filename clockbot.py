@@ -11,7 +11,7 @@ bot = commands.Bot(command_prefix="!", description="Pretty useless bot.")
 class flags(commands.Cog):
     def __init__(self, bot):
         pass
-    exitcode = None
+    exit_opt = None
     start_time = 0
 
 bot.add_cog(flags(bot))
@@ -81,4 +81,6 @@ print("Launching client...")
 bot.run(token)
 print("Client terminated")
 
-print(f"exitcode: {flags.exitcode}")
+print(f"Exit option: {flags.exit_opt}")
+exitcode = {'quit':0, 'Ctrl+C':1, 'restart':2, 'update':3}
+exit(exitcode[flags.exit_opt])

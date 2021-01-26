@@ -19,7 +19,7 @@ class owner(commands.Cog):
     async def load(self, ctx, *extensions):
         for ext in extensions:
             try:
-                self.bot.load_extension(ext)
+                self.bot.load_extension('cogs.'+ext)
                 await ctx.send(f"{ext} has been loaded")
             except Exception as e:
                 await ctx.send(f"Failed loading {ext}")
@@ -30,7 +30,7 @@ class owner(commands.Cog):
     async def unload(self, ctx, *extensions):
         for ext in extensions:
             try:
-                self.bot.unload_extension(ext)
+                self.bot.unload_extension('cogs.'+ext)
                 await ctx.send(f"{ext} has been unloaded")
             except Exception as e:
                 await ctx.send(f"Failed unloading {ext}")
@@ -41,7 +41,7 @@ class owner(commands.Cog):
     async def reload(self, ctx, *extensions):
         for ext in extensions:
             try:
-                self.bot.reload_extension(ext)
+                self.bot.reload_extension('cogs.'+ext)
                 await ctx.send(f"{ext} has been reloaded")
             except Exception as e:
                 await ctx.send(f"Failed reloading {ext}")
@@ -51,7 +51,7 @@ class owner(commands.Cog):
     @commands.is_owner()
     async def quit(self, ctx):
         print("Quit command has been called")
-        self.flags.exitcode = 'quit'
+        self.flags.exit_opt = 'quit'
         await ctx.send("장비를 정지합니다")
         await self.bot.logout()
 
@@ -59,7 +59,7 @@ class owner(commands.Cog):
     @commands.is_owner()
     async def restart(self, ctx):
         print("Restart command has been called")
-        self.flags.exitcode = 'restart'
+        self.flags.exit_opt = 'restart'
         await ctx.send("I'll be back")
         await self.bot.logout()
 
@@ -67,9 +67,9 @@ class owner(commands.Cog):
     @commands.is_owner()
     async def update(self, ctx):
         print("Update command has been called")
-        self.flags.exitcode = 'update'
+        self.flags.exit_opt = 'update'
         await ctx.send("업데이트 설치중... [2/999]\n***절대 전원을 끄지 마세요***( ͡° ͜ʖ ͡°)")
-        #await self.bot.logout()
+        await self.bot.logout()
 
 
 def setup(bot):

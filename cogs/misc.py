@@ -4,8 +4,8 @@ from discord.ext import commands
 from random import *
 from datetime import datetime
 
-from modules.num2korean import num2korean
-from modules.korean2num import korean2num
+from lib.num2korean import num2korean
+from lib.korean2num import korean2num
 
 #02 Miscellaneous features
 
@@ -58,19 +58,26 @@ class misc(commands.Cog):
             await self.coin(ctx)
         else:
             await ctx.send(f">> {randint(1,val)}")
-
+    
     @commands.command(name="추첨")
-    async def choose(self, ctx, *args):
-        choices = len(args)
-        if(choices==0):
-            await ctx.send("사용법: !추첨 ABC or !추첨 A B C")
-        elif(choices==1):
-            if(len(args[0])>1):
-                await ctx.send(f"{choice(args[0])} 당첨")
-            else:
-                await ctx.send("대체 뭘 기대하는 겁니까 휴먼")
+    async def choose(self, ctx, *argv):
+        argc = len(argv)
+        choice_lst = list()
+        choice_set = set()
+
+        if argc==0:
+            await ctx.send("사용법: !추첨 abc or !추첨 a b c")
+            return
+        elif argc==1:
+            choice_lst = list(argv[0])
         else:
-            await ctx.send(f"{choice(args)} 당첨")
+            choice_lst = list(argv)
+
+        choice_set = set(choice_lst)
+        if len(choice_set)>1:
+            await ctx.send(f"{choice(choice_lst)} 당첨")
+        else:
+            await ctx.send("대체 뭘 기대하는 겁니까 휴먼")
     
     @commands.command(name="크게", aliases=["빼액"])
     async def yell(self, ctx, *, arg=None):

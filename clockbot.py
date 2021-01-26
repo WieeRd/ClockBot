@@ -17,7 +17,7 @@ for extension in init_exts:
         print(f"{type(e).__name__}: {e}")
 print(f"Loaded [{counter}/{len(init_exts)}] extensions")
 
-# Empty Cog used as 'flag'
+# Empty Cog used as 'flag' global variable
 class flags(commands.Cog):
     def __init__(self, bot):
         pass

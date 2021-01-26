@@ -2,6 +2,7 @@
 # Modified lil bit
 
 """숫자를 자릿수 한글단위와 함께 리턴한다 """
+# TODO : add soft mode
 def num2korean(num_amount, ndigits_round=0):
     if(num_amount>=10e52):
         return "읽을 수 있는 최대 숫자, 1 항하사(恒河沙) 초과"

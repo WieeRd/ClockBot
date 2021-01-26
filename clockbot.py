@@ -21,7 +21,7 @@ print(f"Loaded [{counter}/{len(init_exts)}] extensions")
 class flags(commands.Cog):
     def __init__(self, bot):
         pass
-    restart = False
+    exitcode = None
 
 bot.add_cog(flags(bot))
 flags = bot.get_cog('flags')
@@ -62,7 +62,4 @@ print("Launching client...")
 bot.run(token)
 print("Client terminated")
 
-if(flags.restart):
-    exit(-1)
-else:
-    exit(0)
+print(f"exitcode: {flags.exitcode}")

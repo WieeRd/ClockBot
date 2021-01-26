@@ -7,13 +7,14 @@ from discord.ext import commands
 class owner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.flags = self.bot.get_cog('flags')
 
     # @commands.event - not required
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.NotOwner):
             await ctx.send("에러: WieeRd 전용 커맨드")
 
-    @commands.command(name="로드")
+    @commands.command()
     @commands.is_owner()
     async def load(self, ctx, *extensions):
         for ext in extensions:
@@ -24,41 +25,41 @@ class owner(commands.Cog):
                 await ctx.send(f"Failed loading {ext}")
                 await ctx.send(f"{type(e).__name__}: {e}")
                 
-    @commands.command(name="언로드")
+    @commands.command()
     @commands.is_owner()
     async def unload(self, ctx, *extensions):
         for ext in extensions:
             try:
                 self.bot.unload_extension(ext)
                 await ctx.send(f"{ext} has been unloaded")
-            except:
+            except Exception as e:
                 await ctx.send(f"Failed unloading {ext}")
                 await ctx.send(f"{type(e).__name__}: {e}")
 
-    @commands.command(name="리로드")
+    @commands.command()
     @commands.is_owner()
     async def reload(self, ctx, *extensions):
         for ext in extensions:
             try:
                 self.bot.reload_extension(ext)
                 await ctx.send(f"{ext} has been reloaded")
-            except:
+            except Exception as e:
                 await ctx.send(f"Failed reloading {ext}")
                 await ctx.send(f"{type(e).__name__}: {e}")
 
-    @commands.command(name="종료")
+    @commands.command()
     @commands.is_owner()
-    async def shutdown(self, ctx):
-        print("Shutdown command has been called")
+    async def quit(self, ctx):
+        print("Quit command has been called")
+        self.flags.exitcode = 'quit'
         await ctx.send("장비를 정지합니다")
         await self.bot.logout()
 
-    @commands.command(name="재시작")
+    @commands.command()
     @commands.is_owner()
     async def restart(self, ctx):
         print("Restart command has been called")
-        flags = self.bot.get_cog('flags')
-        flags.restart = True
+        self.flags.exitcode = 'restart'
         await ctx.send("I'll be back")
         await self.bot.logout()
 

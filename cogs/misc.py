@@ -23,7 +23,7 @@ class misc(commands.Cog):
 
     @commands.command(name="여긴어디")
     async def where(self, ctx):
-        if(ctx.guild == None): # DM message
+        if isinstance(ctx.channel, discord.channel.DMChannel):
             await ctx.send("후훗... 여긴... 너와 나 단 둘뿐이야")
             return
         server = ctx.guild.name

@@ -11,7 +11,7 @@ bot = commands.Bot(command_prefix="!", description="Pretty useless bot.")
 class flags(commands.Cog):
     def __init__(self, bot):
         pass
-    exit_opt = None
+    exit_opt = 'unset' # usually when aborted with Ctrl+C
     start_time = 0
 
 bot.add_cog(flags(bot))
@@ -73,7 +73,12 @@ async def uptime(ctx):
 
 # Token & Run
 
-f = open("token.txt", 'r')
+try:
+    f = open("token.txt", 'r')
+except:
+    print("Error: Bot token is required (token.txt missing)")
+    exit(-1)
+    
 token = f.readline()
 f.close()
 
@@ -82,5 +87,5 @@ bot.run(token)
 print("Client terminated")
 
 print(f"Exit option: {flags.exit_opt}")
-exitcode = {'quit':0, 'Ctrl+C':1, 'restart':2, 'update':3}
+exitcode = {'error':-1,'quit':0, 'unset':1, 'restart':2, 'update':3}
 exit(exitcode[flags.exit_opt])

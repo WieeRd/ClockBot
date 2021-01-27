@@ -81,6 +81,7 @@
  + Exitcode : quit, restart, update, Ctrl+C
  + 라즈베리파이를 서버로 쓰기
  + print & ctx.send("```" + txt + "```") 통합 함수
+ + !restart & !update: restore last session
 	
 8. 마인크래프트 서버
  + 밀키웨이크래프트 참고
@@ -111,3 +112,4 @@
  To get the a user from a username ('ZERO') and discriminator ('#6885') use the utility function discord.utils.get (iterable, **attrs).
 
  brief, description -> help command
+ exec : replace current session

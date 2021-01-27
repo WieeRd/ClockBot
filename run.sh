@@ -1,6 +1,21 @@
 #!/bin/bash
 
-python ./main.py
+# cd to directory of script file
+cd "$(dirname -- "${BASH_SOURCE[0]}")"
+
+python='python' # default
+if [ -f 'python.txt' ]; then
+	python=$(cat python.txt)
+fi
+if ! hash $python &> /dev/null; then
+	echo Command not found: $python
+	echo Insert proper python path in python.txt
+	echo Note: aliases do not work inside bash script
+	touch 'python.txt'
+	exit
+fi
+
+$python ./main.py
 exitopt=$?
 yes = | head -n$(($COLUMNS)) | tr -d '\n'
 echo Received exitcode $exitopt

@@ -76,10 +76,10 @@
 
 7. 관리 기능
  + Ping check
+ + Manage extensions
+ + Show joined servers
+ + Exitcode : quit, restart, update, Ctrl+C
  + 라즈베리파이를 서버로 쓰기
- + 원격 재시작, 업데이트(깃허브)
-	- exit() 종료코드로 어떻게 되지 않을까?
-	- ㅇㅇ 될듯
  + print & ctx.send("```" + txt + "```") 통합 함수
 	
 8. 마인크래프트 서버

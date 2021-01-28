@@ -82,6 +82,7 @@
  + 라즈베리파이를 서버로 쓰기
  + print & ctx.send("```" + txt + "```") 통합 함수
  + !restart & !update: restore last session
+ + system command
 	
 8. 마인크래프트 서버
  + 밀키웨이크래프트 참고

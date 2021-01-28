@@ -32,7 +32,7 @@ class misc(commands.Cog):
 
     @commands.command(name="동전")
     async def coin(self, ctx):
-        if(randint(0,1)):
+        if(random.randint(0,1)):
             await ctx.send("앞면")
         else:
             await ctx.send("뒷면")

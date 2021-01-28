@@ -71,6 +71,22 @@ class owner(commands.Cog):
         await ctx.send("업데이트 설치중... [2/999]\n***절대 전원을 끄지 마세요***( ͡° ͜ʖ ͡°)")
         await self.bot.logout()
 
+    @commands.command()
+    @commands.is_owner()
+    async def shutdown(self, ctx):
+        print("Shutdown command has been called")
+        self.flags.exit_opt = 'shutdown'
+        await ctx.send("퇴근이다...!")
+        await self.bot.logout()
+
+    @commands.command()
+    @commands.is_owner()
+    async def reboot(self, ctx):
+        print("Reboot command has been called")
+        self.flags.exit_opt = 'reboot'
+        await ctx.send("잠깐 쉬었다 옵니다...")
+        await self.bot.logout()
+
 
 def setup(bot):
     bot.add_cog(owner(bot))

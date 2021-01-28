@@ -34,4 +34,10 @@ elif [ $exitopt -eq 3 ]; then
 	git pull
 	echo "Restarting..."
 	exec $0
+elif [ $exitopt -eq 4 ]; then
+	echo "Shutdown!"
+	shutdown now
+elif [ $exitopt -eq 5 ]; then
+	echo "Reboot!"
+	reboot
 fi

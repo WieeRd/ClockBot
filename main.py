@@ -87,5 +87,5 @@ bot.run(token)
 print("Client terminated")
 
 print(f"Exit option: {flags.exit_opt}")
-exitcode = {'error':-1,'quit':0, 'unset':1, 'restart':2, 'update':3}
+exitcode = {'error':-1,'quit':0, 'unset':1, 'restart':2, 'update':3, 'shutdown':4, 'reboot':5}
 exit(exitcode[flags.exit_opt])

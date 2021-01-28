@@ -96,6 +96,7 @@
  - user id: 컨버터
  - command description
  - info 카테고리
+ - 상태 표시 변경: 재시작 중, 셧다운 중 등등
 
 !. 메모
  mention: <@!id>

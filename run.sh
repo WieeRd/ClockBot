@@ -31,13 +31,15 @@ elif [ $exitopt -eq 2 ]; then
 	exec $0
 elif [ $exitopt -eq 3 ]; then
 	echo "Updating..."
-	git pull
+	git fetch --all
+	git reset --hard origin/master
 	echo "Restarting..."
 	exec $0
 elif [ $exitopt -eq 4 ]; then
 	echo "Shutdown!"
-	shutdown now
+	/sbin/shutdown now
 elif [ $exitopt -eq 5 ]; then
 	echo "Reboot!"
+	/sbin/reboot
 	reboot
 fi

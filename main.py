@@ -18,7 +18,7 @@ bot.add_cog(flags(bot))
 flags = bot.get_cog('flags')
 
 # Load extensions
-init_exts = ['cogs.chat', 'cogs.misc', 'cogs.owner']
+init_exts = ['cogs.chat', 'cogs.misc', 'cogs.info', 'cogs.owner']
 counter = 0
 print("Loading extensions...")
 for extension in init_exts:
@@ -55,21 +55,10 @@ async def on_command_error(ctx, error):
 # Testing range
 
 @bot.command()
-async def test(ctx, *, arg=":thinking:"):
-    print(arg)
-    await ctx.send("```" + arg + "```")
-
-@bot.command()
-async def ping(ctx):
-    await ctx.send(f"pong! {int(bot.latency*1000)}ms")
-
-@bot.command()
-async def uptime(ctx):
-    uptime = time.time() - flags.start_time
-    hh, rem = divmod(uptime, 3600)
-    mm, ss = divmod(rem, 60)
-    hh, mm, ss = int(hh), int(mm), int(ss)
-    await ctx.send(f"{hh:02d}:{mm:02d}:{ss:02d}")
+async def test(ctx):
+    msg = ctx.message.content
+    print(msg)
+    await ctx.send("```" + msg + "```")
 
 # Token & Run
 

@@ -16,76 +16,63 @@ class owner(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def load(self, ctx, *extensions):
+    async def ext(self, ctx, cmd, *extensions):
         for ext in extensions:
             try:
-                self.bot.load_extension('cogs.'+ext)
-                await ctx.send(f"{ext} has been loaded")
+                getattr(self.bot, cmd+'_extension')('cogs.'+ext)
+                await ctx.send(f"{ext} has been {cmd}ed")
+            except AttributeError:
+                await ctx.send(f"How do I '{cmd}' extension?")
             except Exception as e:
-                await ctx.send(f"Failed loading {ext}")
-                await ctx.send(f"{type(e).__name__}: {e}")
-                
-    @commands.command()
-    @commands.is_owner()
-    async def unload(self, ctx, *extensions):
-        for ext in extensions:
-            try:
-                self.bot.unload_extension('cogs.'+ext)
-                await ctx.send(f"{ext} has been unloaded")
-            except Exception as e:
-                await ctx.send(f"Failed unloading {ext}")
+                await ctx.send(f"Failed {cmd}ing {ext}")
                 await ctx.send(f"{type(e).__name__}: {e}")
 
     @commands.command()
     @commands.is_owner()
-    async def reload(self, ctx, *extensions):
-        for ext in extensions:
-            try:
-                self.bot.reload_extension('cogs.'+ext)
-                await ctx.send(f"{ext} has been reloaded")
-            except Exception as e:
-                await ctx.send(f"Failed reloading {ext}")
-                await ctx.send(f"{type(e).__name__}: {e}")
+    async def bot(self, ctx, cmd):
+        actions = {
+            'quit'   : ["장비를 정지", "장비를 정지합니다"],
+            'restart': ["재시작", "I'll be back"],
+            'update' : ["업데이트", "더 많아진 버그와 함께 돌아오겠습니다^^"],
+        }
+        if cmd in actions:
+            self.flags.exit_opt = cmd
+            await self.bot.change_presence(activity=discord.Game(name=actions[cmd][0]))
+            await ctx.send(actions[cmd][1])
+            await self.bot.logout()
+        else:
+            await ctx.send(f"Bot: unknown command '{cmd}'")
 
     @commands.command()
     @commands.is_owner()
-    async def quit(self, ctx):
-        print("Quit command has been called")
-        self.flags.exit_opt = 'quit'
-        await ctx.send("장비를 정지합니다")
-        await self.bot.logout()
+    async def server(self, ctx, cmd):
+        actions = {
+            'shutdown' : ["퇴근", "퇴근이다 퇴근!"],
+            'reboot'   : ["재부팅", "껐다가 켜면 진짜 고쳐질까?"]
+        }
+        if cmd in actions:
+            self.flags.exit_opt = cmd
+            await self.bot.change_presence(activity=discord.Game(name=actions[cmd][0]))
+            await ctx.send(actions[cmd][1])
+            await self.bot.logout()
+        else:
+            await ctx.send(f"Machine: unknown command '{cmd}'")
 
+    # TODO here
     @commands.command()
     @commands.is_owner()
-    async def restart(self, ctx):
-        print("Restart command has been called")
-        self.flags.exit_opt = 'restart'
-        await ctx.send("I'll be back")
-        await self.bot.logout()
+    async def cmd(self, ctx, *, command):
+        pass
 
-    @commands.command()
-    @commands.is_owner()
-    async def update(self, ctx):
-        print("Update command has been called")
-        self.flags.exit_opt = 'update'
-        await ctx.send("업데이트 설치중... [2/999]\n***절대 전원을 끄지 마세요***( ͡° ͜ʖ ͡°)")
-        await self.bot.logout()
-
-    @commands.command()
-    @commands.is_owner()
-    async def shutdown(self, ctx):
-        print("Shutdown command has been called")
-        self.flags.exit_opt = 'shutdown'
-        await ctx.send("퇴근이다...!")
-        await self.bot.logout()
-
-    @commands.command()
-    @commands.is_owner()
-    async def reboot(self, ctx):
-        print("Reboot command has been called")
-        self.flags.exit_opt = 'reboot'
-        await ctx.send("잠깐 쉬었다 옵니다...")
-        await self.bot.logout()
+# I could use this?
+# def runcommand(cmd):
+# proc = subprocess.Popen(cmd,
+#                         stdout=subprocess.PIPE,
+#                         stderr=subprocess.PIPE,
+#                         shell=True,
+#                         universal_newlines=True)
+# std_out, std_err = proc.communicate()
+# return proc.returncode, std_out, std_err
 
 
 def setup(bot):

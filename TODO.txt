@@ -54,6 +54,7 @@
 
  + 타이머: !타이머 <시간>
  + 스톱워치: 시작 !> 기록 !" 정지 !<
+ + 투표기능
 
  
 3. 게임
@@ -75,14 +76,19 @@
  + 이미지 아스키아트 변환
 
 7. 관리 기능
- + Ping check
- + Manage extensions
  + Show joined servers
  + Exitcode : quit, restart, update, Ctrl+C
  + 라즈베리파이를 서버로 쓰기
  + print & ctx.send("```" + txt + "```") 통합 함수
  + !restart & !update: restore last session
  + system command
+ + ext/bot/machine으로 나누기
+
+8. 정보
+ + Ping
+ + uptime
+ + Temp
+ + Joined servers
 	
 8. 마인크래프트 서버
  + 밀키웨이크래프트 참고

@@ -1,5 +1,6 @@
 token.txt
 python.txt
 __pycache__
+*.tmp
 *.log
 test.*

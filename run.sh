@@ -20,9 +20,7 @@ exitopt=$?
 yes = | head -n$(($COLUMNS)) | tr -d '\n'
 echo Received exitcode $exitopt
 
-if   [ $exitopt -eq -1 ]; then
-	echo "Something's wrong... I can feel it"
-elif [ $exitopt -eq 0 ]; then
+if   [ $exitopt -eq 0 ]; then
 	echo "Good bye"
 elif [ $exitopt -eq 1 ]; then
 	echo "Unexpected shutdown"
@@ -42,4 +40,6 @@ elif [ $exitopt -eq 5 ]; then
 	echo "Reboot!"
 	/sbin/reboot
 	reboot
+else
+	echo "Something's wrong... I can feel it"
 fi

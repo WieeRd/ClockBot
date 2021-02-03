@@ -9,6 +9,10 @@ class info(commands.Cog):
 		self.bot = bot
 		self.flags = bot.get_cog('flags')
 
+	@commands.command(name="초대코드")
+	async def invitation(self, ctx):
+		pass
+
 	@commands.command(name="핑")
 	async def ping(self, ctx):
 	    await ctx.send(f"{int(self.bot.latency*1000)}ms")

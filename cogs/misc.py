@@ -9,7 +9,22 @@ from lib.korean2num import korean2num
 
 #02 Miscellaneous features
 
-num_emoji = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+def txt2emoji(txt):
+    num_names = ["zero","one","two","three","four","five","six","seven","eight","nine"]
+    txt = txt.lower()
+    ret = ""
+    for c in txt:
+        if c.isalpha():
+            ret += f":regional_indicator_{c}:"
+        elif c.isdigit():
+            ret += f":{num_names[int(c)]}:"
+        elif c == ' ':
+            ret += " "*13
+        elif c == '?':
+            ret += ":grey_question:"
+        elif c == '!':
+            ret += ":grey_exclamation:"
+    return ret
 
 class misc(commands.Cog):
     def __init__(self, bot):
@@ -79,25 +94,12 @@ class misc(commands.Cog):
         else:
             await ctx.send("대체 뭘 기대하는 겁니까 휴먼")
     
-    @commands.command(name="크게", aliases=["빼액"])
+    @commands.command(name="빼액")
     async def yell(self, ctx, *, arg=None):
         if(arg == None):
-            await ctx.send("사용법: !소리질러 \"ABC123!?\"")
-            return
-        arg = arg.lower()
-        ret = ""
-        for c in arg:
-            if c.isalpha():
-                ret += f":regional_indicator_{c}:"
-            elif c.isdigit():
-                ret += f":{num_emoji[int(c)]}:"
-            elif c == ' ':
-                ret += " "*13
-            elif c == '?':
-                ret += ":grey_question:"
-            elif c == '!':
-                ret += ":grey_exclamation:"
-        await ctx.send(ret)
+            await ctx.send("사용법: !빼액 \"ABC123!?\"")
+        else:
+            await ctx.send(txt2emoji(arg))
 
     @commands.command(name='수한')
     async def n2kr(self, ctx, val):

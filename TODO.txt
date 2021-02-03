@@ -32,7 +32,6 @@
  - 주사위: !주사위 <숫자>
 	- 글자수제한 이스터에그
  - 시계: !시계 or !닉값
-	- 세부화
  	+ 세계시간(!시계 <도시>) :구글 크롤링
  - 여긴어디: !여긴어디
 	+ DM 이스터에그 얀데레 대사 모으기
@@ -76,23 +75,20 @@
  + 이미지 아스키아트 변환
 
 7. 관리 기능
+ - ext: !ext load/unload/reload "extension"
+ - bot: !bot quit/restart/update
+ - server: !server shutdown/reboot
+ 	+ !restart & !update: restore last session
  + Show joined servers
- + Exitcode : quit, restart, update, Ctrl+C
- + 라즈베리파이를 서버로 쓰기
  + print & ctx.send("```" + txt + "```") 통합 함수
- + !restart & !update: restore last session
  + system command
- + ext/bot/machine으로 나누기
+ + op/deop command
 
 8. 정보
  + Ping
  + uptime
  + Temp
  + Joined servers
-	
-8. 마인크래프트 서버
- + 밀키웨이크래프트 참고
-   : https://www.spigotmc.org/resources/discordsrv.18494/
  
 ?. 기타할일
  - json 라이브러리 사용법
@@ -101,8 +97,6 @@
  - 로그 남기기 : '<~> invoked command !~'
  - user id: 컨버터
  - command description
- - info 카테고리
- - 상태 표시 변경: 재시작 중, 셧다운 중 등등
 
 !. 메모
  mention: <@!id>

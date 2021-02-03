@@ -1,7 +1,21 @@
 import discord
+from discord.ext import commands
 import asyncio
 import os, sys
-from discord.ext import commands
+import subprocess
+
+def run_cmd(cmd, timeout=3):
+    proc = subprocess.Popen(cmd,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT,
+                            shell=True,
+                            universal_newlines=True)
+    try:
+        output = proc.communicate(timeout=timeout)
+        return output[0], proc.returncode
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        return None
 
 # Owner only commands
 class owner(commands.Cog):
@@ -9,10 +23,14 @@ class owner(commands.Cog):
         self.bot = bot
         self.flags = bot.get_cog('flags')
 
-    # @commands.event - not required
-    async def on_command_error(self, ctx, error):
-        if isinstance(error, commands.NotOwner):
-            await ctx.send("에러: WieeRd 전용 커맨드")
+    @commands.Cog.listener(name='on_command_error')
+    async def PermissionDenied(self, ctx, error):
+        # if isinstance(error, commands.NotOwner):
+        #     await ctx.send("당신에겐 그럴 권한이 없습니다 휴먼")
+        # else:
+        try: raise error
+        except commands.errors.NotOwner:
+            await ctx.send("대체 왜 이렇게 해야하는거지??")
 
     @commands.command()
     @commands.is_owner()
@@ -33,7 +51,7 @@ class owner(commands.Cog):
         actions = {
             'quit'   : ["장비를 정지", "장비를 정지합니다"],
             'restart': ["재시작", "I'll be back"],
-            'update' : ["업데이트", "더 많아진 버그와 함께 돌아오겠습니다^^"],
+            'update' : ["업데이트", "더 많아진 버그와 함께 돌아오겠습니다"],
         }
         if cmd in actions:
             self.flags.exit_opt = cmd
@@ -56,23 +74,19 @@ class owner(commands.Cog):
             await ctx.send(actions[cmd][1])
             await self.bot.logout()
         else:
-            await ctx.send(f"Machine: unknown command '{cmd}'")
+            await ctx.send(f"Server: unknown command '{cmd}'")
 
-    # TODO here
-    @commands.command()
-    @commands.is_owner()
-    async def cmd(self, ctx, *, command):
-        pass
+    @commands.Cog.listener(name='on_message')
+    async def terminal(self, msg):
+        if msg.content.startswith('$'):
+            if await self.bot.is_owner(msg.author):
+                print('terminal')
+            else: # Manually trigger 'NotOwner' command error
+                ctx = await self.bot.get_context(msg)
+                error = commands.NotOwner
+                self.bot.dispatch('command_error', ctx, error)
 
-# I could use this?
-# def runcommand(cmd):
-# proc = subprocess.Popen(cmd,
-#                         stdout=subprocess.PIPE,
-#                         stderr=subprocess.PIPE,
-#                         shell=True,
-#                         universal_newlines=True)
-# std_out, std_err = proc.communicate()
-# return proc.returncode, std_out, std_err
+
 
 
 def setup(bot):

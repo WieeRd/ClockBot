@@ -49,8 +49,9 @@ async def on_ready():
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
-        return # Unknown command; just ignore it
-    raise error
+        pass
+    else:
+        raise error
 
 # Testing range
 
@@ -59,6 +60,11 @@ async def test(ctx):
     msg = ctx.message.content
     print(msg)
     await ctx.send("```" + msg + "```")
+
+@bot.command()
+async def echo(ctx, *, txt):
+    if ctx.message.author != bot.user:
+        await ctx.send(txt)
 
 # Token & Run
 

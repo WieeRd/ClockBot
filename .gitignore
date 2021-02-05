@@ -3,4 +3,5 @@ python.txt
 __pycache__
 *.tmp
 *.log
+*.sublime-workspace
 test.*

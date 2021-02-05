@@ -38,7 +38,7 @@ st = strike
 sp = spoiler
 qt = quote
 
-def mdform(txt, *func, **kwargs):
+def mdformat(txt, *func, **kwargs):
 	for f in func:
 		if((f==codeln) and (kwargs['lang']!=None)):
 			txt = f(txt, kwargs['lang'])
@@ -46,4 +46,4 @@ def mdform(txt, *func, **kwargs):
 			txt = f(txt)
 	return txt
 
-# ex) mdform("asdf", bd, it, lang='python')
+# ex) mdformat("asdf", bd, it, lang='python')

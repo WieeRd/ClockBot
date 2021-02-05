@@ -77,18 +77,23 @@
 7. 관리 기능
  - ext: !ext load/unload/reload "extension"
  - bot: !bot quit/restart/update
- - server: !server shutdown/reboot
  	+ !restart & !update: restore last session
+ - server: !server shutdown/reboot
+ 	+ show joined servers
+ - terminal: $command / $n command (n: timeout, 0=unlimited)
+ 	+ $? (show last exitcode)
+ 	+ kill process
+ 	+ log result
  + Show joined servers
  + print & ctx.send("```" + txt + "```") 통합 함수
- + system command
+
  + op/deop command
 
 8. 정보
  + Ping
  + uptime
  + Temp
- + Joined servers
+ + Joined servers count
  
 ?. 기타할일
  - json 라이브러리 사용법
@@ -97,6 +102,7 @@
  - 로그 남기기 : '<~> invoked command !~'
  - user id: 컨버터
  - command description
+ - run.sh 없애고 execl이라든가 파이썬 자체 코드로 대체
 
 !. 메모
  mention: <@!id>

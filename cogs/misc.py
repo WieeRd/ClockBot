@@ -53,7 +53,7 @@ class misc(commands.Cog):
             await ctx.send("뒷면")
 
     @commands.command(name="주사위")
-    async def dice(self, ctx, arg=None):
+    async def dice(self, ctx, *, arg=None):
         if(arg == None):
             await ctx.send("사용법: !주사위 <숫자>")
             return
@@ -75,9 +75,10 @@ class misc(commands.Cog):
             await ctx.send(f">> {random.randint(1,val)}")
     
     @commands.command(name="추첨")
-    async def choose(self, ctx, *argv):
-        argc = len(argv)
-        choice_lst = list()
+    async def choose(self, ctx, *, argv=""):
+        argv = argv.split() # not using *argv due to unclosed quote bug
+        argc = len(argv)    # Side effect: "a b" is 2 different args now
+        choice_lst = list() # Can be solved with regex but I'm scared of regex
         choice_set = set()
 
         if argc==0:

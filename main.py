@@ -62,7 +62,7 @@ async def test(ctx):
     await ctx.send("```" + msg + "```")
 
 @bot.command()
-async def echo(ctx, *, txt):
+async def echo(ctx, *, txt="No arg given"):
     if ctx.message.author != bot.user:
         await ctx.send(txt)
 

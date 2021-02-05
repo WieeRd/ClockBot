@@ -90,9 +90,11 @@
  + op/deop command
 
 8. 정보
- + Ping
- + uptime
- + Temp
+ - Ping
+ - uptime
+ 	+ server/bot uptime
+ - 봇 초대코드 생성
+ + core temp
  + Joined servers count
  
 ?. 기타할일

@@ -11,7 +11,9 @@ class info(commands.Cog):
 
 	@commands.command(name="초대코드")
 	async def invitation(self, ctx):
-		pass
+		app_id = (await self.bot.application_info()).id
+		link = f"https://discord.com/api/oauth2/authorize?client_id={app_id}&permissions=0&scope=bot"
+		await ctx.send(f"다른 서버에 <@!{self.bot.user.id}> 추가하기:\n{link}")
 
 	@commands.command(name="핑")
 	async def ping(self, ctx):

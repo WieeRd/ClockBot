@@ -36,14 +36,14 @@
  - 여긴어디: !여긴어디
 	+ DM 이스터에그 얀데레 대사 모으기
  - 추첨: !추첨 abcd !추첨 A B C D
- 	- 같은 내용만 반복시 투덜대기 : set()
+ 	- 같은 내용만 반복시 투덜대기
  - 크게: !크게 or !빼액
  	-"알파벳/숫자" -> 글자 이모티콘으로 변환
  - 숫자 <-> 한글 변환:
  	- !수한 123
  		+ soft, hard mode: 만이천삼백사십오 vs 1만 2345
 	- !한수 백이십삼
-
+ + 멘션: 집합(차집합, 교집합 등) 멘션
  + 예약: !예약 <시간> "내용" @유저1 @유저2 dm=true
 	- <시간>: (+)hh:mm
 		+ 붙이면 시'간', 없으면 시'각'
@@ -74,7 +74,10 @@
 6. 아스키아트
  + 이미지 아스키아트 변환
 
-7. 관리 기능
+7. 서버 관리 기능
+ + 도배 방지: 연속적으로 같은 메세지 삭제, DM 경고
+
+8. 개발자용 기능
  - ext: !ext load/unload/reload "extension"
  - bot: !bot quit/restart/update
  	+ !restart & !update: restore last session
@@ -85,7 +88,6 @@
  	+ kill process
  	+ log result
  + Show joined servers
- + print & ctx.send("```" + txt + "```") 통합 함수
 
  + op/deop command
 

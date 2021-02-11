@@ -72,6 +72,10 @@ class owner(commands.Cog):
             await self.bot.change_presence(activity=discord.Game(name=actions[cmd][0]))
             await ctx.send(actions[cmd][1])
             await self.bot.logout()
+        elif cmd=='list':
+            servers = '\n'.join([s.name for s in list(self.bot.guilds)])
+            await ctx.send(f"Connected to {len(self.bot.guilds)} servers:")
+            await ctx.send(f"```{servers}```")
         else:
             await ctx.send(f"```Server: unknown command '{cmd}'```")
 

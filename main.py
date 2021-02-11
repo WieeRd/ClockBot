@@ -69,13 +69,11 @@ async def echo(ctx, *, txt="No arg given"):
 # Token & Run
 
 try:
-    f = open("token.txt", 'r')
+    with open("token.txt", 'r') as f:
+        token = f.readline()
 except:
     print("Error: Bot token is required (token.txt missing)")
     exit(-1)
-    
-token = f.readline()
-f.close()
 
 print("Launching client...")
 bot.run(token)

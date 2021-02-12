@@ -1,28 +1,28 @@
 @echo off
 pushd %~dp0
 
-main.py
+python main.py
 set exitopt=%ERRORLEVEL%
-echo "Received exitcode %exitopt%"
+echo Received exitcode %exitopt%
 
 if %exitopt% EQU 0 (
-	echo "Good bye"
+	echo Good bye
 ) else if %exitopt% EQU 1 (
-	echo "Unexpected shutdown"
+	echo Unexpected shutdown
 ) else if %exitopt% EQU 2 (
-	echo "Restarting..."
-	start main.py
+	echo Restarting...
+	start run.bat
 ) else if %exitopt% EQU 3 (
-	echo "Updating..."
+	echo Updating...
 	git fetch --all
 	git reset --hard origin/master
-	echo "Restarting..."
-	start main.py
+	echo Restarting...
+	start run.bat
 ) else if %exitopt% EQU 4 (
-	echo "Shutdown!"
+	echo Shutdown!
 	shutdown -s -t 0
 ) else if %exitopt% EQU 5 (
-	echo "Reboot!"
+	echo Reboot!
 	shutdown -r -t 0
 ) else (
 	echo "Something's wrong... I can feel it"
@@ -30,3 +30,4 @@ if %exitopt% EQU 0 (
 
 popd
 @echo on
+exit

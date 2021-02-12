@@ -4,8 +4,8 @@ import time
 import random
 from discord.ext import commands
 
-from lib.num2korean import num2korean
-from lib.korean2num import korean2num
+from lib.num2kr import num2kr
+from lib.kr2num import kr2num
 
 #02 Miscellaneous features
 
@@ -102,22 +102,22 @@ class misc(commands.Cog):
         else:
             await ctx.send(txt2emoji(arg))
 
-    @commands.command(name='수한')
-    async def n2kr(self, ctx, val):
-        num = 0;
+    @commands.command(name='한글로')
+    async def n2kr(self, ctx, val=None, mode='0'):
         try:
             num = int(val)
-        except ValueError:
-            await ctx.send("사용법: !수한 <정수>")
+            mode = int(mode)
+        except:
+            await ctx.send("사용법: !한글로 <정수> <모드(0/1)>")
             return
-        await ctx.send(f"{num2korean(num)}")
+        await ctx.send(f"{num2kr(num, mode)}")
 
-    @commands.command(name='한수')
+    @commands.command(name='숫자로')
     async def kr2n(self, ctx, kr_str=None):
         if(kr_str==None):
-            await ctx.send("사용법: !한수 <한국어 숫자>")
+            await ctx.send("사용법: !숫자로 <한글 숫자>")
             return
-        await ctx.send(f"{korean2num(kr_str)}")
+        await ctx.send(f"{kr2num(kr_str)}")
 
 
 def setup(bot):

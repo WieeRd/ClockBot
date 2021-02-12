@@ -79,7 +79,7 @@ class misc(commands.Cog):
         argv = argv.split() # not using *argv due to unclosed quote bug
         argc = len(argv)    # Side effect: "a b" is 2 different args now
         choice_lst = list() # Can be solved with regex but I'm scared of regex
-        choice_set = set()
+        choice_set = set()  # I think I'll just leave it this way
 
         if argc==0:
             await ctx.send("사용법: !추첨 abc or !추첨 a b c")
@@ -107,10 +107,16 @@ class misc(commands.Cog):
         try:
             num = int(val)
             mode = int(mode)
-        except:
+        except (ValueError, TypeError):
             await ctx.send("사용법: !한글로 <정수> <모드(0/1)>")
             return
-        await ctx.send(f"{num2kr(num, mode)}")
+        try:
+            kr_str = num2kr(num, mode)
+        except ValueError:
+            await ctx.send("아 몰라 때려쳐") # change to gif
+            return
+        await ctx.send(kr_str)
+
 
     @commands.command(name='숫자로')
     async def kr2n(self, ctx, kr_str=None):

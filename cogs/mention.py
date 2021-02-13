@@ -3,30 +3,32 @@ import asyncio
 import shlex
 from discord.ext import commands
 
+def parse_target(self, guild : discord.Guild, token : str):
+    if   token[0]=='"': # "role"
+        pass
+    elif token[0]=="'": # 'user'
+        pass
+    elif token[0]=="`": # `userid`
+        pass
+    else: # wtf
+        pass
+
 class mention(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def parse_token(self, guild : discord.Guild, token : str):
-    	ret = None
-		if token[0]=='"': # "role"
-			ret = discord.utils.get(guild.roles, name=token[1:-1])
-			if ret==None: # No exact match
-				ret = discord.utils.find(lambda r: token[1:-1] in r.name, guild.roles)
-			# maybe even unicode normalize search?
-		elif token[0]=="'": # 'user'
-			ret = guild.get_member_named(token[1:-1])
-		else: # wtf
-			pass
-
     @commands.command(name="멘션")
     async def mention(self, ctx, *, args=None):
-    	if args==None:
-    		return
-    	lexer = shlex.shlex(args)
-		lexer.quotes += '`'
-		target = set()
-		for token in lexer:
+        if args==None:
+            return
+        lexer = shlex.shlex(args)
+        lexer.quotes += '`'
+        tokens = []
+        try:
+            for t in lexer:
+                tokens.append(t)
+        except ValueError:
+            pass
 
 def setup(bot):
     bot.add_cog(mention(bot))

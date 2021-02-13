@@ -3,9 +3,12 @@ import asyncio
 import time
 import os, sys, traceback
 from discord.ext import commands
-
 launch_time = time.time()
-bot = commands.Bot(command_prefix="!", description="Pretty useless bot.")
+
+intents = discord.Intents.default()
+intents.members = True # requires privileged member intent
+
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Empty Cog used as 'flag' global variable
 class flags(commands.Cog):
@@ -41,6 +44,7 @@ async def on_disconnect():
 @bot.event
 async def on_ready():
     await bot.change_presence(activity=discord.Game(name="인생낭비"))
+    print(f"Connected to {len(bot.guilds)} servers and {len(bot.users)} users")
     print(f"{bot.user.name} is now online")
     flags.start_time = time.time()
     load_time = (flags.start_time - launch_time)*1000
@@ -49,7 +53,7 @@ async def on_ready():
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
-        pass
+        return
     else:
         raise error
 

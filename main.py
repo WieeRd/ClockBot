@@ -5,9 +5,7 @@ import os, sys, traceback
 from discord.ext import commands
 launch_time = time.time()
 
-intents = discord.Intents.default()
-intents.members = True # requires privileged member intent
-
+intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Empty Cog used as 'flag' global variable

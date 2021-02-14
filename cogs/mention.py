@@ -2,6 +2,7 @@ import discord
 import asyncio
 import shlex
 from discord.ext import commands
+from typing import Iterable, Callable
 
 def bestmatch(key:str, doors:Iterable, lock:Callable = lambda x:x):
     # Some psychos put emojis in role/username
@@ -64,14 +65,14 @@ class mention(commands.Cog):
     @commands.command()
     async def mention(self, ctx, *, args=None):
         if args==None:
-        	await ctx.send("사용법: 아직 나도 몰라")
-        	return
+            await ctx.send("사용법: 아직 나도 몰라")
+            return
         tokens = split_tokens(args)
         await ctx.send(f"Tokens: {tokens}")
         for t in tokens:
-        	await ctx.send(f"Parsing token {t[1:-1]}")
-        	target = get_target(t, ctx.guild)
-        	await ctx.send(repr([m.name for m in target]))
+            await ctx.send(f"Parsing token {t[1:-1]}")
+            target = get_target(t, ctx.guild)
+            await ctx.send(repr([m.name for m in target]))
 
 def setup(bot):
     bot.add_cog(mention(bot))

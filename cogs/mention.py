@@ -42,48 +42,50 @@ def get_target(token: str, guild: discord.Guild) -> Set[discord.Member]:
             if role!=None:
                 return set(role.members)
             else:
-                raise ValueError(f"Role '{name}' was not found")
+                raise LookupError(f"Role '{name}' was not found", "role", token)
     elif quote=="'":
         get_nick = lambda m: m.nick if m.nick!=None else m.name
         user = bestmatch(name, guild.members, get_nick)
         if user!=None:
             return {user}
         else:
-            raise ValueError(f"User '{name}' was not found")
+            raise LookupError(f"User '{name}' was not found", "user", token)
     elif quote=="`":
         user = guild.get_member_named(name)
         if user!=None:
             return {user}
         else:
-            raise ValueError(f"User '{name}' was not found")
+            raise LookupError(f"User '{name}' was not found", "user", token)
     else:
-        raise TypeError(f"Expected target token (received {token})")
+        raise TypeError(f"Expected target token (received {token})", token)
 
 def parse_tokens(tokens: List[str], guild: discord.Guild) -> Set[discord.Member]:
     ret: Set[discord.Member] = set()
     index = 0
     operator = '+'
     while index<len(tokens):
-        print(f"parse_tokens: reading token {tokens[index]}")
         target = get_target(tokens[index], guild)
         print([m.name for m in target])
         if   operator=='+': ret |= target
         elif operator=='-': ret -= target
         elif operator=='&': ret &= target
         elif operator=='^': ret ^= target
-        else: raise ValueError(f"Expected operator token (received '{operator}')") 
-        try:
-            operator = tokens[index+1]
-        except:
-            break
-        index += 2
         print("parse_token: ret is now" + repr([m.name for m in ret]))
+
+        try: operator = tokens[index+1]
+        except IndexError: break
+        if operator not in ['+', '-', '&', '^']:
+            raise TypeError(f"Expected operator token (received '{operator}')", operator) 
+        index += 2
     return ret
 
 def parse_expression(expression: str, guild: discord.Guild) -> Set[discord.Member]:
     lexer = shlex.shlex(expression)
     lexer.quotes += '`'
-    tokens = [t for t in lexer] # can raise ValueError
+    try:
+        tokens = [t for t in lexer]
+    except ValueError:
+        raise SyntaxError("Unclosed quote")
     print(f"parse_expression: tokens: {tokens}")
     return parse_tokens(tokens, guild)
 
@@ -96,9 +98,13 @@ class mention(commands.Cog):
         if expression==None:
             await ctx.send("사용법: 아직 나도 몰라")
             return
-        target = parse_expression(expression, ctx.guild)
-        msg = ' '.join([m.name for m in target])
-        await ctx.send(msg)
+        try:
+            target = parse_expression(expression, ctx.guild)
+        except Exception as e:
+            await ctx.send(f"```{type(e).__name__}: {e.args[0]}```")
+            return
+        msg = ' '.join([m.mention for m in target])
+        await ctx.send(msg, allowed_mentions=discord.AllowedMentions.none())
 
 def setup(bot):
     bot.add_cog(mention(bot))

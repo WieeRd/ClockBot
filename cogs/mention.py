@@ -57,7 +57,7 @@ def get_target(token: str, guild: discord.Guild) -> Set[discord.Member]:
         else:
             raise LookupError(f"User '{name}' was not found", "user", token)
     else:
-        raise TypeError(f"Expected target token (received {token})", token)
+        raise TypeError(f"Expected target token (received {token})", "target", token)
 
 def list_rindex(li, x):
     for i in reversed(range(len(li))):
@@ -77,7 +77,7 @@ def parse_tokens(tokens: List[str], guild: discord.Guild) -> Set[discord.Member]
         elif tokens[index]=='(':
             rindex = list_rindex(tokens, ')')
             if index>rindex or rindex==-1:
-                raise SyntaxError("Unclosed parentheses")
+                raise SyntaxError("Unclosed parentheses", "(")
             target = parse_tokens(tokens[index+1:rindex], guild)
             index = rindex + 1
         else:
@@ -95,7 +95,7 @@ def parse_tokens(tokens: List[str], guild: discord.Guild) -> Set[discord.Member]
         try: operator = tokens[index+1]
         except IndexError: break
         if operator not in ['+', '-', '&', '^']:
-            raise TypeError(f"Expected operator token (received '{operator}')", operator) 
+            raise TypeError(f"Expected operator token (received '{operator}')", "operator", operator) 
         index += 2
     return ret
 
@@ -105,9 +105,13 @@ def parse_expression(expression: str, guild: discord.Guild) -> Set[discord.Membe
     try:
         tokens = [t for t in lexer]
     except ValueError:
-        raise SyntaxError("Unclosed quote")
+        raise SyntaxError("Unclosed quote", "'")
     print(f"parse_expression: tokens: {tokens}")
     return parse_tokens(tokens, guild)
+
+# SyntaxError on unclosed quote/parentheses (msg, unclosed_type)
+# TypeError on invalid token                (msg, expected_type, token)
+# LookupError if user/role is not found     (msg, searched_type, name)
 
 class mention(commands.Cog):
     def __init__(self, bot):
@@ -135,14 +139,3 @@ def setup(bot):
 
 def teardown(bot):
     print(f"{__name__} has been unloaded")
-
-# discord.utils.get(guild.roles,name="role_name")
-# Guild.get_member_named
-
-# syntax requirement
-
-# object: role, user, user#0000
-# "role" 'user' `userid`
-
-# operator: parentheses, not, and, or, except
-# () ! & + -

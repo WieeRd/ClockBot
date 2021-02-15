@@ -4,6 +4,7 @@ import time
 import os, sys, traceback
 from discord.ext import commands
 launch_time = time.time()
+print(f"Started {time.ctime(launch_time)}")
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)

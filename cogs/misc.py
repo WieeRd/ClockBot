@@ -3,9 +3,7 @@ import asyncio
 import time
 import random
 from discord.ext import commands
-
-from lib.num2kr import num2kr
-from lib.kr2num import kr2num
+from lib.KoreanNumber import num2kr, kr2num
 
 #02 Miscellaneous features
 
@@ -111,7 +109,7 @@ class misc(commands.Cog):
             await ctx.send("사용법: !한글로 <정수> <모드(0/1)>")
             return
         try:
-            kr_str = num2kr(num, mode)
+            kr_str = num2kr.num2kr(num, mode)
         except ValueError:
             await ctx.send("아 몰라 때려쳐") # change to gif
             return
@@ -123,7 +121,7 @@ class misc(commands.Cog):
         if(kr_str==None):
             await ctx.send("사용법: !숫자로 <한글 숫자>")
             return
-        await ctx.send(f"{kr2num(kr_str)}")
+        await ctx.send(f"{kr2num.kr2num(kr_str)}")
 
 
 def setup(bot):

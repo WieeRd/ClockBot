@@ -19,7 +19,7 @@ bot.add_cog(flags(bot))
 flags = bot.get_cog('flags')
 
 # Load extensions
-init_exts = ['cogs.chat', 'cogs.misc', 'cogs.info', 'cogs.owner']
+init_exts = ['cogs.chat', 'cogs.misc', 'cogs.info', 'cogs.mention', 'cogs.owner']
 counter = 0
 print("Loading extensions...")
 for extension in init_exts:

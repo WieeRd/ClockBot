@@ -59,12 +59,32 @@ def get_target(token: str, guild: discord.Guild) -> Set[discord.Member]:
     else:
         raise TypeError(f"Expected target token (received {token})", token)
 
+def list_rindex(li, x):
+    for i in reversed(range(len(li))):
+        if li[i] == x: return i
+    return -1
+
 def parse_tokens(tokens: List[str], guild: discord.Guild) -> Set[discord.Member]:
     ret: Set[discord.Member] = set()
     index = 0
     operator = '+'
+    inverse = False
     while index<len(tokens):
-        target = get_target(tokens[index], guild)
+        if tokens[index]=='!':
+            inverse = not inverse
+            index += 1
+            continue
+        elif tokens[index]=='(':
+            rindex = list_rindex(tokens, ')')
+            if index>rindex or rindex==-1:
+                raise SyntaxError("Unclosed parentheses")
+            target = parse_tokens(tokens[index+1:rindex], guild)
+            index = rindex + 1
+        else:
+            target = get_target(tokens[index], guild)
+        if inverse:
+            target = set(guild.members) - target
+            inverse = False
         print([m.name for m in target])
         if   operator=='+': ret |= target
         elif operator=='-': ret -= target
@@ -103,8 +123,11 @@ class mention(commands.Cog):
         except Exception as e:
             await ctx.send(f"```{type(e).__name__}: {e.args[0]}```")
             return
-        msg = ' '.join([m.mention for m in target])
-        await ctx.send(msg, allowed_mentions=discord.AllowedMentions.none())
+        if len(target)>0:
+            msg = ' '.join([m.mention for m in target])
+            await ctx.send(msg, allowed_mentions=discord.AllowedMentions.none())
+        else:
+            await ctx.send("조건에 일치하는 유저가 없습니다")
 
 def setup(bot):
     bot.add_cog(mention(bot))

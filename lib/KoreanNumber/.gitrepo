@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:WieeRd/KoreanNumber.git
+	branch = master
+	commit = c3c6c1a09471db4c6157b6025cf69a0906cc7f4a
+	parent = f5bc667335892b9eafee789356914a73a6917f66
+	method = merge
+	cmdver = 0.4.3

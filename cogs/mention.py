@@ -11,12 +11,12 @@ def bestmatch(key:str, doors:Iterable, lock:Callable = lambda x:x) -> Any:
     # find exact or best match of string
     candidates = []
     for door in doors:
-        if key==lock(door):
-            # return exact match
-            return door
-        elif (index := lock(door).find(key)) != -1:
-            # save partial matches
-            candidates.append((index, door))
+        index = lock(door).find(key)
+        if index != -1:
+            if len(key)==len(lock(door)): # return exact match
+                return door
+            else: # save partial matches
+                candidates.append((index, door))
     if len(candidates)>0:
         # if key is "clock",
         # door "clockbot" is selected over "overclock"

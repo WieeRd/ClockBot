@@ -46,7 +46,7 @@ class owner(commands.Cog):
     @commands.is_owner()
     async def bot(self, ctx, cmd):
         actions = {
-            'quit'   : ["장비를 정지", "장비를 정지합니다"],
+            'quit'   : ["퇴근", "퇴근이다 퇴근!"],
             'restart': ["재시작", "I'll be back"],
             'update' : ["업데이트", "더 많아진 버그와 함께 돌아오겠습니다"],
         }
@@ -63,7 +63,7 @@ class owner(commands.Cog):
     @commands.is_owner()
     async def server(self, ctx, cmd):
         actions = {
-            'shutdown' : ["퇴근", "퇴근이다 퇴근!"],
+            'shutdown' : ["장비를 정지", "장비를 정지합니다"],
             'reboot'   : ["재부팅", "껐다 켜면 진짜 고쳐질까?"]
         }
         if cmd in actions:

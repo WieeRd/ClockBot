@@ -1,7 +1,20 @@
+"""
+Receives filter expression and returns matching set() of discord.Member
+MemberFilter.parse(expression: str, guild: discord.Guild)
+"""
+
+# <Syntax>
+# target object: "role" 'nickname' `user#0000`
+# operator: + - & ^ ! ()
+
+# <Exception>
+# SyntaxError on unclosed quote/parentheses (msg, unclosed_type)
+# TypeError on invalid token                (msg, expected_type, token)
+# LookupError if user/role is not found     (msg, searched_type, name)
+
 import discord
 import asyncio
 import shlex
-from discord.ext import commands
 from typing import *
 
 def bestmatch(key:str, doors:Iterable, lock:Callable = lambda x:x) -> Any:
@@ -28,7 +41,6 @@ def bestmatch(key:str, doors:Iterable, lock:Callable = lambda x:x) -> Any:
 def get_target(token: str, guild: discord.Guild) -> Set[discord.Member]:
     # Receives token str "rolename" 'nickname' `user#0000`
     # and returns set of matching member objects
-    print(f"get_target: parsing token {token}")
     name = token[1:-1]
     quote = token[0]
     if quote=='"':
@@ -77,20 +89,19 @@ def parse_tokens(tokens: List[str], guild: discord.Guild) -> Set[discord.Member]
         elif tokens[index]=='(':
             rindex = list_rindex(tokens, ')')
             if index>rindex or rindex==-1:
-                raise SyntaxError("Unclosed parentheses", "(")
+                raise SyntaxError("Unclosed parentheses", '(')
             target = parse_tokens(tokens[index+1:rindex], guild)
             index = rindex + 1
         else:
             target = get_target(tokens[index], guild)
+
         if inverse:
             target = set(guild.members) - target
             inverse = False
-        print([m.name for m in target])
         if   operator=='+': ret |= target
         elif operator=='-': ret -= target
         elif operator=='&': ret &= target
         elif operator=='^': ret ^= target
-        print("parse_token: ret is now" + repr([m.name for m in ret]))
 
         try: operator = tokens[index+1]
         except IndexError: break
@@ -99,43 +110,11 @@ def parse_tokens(tokens: List[str], guild: discord.Guild) -> Set[discord.Member]
         index += 2
     return ret
 
-def parse_expression(expression: str, guild: discord.Guild) -> Set[discord.Member]:
+def parse(expression: str, guild: discord.Guild) -> Set[discord.Member]:
     lexer = shlex.shlex(expression)
     lexer.quotes += '`'
     try:
         tokens = [t for t in lexer]
     except ValueError:
-        raise SyntaxError("Unclosed quote", "'")
-    print(f"parse_expression: tokens: {tokens}")
+        raise SyntaxError("Unclosed quote", '"')
     return parse_tokens(tokens, guild)
-
-# SyntaxError on unclosed quote/parentheses (msg, unclosed_type)
-# TypeError on invalid token                (msg, expected_type, token)
-# LookupError if user/role is not found     (msg, searched_type, name)
-
-class mention(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
-    @commands.command()
-    async def mention(self, ctx, *, expression=None):
-        if expression==None:
-            await ctx.send("사용법: 아직 나도 몰라")
-            return
-        try:
-            target = parse_expression(expression, ctx.guild)
-        except Exception as e:
-            await ctx.send(f"```{type(e).__name__}: {e.args[0]}```")
-            return
-        if len(target)>0:
-            msg = ' '.join([m.mention for m in target])
-            await ctx.send(msg, allowed_mentions=discord.AllowedMentions.none())
-        else:
-            await ctx.send("조건에 일치하는 유저가 없습니다")
-
-def setup(bot):
-    bot.add_cog(mention(bot))
-    print(f"{__name__} has been loaded")
-
-def teardown(bot):
-    print(f"{__name__} has been unloaded")

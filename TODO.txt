@@ -22,16 +22,18 @@
    - 집합 연산자: + - & ^ (합집합, 차집합, 교집합, 대칭차집합)
    - 우선순위 연산자 ()
    - ("everyone" - A) = !A
+   + "no role"
+   + '>' operator (role hierarchy)
 
  + 포탈
    - 서버간 채팅
    - DM 랜덤채팅
+   - 포탈좌표: 채널 id (16진수)
 
  + 챗봇
    - 이름: 녹시(녹슨시계)
    - 말투: 휴먼체
    - 유저들이 학습
-
 
 * 음성인식
  - 녹시야 자폭해 (나가기)
@@ -53,9 +55,8 @@
  	-"알파벳/숫자" -> 글자 이모티콘으로 변환
  - 숫자 <-> 한글 변환:
  	- !수한 123
- 		+ soft, hard mode: 만이천삼백사십오 vs 1만 2345
+ 		- soft, hard mode: 만이천삼백사십오 vs 1만 2345
 	- !한수 백이십삼
- + 멘션: 집합(차집합, 교집합 등) 멘션
  + 예약: !예약 <시간> "내용" @유저1 @유저2 dm=true
 	- <시간>: (+)hh:mm
 		+ 붙이면 시'간', 없으면 시'각'
@@ -94,13 +95,11 @@
  - bot: !bot quit/restart/update
  	+ !restart & !update: restore last session
  - server: !server shutdown/reboot
- 	+ show joined servers
+ 	- show joined servers
  - terminal: $command / $n command (n: timeout, 0=unlimited)
  	+ $? (show last exitcode)
  	+ kill process
  	+ log result
- + Show joined servers
-
  + op/deop command
 
 8. 정보
@@ -119,7 +118,6 @@
  - command description
 
 !. 메모
- 
  git ls-remote -q // remote commit hash
  git rev-parse HEAD // local commit hash
  git rev-list hash1...hash2 | wc -l

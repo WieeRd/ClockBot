@@ -16,10 +16,22 @@
 - Feature
 + TODO
 
-1. + 챗봇
- - 이름: 녹시
- - 말투: 휴먼체
- - 유저들이 학습
+1. 채팅 관련
+ - 심화 멘션(Advanced mention)
+   - 타깃: "역할" '닉네임' `user#0000`
+   - 집합 연산자: + - & ^ (합집합, 차집합, 교집합, 대칭차집합)
+   - 우선순위 연산자 ()
+   - ("everyone" - A) = !A
+
+ + 포탈
+   - 서버간 채팅
+   - DM 랜덤채팅
+
+ + 챗봇
+   - 이름: 녹시(녹슨시계)
+   - 말투: 휴먼체
+   - 유저들이 학습
+
 
 * 음성인식
  - 녹시야 자폭해 (나가기)
@@ -104,14 +116,9 @@
  - 끝말잇기 봇 연구
  - 음성인식 봇 연구
  - 로그 남기기 : '<~> invoked command !~'
- - user id: 컨버터
  - command description
- - run.sh 없애고 execl이라든가 파이썬 자체 코드로 대체
 
 !. 메모
- mention: <@!id>
- channel: <#id>
- role: <@&id>
  
  git ls-remote -q // remote commit hash
  git rev-parse HEAD // local commit hash
@@ -119,9 +126,4 @@
  windows 'wc -l' equivalent : find /c /v ""
  actually I can just use --count
 
- To get a user object from their ID, you need Client.get_user_info (id).
- fetch_user(), get_user() maybe?
- To get the a user from a username ('ZERO') and discriminator ('#6885') use the utility function discord.utils.get (iterable, **attrs).
-
  brief, description -> help command
- exec : replace current session

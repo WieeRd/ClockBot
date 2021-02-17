@@ -73,8 +73,9 @@ class owner(commands.Cog):
             await ctx.send(actions[cmd][1])
             await self.bot.logout()
         elif cmd=='list':
-            servers = '\n'.join([s.name for s in list(self.bot.guilds)])
-            await ctx.send(f"Connected to {len(self.bot.guilds)} servers:")
+            info = f"Connected to {len(self.bot.guilds)} servers and {len(self.bot.users)} users"
+            servers = '\n'.join([f"{s.name} : {s.member_count}" for s in list(self.bot.guilds)])
+            await ctx.send(info)
             await ctx.send(f"```{servers}```")
         else:
             await ctx.send(f"```Server: unknown command '{cmd}'```")

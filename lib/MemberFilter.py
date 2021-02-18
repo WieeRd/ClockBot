@@ -86,6 +86,7 @@ def parse_tokens(tokens: List[str], guild: discord.Guild) -> Set[discord.Member]
             inverse = not inverse
             index += 1
             continue
+        # TODO: FATAL ERROR - (()) works, () () fails
         elif tokens[index]=='(':
             rindex = list_rindex(tokens, ')')
             if index>rindex or rindex==-1:

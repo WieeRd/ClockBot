@@ -22,6 +22,8 @@ def bestmatch(key:str, doors:Iterable, lock:Callable = lambda x:x) -> Any:
     # Making it hard to type exact name
     # So I had to make this thing
     # find exact or best match of string
+    if key=="":
+        return None
     candidates = []
     for door in doors:
         index = lock(door).find(key)

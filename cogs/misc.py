@@ -70,7 +70,10 @@ class misc(commands.Cog):
             await ctx.send("!동전")
             await self.coin(ctx)
         else:
-            await ctx.send(f">> {random.randint(1,val)}")
+            msg = f">> {random.randint(1,val)}"
+            if set(arg)=={'2'}:
+                msg = msg + '\n' + msg
+            await ctx.send(msg)
     
     @commands.command(name="추첨")
     async def choose(self, ctx, *, argv=""):

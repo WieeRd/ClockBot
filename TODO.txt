@@ -26,6 +26,8 @@
    + '>' operator (role hierarchy)
    + DM멘션
 
+ + 대나무숲
+
  + 포탈
    - 서버간 채팅
    - DM 랜덤채팅
@@ -45,25 +47,26 @@
 
 2. 편의기능
  - 주사위: !주사위 <숫자>
-	- 글자수제한 이스터에그
+   - 글자수제한 이스터에그
+   - 2만 있으면 2번 출력하기
  - 시계: !시계 or !닉값
- 	+ 세계시간(!시계 <도시>) :구글 크롤링
+   + 세계시간(!시계 <도시>) :구글 크롤링
  - 여긴어디: !여긴어디
-	+ DM 이스터에그 얀데레 대사 모으기
+   + DM 이스터에그 얀데레 대사 모으기
  - 추첨: !추첨 abcd !추첨 A B C D
- 	- 같은 내용만 반복시 투덜대기
+   - 같은 내용만 반복시 투덜대기
  - 크게: !크게 or !빼액
- 	-"알파벳/숫자" -> 글자 이모티콘으로 변환
+   -"알파벳/숫자" -> 글자 이모티콘으로 변환
  - 숫자 <-> 한글 변환:
- 	- !수한 123
- 		- soft, hard mode: 만이천삼백사십오 vs 1만 2345
-	- !한수 백이십삼
+   - !수한 123
+      - soft, hard mode: 만이천삼백사십오 vs 1만 2345
+   - !한수 백이십삼
  + 예약: !예약 <시간> "내용" @유저1 @유저2 dm=true
-	- <시간>: (+)hh:mm
-		+ 붙이면 시'간', 없으면 시'각'
-	- !예약취소
-	- !예약정보 : '@유저'에서 '@' 제거 or 서버 내 닉네임으로 대체
-	- json 저장, 봇 재부팅 후에도 유지
+   - <시간>: (+)hh:mm
+      + 붙이면 시'간', 없으면 시'각'
+   - !예약취소
+   - !예약정보 : '@유저'에서 '@' 제거 or 서버 내 닉네임으로 대체
+   - json 저장, 봇 재부팅 후에도 유지
 
  + 타이머: !타이머 <시간>
  + 스톱워치: 시작 !> 기록 !" 정지 !<
@@ -72,10 +75,10 @@
  
 3. 게임
  + 끝말잇기: 서바이벌 매치
-	- 일정 체력(시간)을 가지고 시작
-	- 자기 턴이 오면 체력 소모
-	- 글자수에 비례해 체력 회복
-	- 이벤트: 순우리말 only 등등
+   - 일정 체력(시간)을 가지고 시작
+   - 자기 턴이 오면 체력 소모
+   - 글자수에 비례해 체력 회복
+   - 이벤트: 순우리말 only 등등
  + 오목
  
 4. 수식처리
@@ -94,19 +97,19 @@
 8. 개발자용 기능
  - ext: !ext load/unload/reload "extension"
  - bot: !bot quit/restart/update
- 	+ !restart & !update: restore last session
+   + !restart & !update: restore last session
  - server: !server shutdown/reboot
- 	- show joined servers
+   - show joined servers
  - terminal: $command / $n command (n: timeout, 0=unlimited)
- 	+ $? (show last exitcode)
- 	+ kill process
- 	+ log result
+   + $? (show last exitcode)
+   + kill process
+   + log result
  + op/deop command
 
 8. 정보
  - Ping
  - uptime
- 	+ server/bot uptime
+   + server/bot uptime
  - 봇 초대코드 생성
  + core temp
  + Joined servers count

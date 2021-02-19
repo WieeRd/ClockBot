@@ -24,6 +24,7 @@
    - ("everyone" - A) = !A
    + "no role"
    + '>' operator (role hierarchy)
+   + DM멘션
 
  + 포탈
    - 서버간 채팅

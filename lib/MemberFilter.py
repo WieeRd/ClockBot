@@ -79,6 +79,7 @@ def list_rindex(li, x):
     return -1
 
 def parse_tokens(tokens: List[str], guild: discord.Guild) -> Set[discord.Member]:
+    print(f"Received tokens: {tokens}")
     ret: Set[discord.Member] = set()
     index = 0
     operator = '+'
@@ -88,13 +89,19 @@ def parse_tokens(tokens: List[str], guild: discord.Guild) -> Set[discord.Member]
             inverse = not inverse
             index += 1
             continue
-        # TODO: FATAL ERROR - (()) works, () () fails
         elif tokens[index]=='(':
-            rindex = list_rindex(tokens, ')')
-            if index>rindex or rindex==-1:
-                raise SyntaxError("Unclosed parentheses", '(')
+            rindex = index
+            count = 1
+            while count!=0:
+                rindex += 1
+                if rindex==len(tokens):
+                    raise SyntaxError("Unclosed parentheses", '(')
+                elif tokens[rindex]=='(':
+                    count += 1
+                elif tokens[rindex]==')':
+                    count -= 1
             target = parse_tokens(tokens[index+1:rindex], guild)
-            index = rindex + 1
+            index = rindex
         else:
             target = get_target(tokens[index], guild)
 

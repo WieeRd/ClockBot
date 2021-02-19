@@ -3,7 +3,7 @@ import asyncio
 from discord.ext import commands
 import lib.MemberFilter as MemberFilter
 
-class chat(commands.Cog):
+class mention(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -48,7 +48,7 @@ class chat(commands.Cog):
             await ctx.send("조건에 일치하는 유저가 없습니다")
 
 def setup(bot):
-    bot.add_cog(chat(bot))
+    bot.add_cog(mention(bot))
     print(f"{__name__} has been loaded")
 
 def teardown(bot):

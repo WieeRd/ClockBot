@@ -4,8 +4,6 @@ import asyncio
 import os, sys
 import subprocess
 
-from lib.mdformat import mdformat as md
-
 def run_cmd(cmd, timeout=None):
     proc = subprocess.Popen(cmd,
                             stdout=subprocess.PIPE,

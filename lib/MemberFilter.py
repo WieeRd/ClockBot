@@ -58,8 +58,7 @@ def get_target(token: str, guild: discord.Guild) -> Set[discord.Member]:
             else:
                 raise LookupError(f"Role '{name}' was not found", "role", token)
     elif quote=="'":
-        get_nick = lambda m: m.nick if m.nick!=None else m.name
-        user = bestmatch(name, guild.members, get_nick)
+        user = bestmatch(name, guild.members, lambda m: m.display_name)
         if user!=None:
             return {user}
         else:
@@ -79,7 +78,6 @@ def list_rindex(li, x):
     return -1
 
 def parse_tokens(tokens: List[str], guild: discord.Guild) -> Set[discord.Member]:
-    print(f"Received tokens: {tokens}")
     ret: Set[discord.Member] = set()
     index = 0
     operator = '+'

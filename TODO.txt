@@ -26,7 +26,7 @@
    + '>' operator (role hierarchy)
    + DM멘션
 
- + 대나무숲
+ - 대나무숲
 
  + 포탈
    - 서버간 채팅

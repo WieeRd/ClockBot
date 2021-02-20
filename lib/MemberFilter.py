@@ -51,6 +51,9 @@ def get_target(token: str, guild: discord.Guild) -> Set[discord.Member]:
         elif name=="here":
             is_active = lambda x: x.status != discord.Status.offline
             return set(filter(is_active, guild.members))
+        elif name=="":
+            no_role = lambda x: len(x.roles)==1
+            return set(filter(no_role, guild.members))
         else:
             role = bestmatch(name, guild.roles, lambda r: r.name)
             if role!=None:

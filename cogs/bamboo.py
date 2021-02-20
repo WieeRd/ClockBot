@@ -25,7 +25,10 @@ class Bamboo(commands.Cog):
     async def bamboo(self, ctx, cmd=None):
         if not ctx.message.author.guild_permissions.administrator:
             await ctx.send("에러: 서버 관리자 전용 커맨드")
-            return
+            if await self.bot.is_owner(ctx.author):
+                await ctx.send("...이지만 봇 주인은 프리패스 ;)")
+            else:
+                return
         if   cmd=="설치":
             await self.add_forest(ctx)
         elif cmd=="철거":

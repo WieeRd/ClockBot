@@ -29,29 +29,31 @@ class Bamboo(commands.Cog):
                 await ctx.send("...이지만 봇 주인은 프리패스 ;)")
             else:
                 return
-        if   cmd=="설치":
+        if   cmd=="조성":
             await self.add_forest(ctx)
         elif cmd=="철거":
             await self.rm_forest(ctx)
         else:
-            await ctx.send("사용법: !대나무숲 설치/철거")
+            await ctx.send("사용법: !대나무숲 조성/철거")
 
     async def add_forest(self, ctx):
         if ctx.channel.id in forests:
-            await ctx.send("이미 대나무숲으로 설정된 채널입니다")
+            await ctx.send("이미 대나무숲이 조성된 채널입니다")
             return
-        if not ctx.channel.permissions_for(ctx.guild.me).manage_messages:
-            await ctx.send("에러: 봇에게 해당 채널의 메세지 관리 권한이 필요합니다")
+        permission = ctx.channel.permissions_for(ctx.guild.me)
+        if not (permission.manage_messages and permission.manage_channels):
+            await ctx.send("에러: 봇에게 해당 채널의 채널/메세지 관리 권한이 필요합니다")
             return
         forests.add(ctx.channel.id)
-        msg = await ctx.send(f"채널이 대나무숲으로 설정되었습니다\n"
+        await ctx.channel.edit(name="대나무숲", topic="울창한 대나무숲. 방금 그건 누가 한 말일까?")
+        msg = await ctx.send(f"채널에 울창한 대나무숲을 조성했습니다!\n"
                               "모든 메세지는 익명으로 전환됩니다\n"
                               "주의: 전송 직후 잠시 이름이 드러납니다")
         await msg.pin()
 
     async def rm_forest(self, ctx):
         if not ctx.channel.id in forests:
-            await ctx.send("대나무숲으로 설정된 채널이 아닙니다")
+            await ctx.send("대나무숲이 조성된 채널이 아닙니다")
             return
         forests.remove(ctx.channel.id)
         await ctx.send("대나무숲을 철거했습니다")
@@ -62,6 +64,9 @@ class Bamboo(commands.Cog):
             txt = msg.content
             await msg.delete() # could raise discord.Forbidden
             await msg.channel.send("???: " + txt)
+
+    async def scan_forests():
+        pass # TODO: scan removed/invalid forest channels
 
 def setup(bot):
     bot.add_cog(Bamboo(bot))

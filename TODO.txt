@@ -22,9 +22,10 @@
    - 집합 연산자: + - & ^ (합집합, 차집합, 교집합, 대칭차집합)
    - 우선순위 연산자 ()
    - ("everyone" - A) = !A
+   - DM멘션
+   
    + "no role"
    + '>' operator (role hierarchy)
-   + DM멘션
 
  - 대나무숲
 

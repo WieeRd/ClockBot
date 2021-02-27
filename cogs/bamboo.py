@@ -1,20 +1,31 @@
 import discord
 import asyncio
+import json
 from discord.ext import commands
 from typing import *
 
-# list of channel ids
-forests: Set[int] = set()
+forests: Dict[int, dict] = dict()
+# {
+#     server_id: {
+#         "channel": channel_id
+#         "banned": [user_id1, user_id2]
+#     }
+# }
 try:
-    with open("settings/forests.txt", 'r') as f:
-        forests = set([int(n) for n in f.read().split()])
+    with open("settings/forests.json", 'r') as f:
+        tmp = json.load(f)
+        for key, val in tmp.items():
+            forests[int(key)] = val
+except json.decoder.JSONDecodeError:
+    print("Error: forests.json corrupted")
+    raise
 except FileNotFoundError:
-    forests = set()
+    pass
 
 def save_change():
-    with open("settings/forests.txt", 'w') as f:
-        f.write('\n'.join([str(i) for i in forests]))
-    print("forests.txt updated")
+    with open("settings/forests.json", 'w') as f:
+        json.dump(forests, f, indent=4)
+    print("forests.json updated")
 
 # Bamboo forest - Anonymous chat
 class Bamboo(commands.Cog):
@@ -22,29 +33,37 @@ class Bamboo(commands.Cog):
         self.bot = bot
 
     @commands.command(name="대나무숲")
-    async def bamboo(self, ctx, cmd=None):
-        if not ctx.message.author.guild_permissions.administrator:
-            await ctx.send("에러: 서버 관리자 전용 커맨드")
-            if await self.bot.is_owner(ctx.author):
-                await ctx.send("...이지만 봇 주인은 프리패스 ;)")
-            else:
-                return
+    async def bamboo(self, ctx, cmd=None, *args):
+        if  not (ctx.author.guild_permissions.administrator or
+                 await self.bot.is_owner(ctx.author)):
+            await ctx.send("해당 커맨드는 서버 관리자 권한이 필요합니다")
+            return
         if   cmd=="조성":
             await self.add_forest(ctx)
         elif cmd=="철거":
             await self.rm_forest(ctx)
+        elif cmd in ("밴", "사면"):
+            await self.ban(ctx, cmd, args)
         else:
-            await ctx.send("사용법: !대나무숲 조성/철거")
+            await ctx.send("사용법: !대나무숲 [조성/철거, 밴/사면]")
 
     async def add_forest(self, ctx):
-        if ctx.channel.id in forests:
-            await ctx.send("이미 대나무숲이 조성된 채널입니다")
-            return
+        if ctx.guild.id in forests:
+            channel_id = forests[ctx.guild.id]["channel"]
+            channel = self.bot.get_channel(channel_id)
+            if channel!=None:
+                msg = f"이미 {channel.mention}에 대나무숲이 조성되어 있습니다\n"
+                msg += "(대나무숲은 서버당 하나만 존재할 수 있습니다)"
+                await ctx.send(msg)
+                return
+            else:
+                del forests[ctx.guild.id]
         permission = ctx.channel.permissions_for(ctx.guild.me)
         if not (permission.manage_messages and permission.manage_channels):
             await ctx.send("에러: 봇에게 해당 채널의 채널/메세지 관리 권한이 필요합니다")
             return
-        forests.add(ctx.channel.id)
+        await asyncio.sleep(0.5)
+        forests[ctx.guild.id] = {"channel": ctx.channel.id, "banned": []}
         await ctx.channel.edit(name="대나무숲", topic="울창한 대나무숲. 방금 그건 누가 한 말일까?")
         msg = await ctx.send(f"채널에 울창한 대나무숲을 조성했습니다!\n"
                               "모든 메세지는 익명으로 전환됩니다\n"
@@ -52,21 +71,58 @@ class Bamboo(commands.Cog):
         await msg.pin()
 
     async def rm_forest(self, ctx):
-        if not ctx.channel.id in forests:
+        if (ctx.guild.id in forests) and (forests[ctx.guild.id]["channel"]==ctx.channel.id):
+            del forests[ctx.guild.id]
+            await ctx.send("대나무숲을 철거했습니다")
+        else:
             await ctx.send("대나무숲이 조성된 채널이 아닙니다")
+
+    async def ban(self, ctx, cmd, args):
+        if not (ctx.guild.id in forests and forests[ctx.guild.id]["channel"]==ctx.channel.id):
+            await ctx.send("대나무숲이 조성된 채널이 아닙니다")
+        user_ids = []
+        for user in args:
+            try: uid = int(user[3:-1])
+            except ValueError: pass
+            if ctx.guild.get_member(uid)!=None:
+                user_ids.append(uid)
+        if len(user_ids)==0:
+            await ctx.send("사용법: !대나무숲 [밴/사면] @유저1 @유저2")
             return
-        forests.remove(ctx.channel.id)
-        await ctx.send("대나무숲을 철거했습니다")
 
-    @commands.Cog.listener(name='on_message')
-    async def replace(self, msg):
-        if (msg.channel.id in forests) and (msg.author!=self.bot.user):
-            txt = msg.content
-            await msg.delete() # could raise discord.Forbidden
-            await msg.channel.send("???: " + txt)
+        if cmd=="밴":
+            forests[ctx.guild.id]["banned"].extend(user_ids)
+            await ctx.send(f"불순분자 {len(user_ids)}명의 익명성을 박탈했습니다")
+        elif cmd=="사면":
+            for uid in user_ids:
+                try: forests[ctx.guild.id]["banned"].remove(uid)
+                except ValueError: pass
+            await ctx.send(f"{len(user_ids)}명을 사면했습니다. 처신 잘하라고 ;)")
 
-    async def scan_forests():
-        pass # TODO: scan removed/invalid forest channels
+
+    @commands.Cog.listener(name="on_message")
+    async def replace_msg(self, msg):
+        if ((msg.author!=self.bot.user) and
+            (msg.guild.id in forests) and
+            (msg.channel.id==forests[msg.guild.id]["channel"]) and
+            (msg.author.id not in forests[msg.guild.id]["banned"])):
+            try:
+                txt = msg.content
+                await msg.delete()
+                await msg.channel.send("??: " + txt)
+            except discord.Forbidden:
+                await msg.channel.send("에러: 봇이 대나무숲 메세지 관리 권한을 상실했습니다")
+
+    @commands.Cog.listener(name="on_ready")
+    async def scan_forest(self):
+        invalid = []
+        for guild_id in forests:
+            channel_id = forests[guild_id]["channel"]
+            if self.bot.get_channel(channel_id)==None:
+                invalid.append(guild_id)
+        for guild_id in invalid:
+            del forest[guild_id]
+
 
 def setup(bot):
     bot.add_cog(Bamboo(bot))

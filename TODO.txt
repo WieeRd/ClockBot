@@ -28,6 +28,12 @@
    + '>' operator (role hierarchy)
 
  - 대나무숲
+   + json 설정파일
+      + server id, channel id
+      + ban list
+      + global ban list
+   + 서버당 한개씩만
+   + 밴 목록
 
  + 포탈
    - 서버간 채팅

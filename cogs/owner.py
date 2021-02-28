@@ -42,7 +42,7 @@ class owner(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def bot(self, ctx, cmd):
+    async def bot(self, ctx, cmd=None, *, args=""):
         actions = {
             'quit'   : ["퇴근", "퇴근이다 퇴근!"],
             'restart': ["재시작", "I'll be back"],
@@ -54,6 +54,8 @@ class owner(commands.Cog):
             await self.bot.change_presence(activity=discord.Game(name=actions[cmd][0]))
             await ctx.send(actions[cmd][1])
             await self.bot.logout()
+        elif cmd=="status":
+            await self.bot.change_presence(activity=discord.Game(name=args))
         else:
             await ctx.send(f"```Bot: unknown command '{cmd}'```")
 

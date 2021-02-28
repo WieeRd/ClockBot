@@ -42,7 +42,7 @@ async def on_disconnect():
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Game(name="인생낭비"))
+    await bot.change_presence(activity=discord.Game(name="add.clockbot.kro.kr"))
     print(f"Connected to {len(bot.guilds)} servers and {len(bot.users)} users")
     print(f"{bot.user.name} is now online")
     flags.start_time = time.time()

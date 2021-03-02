@@ -33,7 +33,7 @@ class Bamboo(commands.Cog):
         self.bot = bot
 
     @commands.command(name="대나무숲")
-    async def bamboo(self, ctx, cmd=None, *args):
+    async def bamboo(self, ctx, cmd=None, user: discord.User=None):
         if  not (ctx.author.guild_permissions.administrator or
                  await self.bot.is_owner(ctx.author)):
             await ctx.send("해당 커맨드는 서버 관리자 권한이 필요합니다")
@@ -42,8 +42,10 @@ class Bamboo(commands.Cog):
             await self.add_forest(ctx)
         elif cmd=="철거":
             await self.rm_forest(ctx)
-        elif cmd in ("밴", "사면"):
-            await self.ban(ctx, cmd, args)
+        elif cmd=="밴":
+            await self.ban(ctx, cmd, user)
+        elif cmd=="사면":
+            await self.unban(ctx, cmd, user)
         else:
             await ctx.send("사용법: !대나무숲 [조성/철거, 밴/사면]")
 
@@ -102,7 +104,8 @@ class Bamboo(commands.Cog):
 
     @commands.Cog.listener(name="on_message")
     async def replace_msg(self, msg):
-        if ((msg.author!=self.bot.user) and
+        if ( not isinstance(msg.channel, discord.DMChannel) and
+            (msg.author!=self.bot.user) and
             (msg.guild.id in forests) and
             (msg.channel.id==forests[msg.guild.id]["channel"]) and
             (msg.author.id not in forests[msg.guild.id]["banned"])):
@@ -132,4 +135,3 @@ def teardown(bot):
     save_change()
     print(f"{__name__} has been unloaded")
 
-# What happens if I use get_channel on server I didn't join

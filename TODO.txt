@@ -113,7 +113,7 @@
    + log result
  + op/deop command
 
-8. 정보
+9. 정보
  - Ping
  - uptime
    + server/bot uptime

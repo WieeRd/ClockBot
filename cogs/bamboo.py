@@ -34,6 +34,7 @@ class Bamboo(commands.Cog):
 
     @commands.command(name="대나무숲")
     async def bamboo(self, ctx, cmd=None, user: discord.User=None):
+        await asyncio.sleep(0.5) # prevent command output preceding command inself
         if  not (ctx.author.guild_permissions.administrator or
                  await self.bot.is_owner(ctx.author)):
             await ctx.send("해당 커맨드는 서버 관리자 권한이 필요합니다")
@@ -43,9 +44,9 @@ class Bamboo(commands.Cog):
         elif cmd=="철거":
             await self.rm_forest(ctx)
         elif cmd=="밴":
-            await self.ban(ctx, cmd, user)
+            await self.ban(ctx, user)
         elif cmd=="사면":
-            await self.unban(ctx, cmd, user)
+            await self.unban(ctx, user)
         else:
             await ctx.send("사용법: !대나무숲 [조성/철거, 밴/사면]")
 
@@ -64,7 +65,6 @@ class Bamboo(commands.Cog):
         if not (permission.manage_messages and permission.manage_channels):
             await ctx.send("에러: 봇에게 해당 채널의 채널/메세지 관리 권한이 필요합니다")
             return
-        await asyncio.sleep(0.5)
         forests[ctx.guild.id] = {"channel": ctx.channel.id, "banned": []}
         await ctx.channel.edit(name="대나무숲", topic="울창한 대나무숲. 방금 그건 누가 한 말일까?")
         msg = await ctx.send(f"채널에 울창한 대나무숲을 조성했습니다!\n"
@@ -79,31 +79,30 @@ class Bamboo(commands.Cog):
         else:
             await ctx.send("대나무숲이 조성된 채널이 아닙니다")
 
-    async def ban(self, ctx, cmd, args):
+    async def ban(self, ctx, user):
         if not (ctx.guild.id in forests and forests[ctx.guild.id]["channel"]==ctx.channel.id):
             await ctx.send("대나무숲이 조성된 채널이 아닙니다")
-        user_ids = []
-        for user in args:
-            try: uid = int(user[3:-1])
-            except ValueError: pass
-            if ctx.guild.get_member(uid)!=None:
-                user_ids.append(uid)
-        if len(user_ids)==0:
-            await ctx.send("사용법: !대나무숲 [밴/사면] @유저1 @유저2")
-            return
+        if isinstance(user, discord.User):
+            if user.id in forests[ctx.guild.id]["banned"]:
+                await ctx.send("이미 밴당한 사람입니다만?")
+            else:
+                forests[ctx.guild.id]["banned"].append(user.id)
+                await ctx.send(f"불순분자 {user.mention}의 익명성을 박탈했습니다")
+        else:
+            await ctx.send("사용법: !대나무숲 밴 @유저")
 
-        if cmd=="밴":
-            forests[ctx.guild.id]["banned"].extend(user_ids)
-            await ctx.send(f"불순분자 {len(user_ids)}명의 익명성을 박탈했습니다")
-        elif cmd=="사면":
-            for uid in user_ids:
-                try: forests[ctx.guild.id]["banned"].remove(uid)
-                except ValueError: pass
-            await ctx.send(f"{len(user_ids)}명을 사면했습니다. 처신 잘하라고 ;)")
-
+    async def unban(self, ctx, user):
+        if not (ctx.guild.id in forests and forests[ctx.guild.id]["channel"]==ctx.channel.id):
+            await ctx.send("대나무숲이 조성된 채널이 아닙니다")
+        if isinstance(user, discord.User):
+            if user.id in forests[ctx.guild.id]["banned"]:
+                forests[ctx.guild.id]["banned"].remove(user.id)
+                await ctx.send(f"{user.mention}을 사면했습니다. 처신 잘하라고 ;)")
+            else:
+                await ctx.send("이 사람은 사면할 죄가 없습니다만?")
 
     @commands.Cog.listener(name="on_message")
-    async def replace_msg(self, msg):
+    async def replace_msg(self, msg): #TODO: preserve attachment, reply / log messages with URL
         if ( not isinstance(msg.channel, discord.DMChannel) and
             (msg.author!=self.bot.user) and
             (msg.guild.id in forests) and

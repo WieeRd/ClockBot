@@ -104,6 +104,20 @@ class owner(commands.Cog):
                 await msg.channel.send(f"```'{cmd}' timed out: {timeout}s```")
                 print(f"{cmd} timed out: {timeout}s")
 
+    @commands.command(name="py")
+    @commands.is_owner()
+    async def python_exec(self, ctx, *, cmd):
+        print(f"Executing:\n{cmd}")
+        exec(cmd, globals(), locals())
+
+    @commands.command(name="py2")
+    @commands.is_owner()
+    async def python_exec2(self, ctx, *, cmd):
+        print(f"Executing:\n{cmd}")
+        _locals = locals()
+        coro = None
+        exec(f'async def foo(): {cmd}', globals(), _locals)
+        await _locals['foo']()
 
 def setup(bot):
     bot.add_cog(owner(bot))

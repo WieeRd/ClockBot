@@ -53,6 +53,10 @@ async def on_ready():
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         return
+    else:
+        print("Something went wrong!")
+        print(f"{type(error).__name__}: {error}")
+        print(f"Caused by: {ctx.message.content}")
 
 # Testing range
 

@@ -55,8 +55,8 @@ async def on_command_error(ctx, error):
         return
     else:
         print("Something went wrong!")
-        print(f"{type(error).__name__}: {error}")
         print(f"Caused by: {ctx.message.content}")
+        print(f"{type(error).__name__}: {error}")
 
 # Testing range
 

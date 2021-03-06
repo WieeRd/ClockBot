@@ -54,22 +54,22 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         return
     else:
-        print("Something went wrong!")
+        print("***Something went wrong!***")
         print(f"Caused by: {ctx.message.content}")
         print(f"{type(error).__name__}: {error}")
 
 # Testing range
 
 @bot.command()
-async def test(ctx):
+async def echo(ctx):
     msg = ctx.message.content
     print(msg)
     await ctx.send("```" + msg + "```")
 
 @bot.command()
-async def echo(ctx, *, txt="No arg given"):
+async def args(ctx, *args):
     if ctx.message.author != bot.user:
-        await ctx.send(txt)
+        await ctx.send(repr(args))
 
 # Token & Run
 

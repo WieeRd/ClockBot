@@ -110,8 +110,9 @@ class Bamboo(commands.Cog):
             (msg.author.id not in forests[msg.guild.id]["banned"])):
             try:
                 txt = msg.content
+                ref = msg.reference
                 await msg.delete()
-                await msg.channel.send("??: " + txt)
+                await msg.channel.send(content="??: "+txt, reference=ref)
             except discord.Forbidden:
                 await msg.channel.send("에러: 봇이 대나무숲 메세지 관리 권한을 상실했습니다")
 

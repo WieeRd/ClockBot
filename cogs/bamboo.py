@@ -124,7 +124,7 @@ class Bamboo(commands.Cog):
             if self.bot.get_channel(channel_id)==None:
                 invalid.append(guild_id)
         for guild_id in invalid:
-            del forest[guild_id]
+            del forests[guild_id]
 
 
 def setup(bot):

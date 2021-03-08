@@ -36,9 +36,9 @@ print(f"Loaded [{counter}/{len(init_exts)}] extensions")
 async def on_connect():
     print("Connected to discord")
 
-@bot.event
-async def on_disconnect():
-    print("Lost connection")
+# @bot.event
+# async def on_disconnect():
+#    print("Lost connection")
 
 @bot.event
 async def on_ready():

@@ -4,10 +4,10 @@ import time
 import random
 from discord.ext import commands
 
-class info(commands.Cog):
+class Info(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
-		self.flags = bot.get_cog('flags')
+		self.flags = bot.get_cog('Flags')
 
 	@commands.command(name="초대코드")
 	async def invitation(self, ctx):
@@ -31,7 +31,7 @@ class info(commands.Cog):
 	    await ctx.send(tm)
 
 def setup(bot):
-    bot.add_cog(info(bot))
+    bot.add_cog(Info(bot))
     print(f"{__name__} has been loaded ")
 
 def teardown(bot):

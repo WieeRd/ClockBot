@@ -10,14 +10,14 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Empty Cog used as 'flag' global variable
-class flags(commands.Cog):
+class Flags(commands.Cog):
     def __init__(self, bot):
         pass
     exit_opt = 'unset' # usually when aborted with Ctrl+C
     start_time = 0
 
-bot.add_cog(flags(bot))
-flags = bot.get_cog('flags')
+bot.add_cog(Flags(bot))
+flags = bot.get_cog('Flags')
 
 # Load extensions
 init_exts = ['cogs.misc', 'cogs.info', 'cogs.owner', 'cogs.mention', 'cogs.bamboo']

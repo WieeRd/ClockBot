@@ -18,10 +18,10 @@ def run_cmd(cmd, timeout=None):
         return None
 
 # Owner only commands
-class owner(commands.Cog):
+class Owner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.flags = bot.get_cog('flags')
+        self.flags = bot.get_cog('Flags')
 
     @commands.Cog.listener(name='on_command_error')
     async def PermissionDenied(self, ctx, error):
@@ -120,7 +120,7 @@ class owner(commands.Cog):
         await _locals['foo']()
 
 def setup(bot):
-    bot.add_cog(owner(bot))
+    bot.add_cog(Owner(bot))
     print(f"{__name__} has been loaded ")
 
 def teardown(bot):

@@ -24,7 +24,7 @@ def txt2emoji(txt):
             ret += ":grey_exclamation:"
     return ret
 
-class misc(commands.Cog):
+class Misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -128,7 +128,7 @@ class misc(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(misc(bot))
+    bot.add_cog(Misc(bot))
     print(f"{__name__} has been loaded")
 
 def teardown(bot):

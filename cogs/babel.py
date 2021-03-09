@@ -15,16 +15,24 @@ LANGS = tuple(LANGUAGES)
 translator = google_translator()
 def translate(txt, lang):
     return translator.translate(txt, lang_tgt=lang)
+
 def randslate(txt, lang_lst=LANGS):
     lang = random.choice(lang_lst)
-    return lang, translate(txt, lang)
+    return translate(txt, lang)
+
+def waldoslate(txt, craziness=1):
+    orig_lang = translator.detect(txt)[0]
+    for i in range(craziness):
+        txt = randslate(txt)
+    txt = translate(txt, orig_lang)
+    return txt
 
 if __name__=="__main__":
     while True:
-        txt = input(">")
-        ret = randslate(txt)
-        print(f"lang: {LANGUAGES[ret[0]]}")
-        print(ret[1])
+        txt = input('>')
+        print("translate(en): " + translate(txt, 'en'))
+        print("randslate(): " + randslate(txt))
+        print("waldoslate(): " + waldoslate(txt, 3))
 
 # Ideas:
 # 1. Waldo: kr -> random -> kr

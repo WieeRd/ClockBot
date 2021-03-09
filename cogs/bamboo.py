@@ -6,7 +6,7 @@ from typing import *
 
 forests: Dict[int, dict] = dict()
 # {
-#     server_id: {
+#     "server_id": {
 #         "channel": channel_id
 #         "banned": [user_id1, user_id2]
 #     }
@@ -65,7 +65,7 @@ class Bamboo(commands.Cog):
         if not (permission.manage_messages and permission.manage_channels):
             await ctx.send("에러: 봇에게 해당 채널의 채널/메세지 관리 권한이 필요합니다")
             return
-        forests[ctx.guild.id] = {"channel": ctx.channel.id, "banned": []}
+        forests[ctx.guild.id] = {"channel": ctx.channel.id, "name": ctx.guild.name, "banned": []}
         await ctx.channel.edit(name="대나무숲", topic="울창한 대나무숲. 방금 그건 누가 한 말일까?")
         msg = await ctx.send(f"채널에 울창한 대나무숲을 조성했습니다!\n"
                               "모든 메세지는 익명으로 전환됩니다\n"
@@ -76,6 +76,9 @@ class Bamboo(commands.Cog):
         if (ctx.guild.id in forests) and (forests[ctx.guild.id]["channel"]==ctx.channel.id):
             del forests[ctx.guild.id]
             await ctx.send("대나무숲을 철거했습니다")
+            for old_pin in await ctx.channel.pins():
+                if old_pin.author==self.bot.user:
+                    await old_pin.unpin()
         else:
             await ctx.send("대나무숲이 조성된 채널이 아닙니다")
 

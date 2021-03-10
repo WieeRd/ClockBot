@@ -34,10 +34,11 @@ if __name__=="__main__":
         print("randslate(): " + randslate(txt))
         print("waldoslate(): " + waldoslate(txt, 3))
 
-# # webhook message example
-# async with aiohttp.ClientSession() as session:
-#    webhook = Webhook.from_url(webhook_url, adapter=AsyncWebhookAdapter(session))
-#    webhook.send(content=, username=, avatar_url=)
+"""
+ABANDONED PROJECT
+IT'S TOO FREAKIN SLOW
+AHHHHHHHHHHHHHHHHHH
+"""
 
 towers: Dict[int, dict] = dict()
 # {
@@ -45,7 +46,6 @@ towers: Dict[int, dict] = dict()
 #         "name": "server_name"
 #         "channel": channel_id
 #         "webhook": "webhook_url"
-#         "langs": ['en', 'ru']
 #     }
 # }
 try:
@@ -97,7 +97,17 @@ class Babel(commands.Cog):
         if not (perm.manage_messages and perm.manage_channels and perm.manage_webhooks):
             await ctx.send("에러: 봇에게 해당 채널의 채널/메세지/웹훅 관리 권한이 필요합니다")
             return
-        url = ctx.channel.create_webhook(name='ClockBot').url
+        channel_hooks = await ctx.channel.webhooks()
+        my_hook = None
+        for hook in channel_hooks:
+            if hook.user==self.bot.user:
+                my_hook = hook
+                break
+        if my_hook==None:
+            hook = await ctx.channel.create_webhook(name='ClockBot')
+        else:
+            hook = my_hook
+        url = hook.url
         towers[ctx.guild.id] = {"channel": ctx.channel.id, "name": ctx.guild.name, "webhook": url}
         await ctx.channel.edit(name="바벨탑-건설현장", topic="열심히 탑을 올려서 신들에게 업보스택을 쌓아보자!")
         msg = await ctx.send(f"바벨탑 건설을 시작합니다!\n"
@@ -112,25 +122,23 @@ class Babel(commands.Cog):
             for old_pin in await ctx.channel.pins():
                 if old_pin.author==self.bot.user:
                     await old_pin.unpin()
-            for hook in await ctx.channel.webhooks():
-                if hook.user==self.bot.user:
-                    hook.delete()
         else:
             await ctx.send("바벨탑을 건설중인 채널이 아닙니다")
 
     @commands.Cog.listener(name="on_message")
-    async def replace_msg(self, msg): #TODO: preserve attachment, reply / log messages with URL
-        if ( not isinstance(msg.channel, discord.DMChannel) and
-            (msg.author!=self.bot.user) and
+    async def replace_msg(self, msg):
+        if ((not isinstance(msg.channel, discord.DMChannel)) and
+            (not msg.author.bot) and
             (msg.guild.id in towers) and
-            (msg.channel.id==towers[msg.guild.id]["channel"]) and
+            (msg.channel.id==towers[msg.guild.id]["channel"]) ):
             txt = msg.content
-            user = msg.author.display_name
-            avatar = msg.author.avatar_url
+            username = msg.author.display_name
+            avatar_url = msg.author.avatar_url
             await msg.delete()
             async with aiohttp.ClientSession() as session:
-               webhook = Webhook.from_url(webhook_url, adapter=AsyncWebhookAdapter(session))
-               webhook.send(content=, username=, avatar_url=)
+                webhook_url = towers[msg.guild.id]["webhook"]
+                webhook = Webhook.from_url(webhook_url, adapter=AsyncWebhookAdapter(session))
+                await webhook.send(content=randslate(txt), username=username, avatar_url=avatar_url)
 
 # async with aiohttp.ClientSession() as session:
 #    webhook = Webhook.from_url(webhook_url, adapter=AsyncWebhookAdapter(session))

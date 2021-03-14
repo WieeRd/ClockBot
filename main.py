@@ -1,7 +1,5 @@
 import discord
-import asyncio
 import time
-import os, sys, traceback
 from discord.ext import commands
 launch_time = time.time()
 print(f"Started {time.ctime(launch_time)}")

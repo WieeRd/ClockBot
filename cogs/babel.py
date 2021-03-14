@@ -2,7 +2,7 @@ import discord
 import asyncio
 import json
 from discord.ext import commands
-from typing import *
+from typing import Dict
 
 import aiohttp
 from discord import Webhook, AsyncWebhookAdapter
@@ -13,14 +13,16 @@ from google_trans_new.constant import LANGUAGES
 
 LANGS = tuple(LANGUAGES)
 translator = google_translator()
-def translate(txt, lang):
+
+def translate(txt, lang) -> str:
+    # TODO: translate() could return None, list[Unknown], etc. 
     return translator.translate(txt, lang_tgt=lang)
 
-def randslate(txt, lang_lst=LANGS):
+def randslate(txt, lang_lst=LANGS) -> str:
     lang = random.choice(lang_lst)
     return translate(txt, lang)
 
-def waldoslate(txt, craziness=1):
+def waldoslate(txt, craziness=1) -> str:
     orig_lang = translator.detect(txt)[0]
     for i in range(craziness):
         txt = randslate(txt)

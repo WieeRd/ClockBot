@@ -15,7 +15,7 @@ MemberFilter.parse(expression: str, guild: discord.Guild)
 import discord
 import asyncio
 import shlex
-from typing import *
+from typing import Iterable, Callable, Any, Set, List
 
 def bestmatch(key:str, doors:Iterable, lock:Callable = lambda x:x) -> Any:
     # Some servers put emojis in role/nickname

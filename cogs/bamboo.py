@@ -2,7 +2,7 @@ import discord
 import asyncio
 import json
 from discord.ext import commands
-from typing import *
+from typing import Dict
 
 forests: Dict[int, dict] = dict()
 # {

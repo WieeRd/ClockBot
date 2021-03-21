@@ -29,6 +29,9 @@ def waldoslate(txt, craziness=1) -> str:
     txt = translate(txt, orig_lang)
     return txt
 
+def mirrorslate(txt) -> str:
+    return txt[::-1]
+
 def babelslate(txt) -> str:
     func = random.choice([translate, randslate, waldoslate])
     return func(txt)
@@ -67,7 +70,7 @@ except FileNotFoundError:
 
 def save_change():
     with open("settings/towers.json", 'w') as f:
-        json.dump(towers, f, indent=4)
+        json.dump(towers, f, indent=4, ensure_ascii=False)
     print("towers.json updated")
 
 class Babel(commands.Cog):
@@ -146,6 +149,13 @@ class Babel(commands.Cog):
                 webhook_url = towers[msg.guild.id]["webhook"]
                 webhook = Webhook.from_url(webhook_url, adapter=AsyncWebhookAdapter(session))
                 await webhook.send(content=babelslate(txt), username=name, avatar_url=avatar)
+
+    @commands.Cog.listener(name='on_ready')
+    async def invalid_fixer(self):
+        for guild_id in towers:
+            guild = self.bot.get_guild(guild_id)
+            if guild!=None:
+                towers[guild_id]['name'] = guild.name
 
 def setup(bot):
     bot.add_cog(Babel(bot))

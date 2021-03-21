@@ -24,7 +24,7 @@ except FileNotFoundError:
 
 def save_change():
     with open("settings/forests.json", 'w') as f:
-        json.dump(forests, f, indent=4)
+        json.dump(forests, f, indent=4, ensure_ascii=False)
     print("forests.json updated")
 
 # Bamboo forest - Anonymous chat
@@ -126,6 +126,8 @@ class Bamboo(commands.Cog):
             channel_id = forests[guild_id]["channel"]
             if self.bot.get_channel(channel_id)==None:
                 invalid.append(guild_id)
+            else:
+                forests[guild_id]['name'] = self.bot.get_guild[guild_id].name
         for guild_id in invalid:
             del forests[guild_id]
 

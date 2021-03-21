@@ -14,7 +14,7 @@ from google_trans_new.constant import LANGUAGES
 LANGS = tuple(LANGUAGES)
 translator = google_translator()
 
-def translate(txt, lang) -> str:
+def translate(txt, lang='en') -> str:
     # TODO: translate() could return None, list[Unknown], etc. 
     return translator.translate(txt, lang_tgt=lang)
 
@@ -28,6 +28,10 @@ def waldoslate(txt, craziness=1) -> str:
         txt = randslate(txt)
     txt = translate(txt, orig_lang)
     return txt
+
+def babelslate(txt) -> str:
+    func = random.choice([translate, randslate, waldoslate])
+    return func(txt)
 
 if __name__=="__main__":
     while True:
@@ -134,17 +138,14 @@ class Babel(commands.Cog):
             (msg.guild.id in towers) and
             (msg.channel.id==towers[msg.guild.id]["channel"]) ):
             txt = msg.content
-            username = msg.author.display_name
-            avatar_url = msg.author.avatar_url
+            ref = msg.reference
+            name = msg.author.display_name
+            avatar = msg.author.avatar_url
             await msg.delete()
             async with aiohttp.ClientSession() as session:
                 webhook_url = towers[msg.guild.id]["webhook"]
                 webhook = Webhook.from_url(webhook_url, adapter=AsyncWebhookAdapter(session))
-                await webhook.send(content=randslate(txt), username=username, avatar_url=avatar_url)
-
-# async with aiohttp.ClientSession() as session:
-#    webhook = Webhook.from_url(webhook_url, adapter=AsyncWebhookAdapter(session))
-#    webhook.send(content=, username=, avatar_url=)
+                await webhook.send(content=babelslate(txt), username=name, avatar_url=avatar)
 
 def setup(bot):
     bot.add_cog(Babel(bot))

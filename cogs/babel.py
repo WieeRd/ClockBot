@@ -14,7 +14,7 @@ from google_trans_new.constant import LANGUAGES
 LANGS = tuple(LANGUAGES)
 translator = google_translator()
 
-def translate(txt, lang='en') -> str:
+def translate(txt: str, lang='en') -> str:
     # TODO: translate() could return None, list[Unknown], etc. 
     return translator.translate(txt, lang_tgt=lang)
 
@@ -22,14 +22,14 @@ def randslate(txt, lang_lst=LANGS) -> str:
     lang = random.choice(lang_lst)
     return translate(txt, lang)
 
-def waldoslate(txt, craziness=1) -> str:
+def waldoslate(txt: str, craziness=1) -> str:
     orig_lang = translator.detect(txt)[0]
     for i in range(craziness):
         txt = randslate(txt)
     txt = translate(txt, orig_lang)
     return txt
 
-def mirrorslate(txt) -> str:
+def mirrorslate(txt: str) -> str:
     return txt[::-1]
 
 def babelslate(txt) -> str:

@@ -1,12 +1,13 @@
 import discord
 import asyncio
 import time
+import re
 import random
 from discord.ext import commands
 
 class Info(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: commands.Bot = bot
         self.flags = bot.get_cog('Flags')
 
     @commands.command(name="초대코드")
@@ -31,11 +32,19 @@ class Info(commands.Cog):
         await ctx.send(tm)
 
     @commands.command(name="프사")
-    async def profile_pic(self, ctx: commands.Context, user: discord.User=None):
+    async def profile_pic(self, ctx: commands.Context, username: str=""):
+        user = None
+        if re.compile("<@![0-9]*>").match(username):
+            user_id = int(username[3:-1])
+            user = self.bot.get_user(user_id)
+        else:
+            if ctx.guild!=None:
+                user = ctx.guild.get_member_named(username)
+
         if user!=None:
             await ctx.send(user.avatar_url)
         else:
-            await ctx.send("사용법: !프사 @유저")
+            await ctx.send("사용법: !프사 닉네임/@멘션")
 
 def setup(bot):
     bot.add_cog(Info(bot))

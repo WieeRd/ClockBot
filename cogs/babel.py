@@ -43,12 +43,6 @@ if __name__=="__main__":
         print("randslate(): " + randslate(txt))
         print("waldoslate(): " + waldoslate(txt, 3))
 
-"""
-ABANDONED PROJECT
-IT'S TOO FREAKIN SLOW
-AHHHHHHHHHHHHHHHHHH
-"""
-
 towers: Dict[int, dict] = dict()
 # {
 #     "server_id": {

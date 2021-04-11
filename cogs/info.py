@@ -32,7 +32,7 @@ class Info(commands.Cog):
         await ctx.send(tm)
 
     @commands.command(name="프사")
-    async def profile_pic(self, ctx: commands.Context, username: str=""):
+    async def profile_pic(self, ctx: commands.Context, *, username: str=""):
         user = None
         if re.compile("<@![0-9]*>").match(username):
             user_id = int(username[3:-1])
@@ -45,6 +45,14 @@ class Info(commands.Cog):
             await ctx.send(user.avatar_url)
         else:
             await ctx.send("사용법: !프사 닉네임/@멘션")
+
+    @commands.command(name="서버프사")
+    async def server_pic(self, ctx: commands.Context):
+        if ctx.guild!=None:
+            url = ctx.guild.icon_url
+        else:
+            url = self.bot.user.avatar_url
+        await ctx.send(url)
 
 def setup(bot):
     bot.add_cog(Info(bot))

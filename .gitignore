@@ -1,6 +1,5 @@
-token.txt
 __pycache__
+token.txt
 *.tmp
 *.log
-*.sublime-workspace
 test.*

@@ -36,6 +36,7 @@ class ClockBot(commands.Bot):
 
         self.initial = True
         self.webhooks = self.load_webhooks("data/webhooks.json")
+        self.vc: Dict[int, discord.VoiceClient]
 
     async def on_ready(self):
         if self.initial:

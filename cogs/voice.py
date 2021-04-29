@@ -9,7 +9,7 @@ from aiogtts import aiogTTS
 from typing import Dict
 
 TTS = aiogTTS()
-TTS_PREFIX = '>'
+TTS_PREFIX = ';'
 
 class Voice(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -62,6 +62,14 @@ class Voice(commands.Cog):
             await connected.disconnect(force=False)
             await ctx.send("바이바이")
 
+    async def disconnect_all(self):
+        for vc in self.bot.voice_clients:
+            await vc.disconnect(force=False)
+
+    def cog_unload(self):
+        loop = asyncio.get_event_loop()
+        loop.create_task(self.disconnect_all())
+
     @commands.Cog.listener(name="on_voice_state_update")
     async def update(self, who: Member, before: VoiceState, after: VoiceState):
         vc = who.guild.voice_client
@@ -74,7 +82,6 @@ class Voice(commands.Cog):
             # when everyone leaves
             elif len(vc.channel.members)==1:
                 await vc.disconnect(force=False)
-
 
     @commands.Cog.listener(name="on_message")
     async def send_tts(self, msg: discord.Message):
@@ -91,12 +98,10 @@ class Voice(commands.Cog):
                 return
 
             vc = msg.guild.voice_client
-            if isinstance(vc, discord.VoiceClient):
-                if vc.is_playing(): vc.stop()
-                audio = FFmpegPCMAudio(filename, options="-loglevel panic")
-                vc.play(audio, after=lambda e: os.remove(filename))
-            else:
-                pass
+            assert isinstance(vc, discord.VoiceClient), "tts_link exist but voice_client doesn't"
+            if vc.is_playing(): vc.stop()
+            audio = FFmpegPCMAudio(filename, options="-loglevel panic")
+            vc.play(audio, after=lambda e: os.remove(filename))
 
 def setup(bot: commands.Bot):
     voice = Voice(bot)

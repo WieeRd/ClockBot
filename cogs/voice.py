@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import discord
+import asyncio
 import os
 from discord.ext import commands
 from discord import Member, VoiceState, FFmpegPCMAudio
@@ -34,7 +35,14 @@ class Voice(commands.Cog):
             else:
                 await ctx.send("다른 채널에서 일하는 중이에요!")
         else:
-            await requested.channel.connect()
+            if not isinstance(requested.channel, discord.VoiceChannel):
+                await ctx.send("스테이지 채널은 지원하지 않습니다")
+                return
+            try:
+                await requested.channel.connect(timeout=3, reconnect=False)
+            except asyncio.TimeoutError:
+                await ctx.send(f"에러: {requested.channel.mention}에 연결할 수 없습니다")
+                return
             self.tts_link[ctx.guild.id] = ctx.channel.id
             chat = ctx.channel.mention
             voice = requested.channel.mention
@@ -52,14 +60,21 @@ class Voice(commands.Cog):
             await ctx.send("에러: 봇과 같은 음성 채널에 접속해있지 않습니다")
         else:
             await connected.disconnect(force=False)
-            del self.tts_link[ctx.guild.id]
             await ctx.send("바이바이")
 
     @commands.Cog.listener(name="on_voice_state_update")
     async def update(self, who: Member, before: VoiceState, after: VoiceState):
-        # TODO: when kicked
-        # TODO: when everyone leaves
-        pass
+        vc = who.guild.voice_client
+        if vc==None:
+            return
+        if before.channel==vc.channel and before.channel!=after.channel:
+            # when bot is kicked
+            if who==self.bot.user and after.channel==None:
+                del self.tts_link[who.guild.id]
+            # when everyone leaves
+            elif len(vc.channel.members)==1:
+                await vc.disconnect(force=False)
+
 
     @commands.Cog.listener(name="on_message")
     async def send_tts(self, msg: discord.Message):

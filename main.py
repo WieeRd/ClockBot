@@ -5,7 +5,7 @@ launch_time = time.time()
 print(f"Started {time.ctime(launch_time)}")
 
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 
 # Empty Cog used as 'flag' global variable
 class Flags(commands.Cog):
@@ -40,7 +40,7 @@ async def on_connect():
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Game(name="clockbot.kro.kr"))
+    await bot.change_presence(activity=discord.Game(name="add.clockbot.kro.kr"))
     print(f"Connected to {len(bot.guilds)} servers and {len(bot.users)} users")
     print(f"{bot.user.name} is now online")
     flags.start_time = time.time()

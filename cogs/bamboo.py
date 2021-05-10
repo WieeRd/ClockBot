@@ -1,6 +1,8 @@
 import discord
 import asyncio
 import json
+import re
+
 from discord.ext import commands
 from typing import Dict
 
@@ -105,19 +107,24 @@ class Bamboo(commands.Cog):
                 await ctx.send("이 사람은 사면할 죄가 없습니다만?")
 
     @commands.Cog.listener(name="on_message")
-    async def replace_msg(self, msg): #TODO: preserve attachment, reply / log messages with URL
+    async def replace_msg(self, msg: discord.Message): #TODO: preserve attachment, reply / log messages with URL
         if ( not isinstance(msg.channel, discord.DMChannel) and
             (msg.author!=self.bot.user) and
             (msg.guild.id in forests) and
             (msg.channel.id==forests[msg.guild.id]["channel"]) and
             (msg.author.id not in forests[msg.guild.id]["banned"])):
+            txt = msg.content
+            ref = msg.reference
             try:
-                txt = msg.content
-                ref = msg.reference
                 await msg.delete()
-                await msg.channel.send(content="??: "+txt, reference=ref)
             except discord.Forbidden:
                 await msg.channel.send("에러: 봇이 대나무숲 메세지 관리 권한을 상실했습니다")
+            contain_url = re.compile(r"http[s]?://")
+            if len(msg.attachments)>0 or re.search(contain_url, txt):
+                await msg.channel.send("[대나무숲] 익명 채널 특성상 파일/링크는 제한됩니다")
+                return
+            else:
+                await msg.channel.send(content="??: "+txt, reference=ref)
 
     @commands.Cog.listener(name="on_ready")
     async def scan_forest(self):

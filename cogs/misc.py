@@ -18,6 +18,8 @@ def txt2emoji(txt):
             ret += f":{num_names[int(c)]}:"
         elif c == ' ':
             ret += " "*13
+        elif c == '\n':
+            ret += '\n'
         elif c == '?':
             ret += ":grey_question:"
         elif c == '!':

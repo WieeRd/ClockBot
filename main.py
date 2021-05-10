@@ -1,8 +1,13 @@
 import discord
 import time
+import yaml
 from discord.ext import commands
 launch_time = time.time()
 print(f"Started {time.ctime(launch_time)}")
+
+# TODO: Copy default if config doesn't exist
+with open('config.yml', 'r') as f:
+    config = yaml.load(f, Loader=yaml.FullLoader)
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
@@ -18,15 +23,15 @@ bot.add_cog(Flags(bot))
 flags = bot.get_cog('Flags')
 
 # Load extensions
-init_exts = ['cogs.misc', 'cogs.info', 'cogs.owner', 'cogs.mention', 'cogs.bamboo', 'cogs.babel', 'cogs.voice']
+init_exts = config['init_exts']
 counter = 0
 print("Loading extensions...")
-for extension in init_exts:
+for ext in init_exts:
     try:
-        bot.load_extension(extension)
+        bot.load_extension('cogs.' + ext)
         counter += 1
     except Exception as e:
-        print(f"Failed loading {extension}")
+        print(f"Failed loading {ext}")
         print(f"{type(e).__name__}: {e}")
 print(f"Loaded [{counter}/{len(init_exts)}] extensions")
 
@@ -40,7 +45,7 @@ async def on_connect():
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Game(name="add.clockbot.kro.kr"))
+    await bot.change_presence(activity=discord.Game(name=config['status']))
     print(f"Connected to {len(bot.guilds)} servers and {len(bot.users)} users")
     print(f"{bot.user.name} is now online")
     flags.start_time = time.time()
@@ -71,15 +76,8 @@ async def args(ctx, *args):
 
 # Token & Run
 
-try:
-    with open("token.txt", 'r') as f:
-        token = f.readline()
-except:
-    print("Error: Bot token is required (token.txt missing)")
-    exit(-1)
-
 print("Launching client...")
-bot.run(token)
+bot.run(config['token'])
 print("Client terminated")
 
 print(f"Exit option: {flags.exit_opt}")

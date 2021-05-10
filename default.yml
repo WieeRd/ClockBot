@@ -1,0 +1,11 @@
+# default values for config.yml
+token:
+status: add.clockbot.kro.kr
+init_exts:
+    - info
+    - misc
+    - owner
+    - mention
+    - bamboo
+    - babel
+    - voice

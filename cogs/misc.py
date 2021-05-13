@@ -30,11 +30,11 @@ class Misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="시계", aliases=["닉값"])
-    async def time(self, ctx):
-        now = time.localtime()
-        now_str = time.strftime('%Y-%m-%d %a, %I:%M:%S %p', now)
-        await ctx.send(f"현재시각 {now_str}")
+    # @commands.command(name="시계", aliases=["닉값"])
+    # async def time(self, ctx):
+    #     now = time.localtime()
+    #     now_str = time.strftime('%Y-%m-%d %a, %I:%M:%S %p', now)
+    #     await ctx.send(f"현재시각 {now_str}")
 
     @commands.command(name="여긴어디")
     async def where(self, ctx):

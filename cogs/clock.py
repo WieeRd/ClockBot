@@ -74,7 +74,7 @@ class Clock(commands.Cog):
             if mm%5==0:
                 img = self.dc.render(hh, mm)
                 await self.bot.user.edit(avatar=img)
-            await self.bot.change_presence(activity=discord.Game(name=f"{hh}:{mm}"))
+            await self.bot.change_presence(activity=discord.Game(name=f"{hh:02d}:{mm:02d}"))
 
     def cog_unload(self):
         self.liveClock.cancel()

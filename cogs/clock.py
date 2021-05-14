@@ -32,10 +32,10 @@ class DrawClock:
 
         return base
 
-    def toBytesIO(self, hour: int, minute: int) -> BytesIO:
+    def render(self, hour: int, minute: int, format='PNG') -> bytes:
         buf = BytesIO()
-        self.draw(hour, minute).save(buf, format='PNG')
-        return buf
+        self.draw(hour, minute).save(buf, format=format)
+        return buf.getvalue()
 
 class Clock(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -47,39 +47,10 @@ class Clock(commands.Cog):
         m_hand = Image.open(M_HAND)
         self.dc = DrawClock(frame, h_hand, m_hand)
 
-        # self.liveClock.start()
-
-    @tasks.loop(minutes=1.0)
-    async def liveClock(self):
-        self.time += 1
-        self.time %= 24*60
-        print(f"loop {self.time}")
-
-        # TODO: change bot presense
-        # TODO: Special time (It's high noon)
-        if self.time%5==0:
-            hh, mm = divmod(self.time, 60)
-            img = self.dc.toBytesIO(hh, mm)
-            await self.bot.user.edit(avatar=img.getvalue())
-            print("Avatar changed")
-
-    @liveClock.before_loop
-    async def adjust_time(self):
-        print("Waiting for bot to be ready")
-        await self.bot.wait_until_ready()
-        print("Ready, starting the clock")
-        tm = time.localtime()
-        hh, mm = tm.tm_hour, tm.tm_min
-        self.time = hh*60 + mm
-        img = self.dc.toBytesIO(hh, mm)
-        await self.bot.user.edit(avatar=img.getvalue())
-        await asyncio.sleep(time.time()%60)
-
-    def cog_unload(self):
-        self.liveClock.cancel()
+        self.liveClock.start()
 
     @commands.command(name="시계")
-    async def draw_me_clock(self, ctx: commands.Context, hh_mm: str = ""):
+    async def clock(self, ctx: commands.Context, hh_mm: str = ""):
         # TODO: Image too T H I C C require resize
         time_form = re.compile("([0-9]|0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])")
         match = re.match(time_form, hh_mm)
@@ -87,9 +58,26 @@ class Clock(commands.Cog):
             await ctx.send("사용법: !시계 HH:MM")
             return
         hh, mm = match.group(1), match.group(2)
-        img = self.dc.toBytesIO(int(hh), int(mm))
-        img.seek(0)
-        await ctx.send(file=discord.File(img, filename="clock.png"))
+        img = self.dc.render(int(hh), int(mm))
+        await ctx.send(file=discord.File(BytesIO(img), "clock.png"))
+
+    @tasks.loop(count=1)
+    async def liveClock(self):
+        await self.bot.wait_until_ready()
+        print("LiveClock started")
+
+        # TODO: Special time (It's high noon)
+        while True:
+            await asyncio.sleep(60 - time.time()%60)
+            tm = time.localtime()
+            hh, mm = tm.tm_hour, tm.tm_min
+            if mm%5==0:
+                img = self.dc.render(hh, mm)
+                await self.bot.user.edit(avatar=img)
+            await self.bot.change_presence(activity=discord.Game(name=f"{hh}:{mm}"))
+
+    def cog_unload(self):
+        self.liveClock.cancel()
 
 def setup(bot):
     bot.add_cog(Clock(bot))

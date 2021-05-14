@@ -61,20 +61,36 @@ class Clock(commands.Cog):
         img = self.dc.render(int(hh), int(mm))
         await ctx.send(file=discord.File(BytesIO(img), "clock.png"))
 
-    @tasks.loop(count=1)
+    @tasks.loop()
     async def liveClock(self):
         await self.bot.wait_until_ready()
         print("LiveClock started")
 
         # TODO: Special time (It's high noon)
         while True:
-            await asyncio.sleep(60 - time.time()%60)
+            delay = (60 - time.time()%60)
+            if delay<30: delay += 60   # sometimes delay is 58 sec,
+            await asyncio.sleep(delay) # making next loop delay 2 sec
+
             tm = time.localtime()
-            hh, mm = tm.tm_hour, tm.tm_min
+            hh, mm, ss = tm.tm_hour, tm.tm_min, tm.tm_sec
+            print(f"loop {hh:02d}:{mm:02d}:{ss:02d}")
+
+            if ss>30: mm += 1
             if mm%5==0:
+                print("Rendering new avatar")
                 img = self.dc.render(hh, mm)
-                await self.bot.user.edit(avatar=img)
+                # await self.bot.user.edit(avatar=img)
+                try:
+                    await asyncio.wait_for(self.bot.user.edit(avatar=img), 5)
+                except Exception as e:
+                    print("Avatar update failed")
+                    print(f"{type(e).__name__}: {e}")
+                print("Changed avatar")
+                await asyncio.sleep(2.0)
+
             await self.bot.change_presence(activity=discord.Game(name=f"{hh:02d}:{mm:02d}"))
+            print("Changed presense")
 
     def cog_unload(self):
         self.liveClock.cancel()
@@ -85,12 +101,3 @@ def setup(bot):
 
 def teardown(bot):
     print(f"{__name__} has been unloaded")
-
-if __name__=="__main__":
-    frame = Image.open(FRAME)
-    h_hand = Image.open(H_HAND)
-    m_hand = Image.open(M_HAND)
-    dc = DrawClock(frame, h_hand, m_hand)
-    buf = dc.toBytesIO(3, 45)
-    with open("output.png", 'wb') as f:
-        f.write(buf.getvalue())

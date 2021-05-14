@@ -68,17 +68,15 @@ class Clock(commands.Cog):
 
         # TODO: Special time (It's high noon)
         while True:
-            delay = (60 - time.time()%60)
-            if delay<30: delay += 60   # sometimes delay is 58 sec,
-            await asyncio.sleep(delay) # making next loop delay 2 sec
+            delay = (60 - time.time()%60) # sometimes delay is 58 sec,
+            if delay<30: delay += 60      # making next loop delay 2 sec
+            await asyncio.sleep(delay)    # this prevents that from happening
 
             tm = time.localtime()
             hh, mm, ss = tm.tm_hour, tm.tm_min, tm.tm_sec
-            print(f"loop {hh:02d}:{mm:02d}:{ss:02d}")
 
             if ss>30: mm += 1
             if mm%5==0:
-                print("Rendering new avatar")
                 img = self.dc.render(hh, mm)
                 # await self.bot.user.edit(avatar=img)
                 try:
@@ -86,11 +84,10 @@ class Clock(commands.Cog):
                 except Exception as e:
                     print("Avatar update failed")
                     print(f"{type(e).__name__}: {e}")
-                print("Changed avatar")
-                await asyncio.sleep(2.0)
+                    await self.bot.wait_until_ready()
+                await asyncio.sleep(1)
 
             await self.bot.change_presence(activity=discord.Game(name=f"{hh:02d}:{mm:02d}"))
-            print("Changed presense")
 
     def cog_unload(self):
         self.liveClock.cancel()

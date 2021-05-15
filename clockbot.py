@@ -1,24 +1,36 @@
 import discord
 import aiohttp
 import time
-
-import json
-import yaml
+import enum
 
 from discord.ext import commands
-from discord import Webhook, AsyncWebhookAdapter
-from enum import IntFlag
-from typing import Dict, Optional, Tuple
+from discord import Webhook
+from typing import Dict, Optional
 
-def _prefix_callable(bot, msg: discord.Message):
-    user_id = bot.user.id
-    base = [f'<@!{user_id}> ', '!']
-    return base
+# # Load extensions
+# init_exts = config['init_exts']
+# counter = 0
+# print("Loading extensions...")
+# for ext in init_exts:
+#     try:
+#         bot.load_extension('cogs.' + ext)
+#         counter += 1
+#     except Exception as e:
+#         print(f"Failed loading {ext}")
+#         print(f"{type(e).__name__}: {e}")
+# print(f"Loaded [{counter}/{len(init_exts)}] extensions")
 
-def md_code(txt: str) -> str:
-    return "```" + txt + "```"
+# @bot.event
+# async def on_ready():
+#     await bot.change_presence(activity=discord.Game(name=config['status']))
+#     print(f"Connected to {len(bot.guilds)} servers and {len(bot.users)} users")
+#     print(f"{bot.user.name} is now online")
+#     flags.start_time = time.time()
+#     load_time = (flags.start_time - launch_time)*1000
+#     print(f"Time elapsed: {int(load_time)}ms")
 
-class ExitOpt(IntFlag):
+
+class ExitOpt(enum.IntFlag):
     ERROR = -1
     QUIT = 0
     UNSET = 1
@@ -28,51 +40,32 @@ class ExitOpt(IntFlag):
     REBOOT = 5
 
 class ClockBot(commands.Bot):
-    def __init__(self):
-        super().__init__(command_prefix=_prefix_callable, help_command=None,
-                         heartbeat_timeout=120, intents=discord.Intents.all())
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # super().__init__(command_prefix=_prefix_callable, help_command=None,
+        #                  heartbeat_timeout=120, intents=discord.Intents.all())
         self.exitopt = ExitOpt.UNSET
         self.session = aiohttp.ClientSession(loop=self.loop)
-
-        self.initial = True
-        self.webhooks = self.load_webhooks("data/webhooks.json")
-        self.vc: Dict[int, discord.VoiceClient]
+        self.webhooks: Dict[int, Webhook]
 
     async def on_ready(self):
-        if self.initial:
-            self.initial = False
-            self.start_time = time.time()
+        pass # TODO: uptime mark
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
             pass
         elif isinstance(error, commands.NoPrivateMessage):
-            await ctx.author.send(md_code("에러: 서버 채널에서만 이용 가능한 명령어입니다"))
-        else:
+            await ctx.author.send("에러: 서버 채널에서만 이용 가능한 명령어입니다")
+        else: # TODO: Proper logging
             print("***Something went wrong!***")
             print(f"Caused by: {ctx.message.content}")
             print(f"{type(error).__name__}: {error}")
 
-    def load_webhooks(self, filename: str) -> Dict[int, Webhook]:
-        ret: Dict[int, Webhook] = {}
-        try:
-            with open(filename, 'r') as f:
-                data = json.load(f)
-                for key, val in data.items():
-                    hook = Webhook.partial(val["id"], val["token"], adapter=AsyncWebhookAdapter(self.session))
-                    ret[int(key)] = hook
-        except FileNotFoundError:
-            pass
-        except json.decoder.JSONDecodeError:
-            print("Error: webhooks.json corrupted")
-            raise
-        return ret
-
-    def save_webhooks(self, filename: str):
-        pass
+    def load_webhooks(self) -> Dict[int, Webhook]:
+        raise NotImplementedError
 
     async def get_webhook(self, channel: discord.TextChannel) -> Optional[discord.Webhook]:
-        pass
+        raise NotImplementedError
 
-    async def send_webhook(self, channel: discord.TextChannel, *args, **kwargs):
-        pass
+    async def WHsend(self, channel: discord.TextChannel, *args, **kwargs):
+        raise NotImplementedError

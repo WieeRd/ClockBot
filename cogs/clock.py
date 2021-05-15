@@ -12,6 +12,8 @@ FRAME = f"{IMG_DIR}/frame.png"
 H_HAND = f"{IMG_DIR}/hour.png"
 M_HAND = f"{IMG_DIR}/minute.png"
 
+# TODO: Default avatar
+
 class DrawClock:
     def __init__(self, frame: Image.Image, h_hand: Image.Image, m_hand: Image.Image):
         self.frame = frame
@@ -63,31 +65,30 @@ class Clock(commands.Cog):
 
     @tasks.loop()
     async def liveClock(self):
-        await self.bot.wait_until_ready()
-        print("LiveClock started")
-
         # TODO: Special time (It's high noon)
-        while True:
-            delay = (60 - time.time()%60) # sometimes delay is 58 sec,
-            if delay<30: delay += 60      # making next loop delay 2 sec
-            await asyncio.sleep(delay)    # this prevents that from happening
+        tm = time.localtime()
+        hh, mm, ss = tm.tm_hour, tm.tm_min, tm.tm_sec
+        if ss>50: mm += 1
 
-            tm = time.localtime()
-            hh, mm, ss = tm.tm_hour, tm.tm_min, tm.tm_sec
+        if mm%5==0:
+            img = self.dc.render(hh, mm)
+            try:
+                await asyncio.wait_for(self.bot.user.edit(avatar=img), 10)
+            except Exception as e:
+                print(f"Avatar update failed at {hh:02d}:{mm:02d}:{ss:02d}")
+                print(f"{type(e).__name__}: {e}")
+                await self.bot.wait_until_ready()
+            # await asyncio.sleep(1)
 
-            if ss>30: mm += 1
-            if mm%5==0:
-                img = self.dc.render(hh, mm)
-                # await self.bot.user.edit(avatar=img)
-                try:
-                    await asyncio.wait_for(self.bot.user.edit(avatar=img), 5)
-                except Exception as e:
-                    print("Avatar update failed")
-                    print(f"{type(e).__name__}: {e}")
-                    await self.bot.wait_until_ready()
-                await asyncio.sleep(1)
+        await self.bot.change_presence(activity=discord.Game(name=f"{hh:02d}:{mm:02d}"))
 
-            await self.bot.change_presence(activity=discord.Game(name=f"{hh:02d}:{mm:02d}"))
+        delay = (60 - time.time()%60)
+        if delay<10: delay += 60
+        await asyncio.sleep(delay)
+
+    @liveClock.before_loop
+    async def startClock(self):
+        await self.bot.wait_until_ready()
 
     def cog_unload(self):
         self.liveClock.cancel()

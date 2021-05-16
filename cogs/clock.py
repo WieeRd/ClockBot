@@ -78,9 +78,9 @@ class Clock(commands.Cog):
                 print(f"Avatar update failed at {hh:02d}:{mm:02d}:{ss:02d}")
                 print(f"{type(e).__name__}: {e}")
                 await self.bot.wait_until_ready()
-            # await asyncio.sleep(1)
 
-        await self.bot.change_presence(activity=discord.Game(name=f"{hh:02d}:{mm:02d}"))
+        activity=discord.Game(name=time.strftime("%p %I:%M KST", tm))
+        await self.bot.change_presence(activity=activity)
 
         delay = (60 - time.time()%60)
         if delay<10: delay += 60

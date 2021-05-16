@@ -5,6 +5,8 @@ import os
 from discord.ext import commands
 from discord import Member, VoiceState, FFmpegPCMAudio
 
+# TODO maybe I don't need async version
+# It's already pretty fast
 from aiogtts import aiogTTS
 from typing import Dict
 

@@ -1,14 +1,32 @@
+#!/usr/bin/env python3
+import clockbot
 import discord
 from discord.ext import commands
 
-import clockbot
 import yaml
+import os.path
+import shutil
+import mariadb
+from typing import Dict
+
+if not os.path.exists("config.yml"):
+    shutil.copy("default.yml", "config.yml")
+
+with open("config.yml", 'r') as f:
+    config: Dict = yaml.load(f, Loader=yaml.FullLoader)
+
+if config["token"]==None:
+    print("Bot token is required")
+    exit(1)
+
+# TODO WRYYYYYYYYYYYYYYYY
+
+def _prefix_callable(bot, msg):
+    user_id = bot.user.id
+    base = [f'<@!{user_id}> ', f'<@{user_id}> ']
+    return base
 
 bot = clockbot.ClockBot()
-
-# TODO: Copy default if config doesn't exist
-with open('config.yml', 'r') as f:
-    config = yaml.load(f, Loader=yaml.FullLoader)
 
 # Testing range
 

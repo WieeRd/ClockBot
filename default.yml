@@ -1,11 +1,11 @@
-# default values for config.yml
 token:
-status: add.clockbot.kro.kr
+prefix: ['!', '시계야']
 init_exts:
-    - info
-    - misc
     - owner
-    - mention
-    - bamboo
-    - babel
-    - voice
+    - clock
+mariadb:
+    host: "127.0.0.1"
+    port: "3306"
+    user:
+    password:
+    database: "clockbot"

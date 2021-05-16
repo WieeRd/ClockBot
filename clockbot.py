@@ -20,16 +20,6 @@ from typing import Dict, Optional
 #         print(f"{type(e).__name__}: {e}")
 # print(f"Loaded [{counter}/{len(init_exts)}] extensions")
 
-# @bot.event
-# async def on_ready():
-#     await bot.change_presence(activity=discord.Game(name=config['status']))
-#     print(f"Connected to {len(bot.guilds)} servers and {len(bot.users)} users")
-#     print(f"{bot.user.name} is now online")
-#     flags.start_time = time.time()
-#     load_time = (flags.start_time - launch_time)*1000
-#     print(f"Time elapsed: {int(load_time)}ms")
-
-
 class ExitOpt(enum.IntFlag):
     ERROR = -1
     QUIT = 0
@@ -40,16 +30,20 @@ class ExitOpt(enum.IntFlag):
     REBOOT = 5
 
 class ClockBot(commands.Bot):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, DB, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # super().__init__(command_prefix=_prefix_callable, help_command=None,
         #                  heartbeat_timeout=120, intents=discord.Intents.all())
+        self.started = 0
         self.exitopt = ExitOpt.UNSET
         self.session = aiohttp.ClientSession(loop=self.loop)
+
+        self.DB = DB
         self.webhooks: Dict[int, Webhook]
 
     async def on_ready(self):
-        pass # TODO: uptime mark
+        if not self.started:
+            self.started = time.time()
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
@@ -61,11 +55,5 @@ class ClockBot(commands.Bot):
             print(f"Caused by: {ctx.message.content}")
             print(f"{type(error).__name__}: {error}")
 
-    def load_webhooks(self) -> Dict[int, Webhook]:
-        raise NotImplementedError
-
-    async def get_webhook(self, channel: discord.TextChannel) -> Optional[discord.Webhook]:
-        raise NotImplementedError
-
-    async def WHsend(self, channel: discord.TextChannel, *args, **kwargs):
-        raise NotImplementedError
+    async def wsend(self, channel: discord.TextChannel, *args, **kwargs):
+        pass

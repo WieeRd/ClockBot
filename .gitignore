@@ -1,5 +1,3 @@
 __pycache__
-*.tmp
-*.log
-test.*
 config.yml
+*.tmp

@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-import clockbot
 import discord
 from discord.ext import commands
+from clockbot import ClockBot, ExitOpt
 
 import yaml
 import os.path
 import shutil
 import mariadb
+
 from typing import Dict
 
 if not os.path.exists("config.yml"):
@@ -21,14 +22,29 @@ if config["token"]==None:
 
 # TODO WRYYYYYYYYYYYYYYYY
 
-def _prefix_callable(bot, msg):
+def prefix(bot: commands.Bot, msg: discord.Message):
     user_id = bot.user.id
     base = [f'<@!{user_id}> ', f'<@{user_id}> ']
     return base
 
-bot = clockbot.ClockBot()
+try:
+    conn = mariadb.connect(**config["database"])
+    DB = conn.cursor()
+except mariadb.Error as e:
+    print(f"Failed to connect database: {e}")
+    exit(1)
 
-# Testing range
+intents = discord.Intents(
+    guilds=True,
+    members=True,
+    bans=True,
+    emojis=True,
+    voice_states=True,
+    messages=True,
+    reactions=True,
+)
+
+bot = ClockBot('%', DB, intents)
 
 # TODO: move this to cogs.owner
 @bot.command()
@@ -37,12 +53,7 @@ async def echo(ctx):
     print(msg)
     await ctx.send("```" + msg + "```")
 
-# Token & Run
-
 print("Launching client...")
 bot.run(config['token'])
 print("Client terminated")
-
-print(f"Exit option: {flags.exit_opt}")
-exitcode = {'error':-1,'quit':0, 'unset':1, 'restart':2, 'update':3, 'shutdown':4, 'reboot':5}
-exit(exitcode[flags.exit_opt])
+# TODO: receive exitopt

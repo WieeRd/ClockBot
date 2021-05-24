@@ -3,7 +3,7 @@ prefix: ['!', '시계야']
 init_exts:
     - owner
     - clock
-mariadb:
+database:
     host: "127.0.0.1"
     port: "3306"
     user:

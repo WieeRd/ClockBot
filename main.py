@@ -1,38 +1,26 @@
 #!/usr/bin/env python3
 import discord
-from discord.ext import commands
-from clockbot import ClockBot, ExitOpt
-
-import yaml
+import asyncio
 import os.path
 import shutil
-import mariadb
+import yaml
+import aiomysql
 
+from discord.ext import commands
+from clockbot import ClockBot, ExitOpt
 from typing import Dict
 
 if not os.path.exists("config.yml"):
+    print("config.yml is missing")
     shutil.copy("default.yml", "config.yml")
+    exit(1)
 
 with open("config.yml", 'r') as f:
     config: Dict = yaml.load(f, Loader=yaml.FullLoader)
 
-if config["token"]==None:
-    print("Bot token is required")
-    exit(1)
-
-# TODO WRYYYYYYYYYYYYYYYY
-
-def prefix(bot: commands.Bot, msg: discord.Message):
-    user_id = bot.user.id
-    base = [f'<@!{user_id}> ', f'<@{user_id}> ']
-    return base
-
-try:
-    conn = mariadb.connect(**config["database"])
-    DB = conn.cursor()
-except mariadb.Error as e:
-    print(f"Failed to connect database: {e}")
-    exit(1)
+prefix = config["prefix"]
+def get_prefix(bot: commands.Bot, msg: discord.Message):
+    return prefix
 
 intents = discord.Intents(
     guilds=True,
@@ -43,6 +31,13 @@ intents = discord.Intents(
     messages=True,
     reactions=True,
 )
+
+async def main():
+    loop = asyncio.get_event_loop()
+    # aiomysql doesn't have type hints :(
+    conn = await aiomysql.connect(loop=loop, **config["database"])
+    cur = await conn.cursor()
+    conn.close()
 
 bot = ClockBot('%', DB, intents)
 

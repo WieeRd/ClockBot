@@ -42,6 +42,7 @@ class ClockBot(commands.Bot):
         self.webhooks: Dict[int, Webhook]
 
         # TODO: If table doesn't exist
+        # use SHOW TABLE & any()
         DB.execute("SELECT channel, ID, token FROM webhooks")
         for channel, ID, token in DB:
             print((channel, ID, token))

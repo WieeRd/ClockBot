@@ -8,4 +8,4 @@ database:
     port: "3306"
     user:
     password:
-    database: "clockbot"
+    db: "clockbot"

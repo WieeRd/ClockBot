@@ -30,8 +30,8 @@ class ExitOpt(enum.IntFlag):
     REBOOT = 5
 
 class ClockBot(commands.Bot):
-    def __init__(self, prefix, intents, DB, *args, **kwargs):
-        super().__init__(command_prefix=prefix, intents=intents *args, **kwargs)
+    def __init__(self, DB, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         # super().__init__(command_prefix=_prefix_callable, help_command=None,
         #                  heartbeat_timeout=120, intents=discord.Intents.all())
         self.started = 0
@@ -43,6 +43,7 @@ class ClockBot(commands.Bot):
 
         # TODO: If table doesn't exist
         # use SHOW TABLE & any()
+        DB.execute("SHOW TABLES LIKE 'webhooks'")
         DB.execute("SELECT channel, ID, token FROM webhooks")
         for channel, ID, token in DB:
             print((channel, ID, token))

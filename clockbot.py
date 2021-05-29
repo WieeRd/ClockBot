@@ -1,10 +1,12 @@
 import discord
+import asyncio
 import aiohttp
+import aiomysql
 import time
 import enum
 
+from discord import Webhook, AsyncWebhookAdapter, Permissions
 from discord.ext import commands
-from discord import Webhook
 from typing import Dict, Optional
 
 # # Load extensions
@@ -29,6 +31,32 @@ class ExitOpt(enum.IntFlag):
     SHUTDOWN = 4
     REBOOT = 5
 
+class MacLak(commands.Context):
+    """
+    Custom commands.Context class used by ClockBot
+
+    "SangHwang MacLak is important"
+     ~ Literature Teacher
+    """
+
+    async def wsend(self, content:str = None, **kwargs) -> discord.WebhookMessage:
+        """
+        Sends webhook message
+        ctx.channel has to be TextChannel
+        """
+        assert isinstance(self.bot, ClockBot)
+        assert isinstance(self.channel, discord.TextChannel)
+
+        hook = await self.bot.get_webhook(self.channel)
+        try:
+            msg = await hook.send(content, **kwargs)
+        except discord.NotFound:
+            del self.bot.webhooks[self.channel.id]
+            # TODO: insert or update
+
+        return msg
+
+
 class ClockBot(commands.Bot):
     def __init__(self, DB, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -39,14 +67,66 @@ class ClockBot(commands.Bot):
         self.session = aiohttp.ClientSession(loop=self.loop)
 
         self.DB = DB
-        self.webhooks: Dict[int, Webhook]
+        self.webhooks: Dict[int, Webhook] = {}
 
-        # TODO: If table doesn't exist
-        # use SHOW TABLE & any()
-        DB.execute("SHOW TABLES LIKE 'webhooks'")
-        DB.execute("SELECT channel, ID, token FROM webhooks")
-        for channel, ID, token in DB:
-            print((channel, ID, token))
+    @classmethod
+    async def with_DB(cls, DBconfig: Dict, *args, **kwargs) -> "ClockBot":
+        """Creates ClockBot object using aiomysql as DB"""
+        loop = asyncio.get_event_loop()
+        conn = await aiomysql.connect(loop=loop, **DBconfig)
+        cur = await conn.cursor()
+
+        bot = ClockBot(cur, *args, **kwargs)
+
+        # If table 'webhooks' doesn't exist
+        if await cur.execute("SHOW TABLES LIKE 'webhooks'") == 0:
+            print("Creating table 'webhooks'")
+            await cur.execute("""
+            CREATE TABLE webhooks (
+                channel BIGINT UNSIGNED NOT NULL,
+                id BIGINT UNSIGNED NOT NULL,
+                token CHAR(68) NOT NULL
+            )""")
+
+        await cur.execute("SELECT channel, id, token FROM webhooks")
+        for info in cur.fetchall():
+            hook = Webhook.partial(info[1], info[2], adapter=AsyncWebhookAdapter(bot.session))
+            bot.webhooks[info[0]] = hook
+
+        return bot
+
+    @classmethod # TODO
+    def with_json(cls, *args, **kwargs):
+        """Creates ClockBot object using json as DB"""
+        raise NotImplementedError
+
+    async def get_context(self, message, *, cls=MacLak):
+        return await super().get_context(message, cls=cls)
+
+    async def get_webhook(self, channel: discord.TextChannel) -> discord.Webhook:
+        """
+        Returns channel's webhook owned by Bot
+        Creates one & add to DB if query fails
+        raises BotMissingPermissions if manage_webhooks is false
+        """
+
+        if query := self.webhooks.get(channel.id):
+            return query
+
+        if not channel.permissions_for(channel.guild.me).manage_webhooks:
+            raise commands.BotMissingPermissions([Permissions(manage_webhooks=True)])
+
+        hook = await channel.create_webhook(
+            name="ClockBot",
+            # TODO: avatar
+        )
+
+        self.webhooks[channel.id] = hook
+        asyncio.create_task(
+            self.DB.execute("INSERT INTO webhooks VALUES (%s, %s, %s)", (channel.id, hook.id, hook.token))
+        )
+
+        return hook
 
     async def on_ready(self):
         if not self.started:

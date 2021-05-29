@@ -32,19 +32,14 @@ async def main():
         reactions=True,
     )
 
-    loop = asyncio.get_event_loop()
-    conn = await aiomysql.connect(loop=loop, **config["database"])
-    cur = await conn.cursor()
-
-    bot = ClockBot(
-        DB = cur,
+    bot = await ClockBot.with_DB(
+        DBconfig = config["database"],
         command_prefix = _prefix_callable,
         help_command = None,
         intents = intents
     )
 
     await bot.start(config['token'])
-    conn.close()
     # TODO: receive exitopt
 
 if __name__=="__main__":

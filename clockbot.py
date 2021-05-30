@@ -7,7 +7,11 @@ import enum
 
 from discord import Permissions, Webhook, AsyncWebhookAdapter
 from discord.ext import commands
-from typing import Dict, Optional
+from typing import Dict
+
+PERM_KR_NAME: Dict[Permissions, str] = {
+
+}
 
 class ExitOpt(enum.IntFlag):
     ERROR = -1
@@ -52,8 +56,12 @@ class ClockBot(commands.Bot):
         self.exitopt = ExitOpt.UNSET
         self.session = aiohttp.ClientSession(loop=self.loop)
 
+        # database cursor
         self.DB = DB
+        # cached webhook
         self.webhooks: Dict[int, Webhook] = {}
+        # special channels (ex: bamboo forest) { channel_id : "reason" }
+        self.specials: Dict[int, str] = {}
 
     async def get_context(self, message, *, cls=MacLak):
         return await super().get_context(message, cls=cls)
@@ -61,14 +69,14 @@ class ClockBot(commands.Bot):
     async def get_webhook(self, channel: discord.TextChannel) -> discord.Webhook:
         """
         Returns channel's webhook owned by Bot
-        Creates new webhook if there isn't any
-        raise BotMissingPermissions if manage_webhooks is false
+        Creates new one if there isn't any
+        raise BotMissingPermissions if manage_webhooks==False
         """
         if hook := self.webhooks.get(channel.id):
             return hook
 
         if not channel.permissions_for(channel.guild.me).manage_webhooks:
-            raise commands.BotMissingPermissions([Permissions(manage_webhooks=True)])
+            raise commands.BotMissingPermissions() # TODO
 
         hooks = await channel.webhooks()
         for hook in hooks:
@@ -88,11 +96,13 @@ class ClockBot(commands.Bot):
         if isinstance(error, commands.CommandNotFound):
             pass
         elif isinstance(error, commands.NoPrivateMessage):
-            await ctx.author.send("에러: 해당 명령어는 서버에서만 사용할 수 있습니다")
+            await ctx.send("에러: 해당 명령어는 서버에서만 사용할 수 있습니다")
         elif isinstance(error, commands.PrivateMessageOnly):
-            await ctx.author.send("에러: 해당 명령어는 DM에서만 사용할 수 있습니다")
+            await ctx.send("에러: 해당 명령어는 DM에서만 사용할 수 있습니다")
         elif isinstance(error, commands.BotMissingPermissions):
             pass # TODO
+        elif isinstance(error, commands.MissingPermissions):
+            pass
         else: # TODO: Proper logging
             print("***Something went wrong!***")
             print(f"Caused by: {ctx.message.content}")

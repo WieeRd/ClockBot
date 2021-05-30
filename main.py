@@ -23,6 +23,7 @@ async def main():
     if isinstance(prefix, list):
         prefix = lambda bot, msg: prefix
 
+    print("Connecting to database")
     loop = asyncio.get_event_loop()
     conn = await aiomysql.connect(loop=loop, **config["database"])
     cur = await conn.cursor()
@@ -46,19 +47,17 @@ async def main():
         heartbeat_timeout = 60
     )
 
-    # TODO: init_exts
-    # Load extensions
-    # init_exts = config['init_exts']
-    # counter = 0
-    # print("Loading extensions...")
-    # for ext in init_exts:
-    #     try:
-    #         bot.load_extension('cogs.' + ext)
-    #         counter += 1
-    #     except Exception as e:
-    #         print(f"Failed loading {ext}")
-    #         print(f"{type(e).__name__}: {e}")
-    # print(f"Loaded [{counter}/{len(init_exts)}] extensions")
+    print("Loading extensions")
+    init_exts = config['init_exts']
+    counter = 0
+    for ext in init_exts:
+        try:
+            bot.load_extension('cogs.' + ext)
+            counter += 1
+        except Exception as e:
+            print(f"Failed loading {ext}")
+            print(f"{type(e).__name__}: {e}")
+    print(f"Loaded [{counter}/{len(init_exts)}] extensions")
 
 
     await bot.start(config['token'])

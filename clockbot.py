@@ -7,7 +7,7 @@ import enum
 
 from discord import Permissions, Webhook, AsyncWebhookAdapter
 from discord.ext import commands
-from typing import Dict
+from typing import Dict, Optional
 
 PERM_KR_NAME: Dict[Permissions, str] = {
 
@@ -30,22 +30,26 @@ class MacLak(commands.Context):
      ~ Literature Teacher
     """
 
-    async def wsend(self, content:str = None, **kwargs) -> discord.WebhookMessage:
+    async def wsend(self, content:str = None, **kwargs) -> Optional[discord.WebhookMessage]:
         """
         Sends webhook message to the channel
         ctx.channel has to be TextChannel
         Returns the message that was sent
+        None if missing permission for webhooks
         """
         assert isinstance(self.bot, ClockBot)
         assert isinstance(self.channel, discord.TextChannel)
 
         try:
             hook = await self.bot.get_webhook(self.channel)
+            if hook==None:
+                await self.send("에러: 봇이 웹훅 관리 권한을 상실했습니다")
+                return None
             msg = await hook.send(content, **kwargs)
         except discord.NotFound: # cached webhooks got deleted
             del self.bot.webhooks[self.channel.id]
-            hook = await self.bot.get_webhook(self.channel)
-            msg = await hook.send(content, **kwargs)
+            # TODO: any possibility of endless recursion?
+            return await self.wsend(content, **kwargs)
 
         return msg
 
@@ -66,17 +70,17 @@ class ClockBot(commands.Bot):
     async def get_context(self, message, *, cls=MacLak):
         return await super().get_context(message, cls=cls)
 
-    async def get_webhook(self, channel: discord.TextChannel) -> discord.Webhook:
+    async def get_webhook(self, channel: discord.TextChannel) -> Optional[discord.Webhook]:
         """
         Returns channel's webhook owned by Bot
         Creates new one if there isn't any
-        raise BotMissingPermissions if manage_webhooks==False
+        Returns None if missing permission for webhooks
         """
         if hook := self.webhooks.get(channel.id):
             return hook
 
         if not channel.permissions_for(channel.guild.me).manage_webhooks:
-            raise commands.BotMissingPermissions() # TODO
+            return None
 
         hooks = await channel.webhooks()
         for hook in hooks:

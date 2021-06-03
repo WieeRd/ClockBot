@@ -19,14 +19,12 @@ async def main():
     with open("config.yml", 'r') as f:
         config: Dict = yaml.load(f, Loader=yaml.FullLoader)
 
-    prefix = config["prefix"]
-    if isinstance(prefix, list):
-        prefix = lambda bot, msg: prefix
-
     print("Connecting to database")
     loop = asyncio.get_event_loop()
     conn = await aiomysql.connect(loop=loop, **config["database"])
     cur = await conn.cursor()
+
+    prefix = config["prefix"]
 
     intents = discord.Intents(
         guilds=True,
@@ -59,9 +57,12 @@ async def main():
             print(f"{type(e).__name__}: {e}")
     print(f"Loaded [{counter}/{len(init_exts)}] extensions")
 
+    try: await bot.start(config['token'])
+    except KeyboardInterrupt: pass
 
-    await bot.start(config['token'])
-    # TODO: receive exitopt
+    # TODO: Can't receive exitopt
+    print(bot.exitopt)
+    exit(bot.exitopt.value)
 
 if __name__=="__main__":
     asyncio.run(main())

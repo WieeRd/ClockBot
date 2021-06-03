@@ -35,21 +35,18 @@ class MacLak(commands.Context):
         Sends webhook message to the channel
         ctx.channel has to be TextChannel
         Returns the message that was sent
-        None if missing permission for webhooks
+        raise discord.Forbidden if missing permissions
         """
         assert isinstance(self.bot, ClockBot)
         assert isinstance(self.channel, discord.TextChannel)
 
         try:
             hook = await self.bot.get_webhook(self.channel)
-            if hook==None:
-                await self.send("에러: 봇이 웹훅 관리 권한을 상실했습니다")
-                return None
             msg = await hook.send(content, **kwargs)
         except discord.NotFound: # cached webhooks got deleted
             del self.bot.webhooks[self.channel.id]
-            # TODO: any possibility of endless recursion?
-            return await self.wsend(content, **kwargs)
+            hook = await self.bot.get_webhook(self.channel)
+            msg = await hook.send(content, **kwargs)
 
         return msg
 
@@ -74,13 +71,10 @@ class ClockBot(commands.Bot):
         """
         Returns channel's webhook owned by Bot
         Creates new one if there isn't any
-        Returns None if missing permission for webhooks
+        raise discord.Forbidden if missing permissions
         """
         if hook := self.webhooks.get(channel.id):
             return hook
-
-        if not channel.permissions_for(channel.guild.me).manage_webhooks:
-            return None
 
         hooks = await channel.webhooks()
         for hook in hooks:
@@ -88,8 +82,9 @@ class ClockBot(commands.Bot):
                 self.webhooks[channel.id] = hook
                 return hook
 
-        hook = await channel.create_webhook(name="ClockBot") # TODO: avatar
-        self.webhooks[channel.id] = hook
+        with open('assets/avatar.png', 'rb') as f:
+            hook = await channel.create_webhook(name="ClockBot", avatar=f.read())
+            self.webhooks[channel.id] = hook
         return hook
 
     async def on_ready(self):
@@ -100,13 +95,13 @@ class ClockBot(commands.Bot):
         if isinstance(error, commands.CommandNotFound):
             pass
         elif isinstance(error, commands.NoPrivateMessage):
-            await ctx.send("에러: 해당 명령어는 서버에서만 사용할 수 있습니다")
+            await ctx.send("```에러: 해당 명령어는 서버에서만 사용할 수 있습니다```")
         elif isinstance(error, commands.PrivateMessageOnly):
-            await ctx.send("에러: 해당 명령어는 DM에서만 사용할 수 있습니다")
+            await ctx.send("```에러: 해당 명령어는 DM에서만 사용할 수 있습니다```")
         elif isinstance(error, commands.BotMissingPermissions):
             pass # TODO
         elif isinstance(error, commands.MissingPermissions):
-            pass
+            pass # TODO
         else: # TODO: Proper logging
             print("***Something went wrong!***")
             print(f"Caused by: {ctx.message.content}")

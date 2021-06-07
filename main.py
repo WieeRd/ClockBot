@@ -57,12 +57,8 @@ async def main():
             print(f"{type(e).__name__}: {e}")
     print(f"Loaded [{counter}/{len(init_exts)}] extensions")
 
-    try: await bot.start(config['token'])
-    except KeyboardInterrupt: pass
-
+    await bot.start(config['token'])
     # TODO: Can't receive exitopt
-    print(bot.exitopt)
-    exit(bot.exitopt.value)
 
 if __name__=="__main__":
     asyncio.run(main())

@@ -82,6 +82,10 @@ class ClockBot(commands.Bot):
         # special channels (ex: bamboo forest) { channel_id : "reason" }
         self.specials: Dict[int, str] = {}
 
+    async def close(self):
+        await self.session.close()
+        await super().close()
+
     async def get_context(self, message, *, cls=MacLak):
         return await super().get_context(message, cls=cls)
 

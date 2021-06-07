@@ -5,7 +5,7 @@ import aiomysql
 import time
 import enum
 
-from discord import Permissions, Webhook, AsyncWebhookAdapter
+from discord import Permissions, Webhook
 from discord.ext import commands
 from typing import Dict, Optional
 
@@ -30,12 +30,26 @@ class MacLak(commands.Context):
      ~ Literature Teacher
     """
 
-    async def wsend(self, content:str = None, **kwargs) -> Optional[discord.WebhookMessage]:
+    async def tick(self, value: bool):
+        """
+        Adds emoji check / cross mark as reaction
+        from discord.py/example/custom_context.py
+        """
+        emoji = '\N{WHITE HEAVY CHECK MARK}' if value else '\N{CROSS MARK}'
+        try:
+            await self.message.add_reaction(emoji)
+        except discord.HTTPException:
+            pass
+
+    async def wsend(self, content: str = None, *, err_msg: str = None, **kwargs) -> Optional[discord.WebhookMessage]:
         """
         Sends webhook message to the channel
         ctx.channel has to be TextChannel
         Returns the message that was sent
-        raise discord.Forbidden if missing permissions
+
+        If missing permission 'manage_webhooks',
+        raises discord.Forbidden by default.
+        If err_msg != None, sends err_msg instead
         """
         assert isinstance(self.bot, ClockBot)
         assert isinstance(self.channel, discord.TextChannel)
@@ -45,8 +59,12 @@ class MacLak(commands.Context):
             msg = await hook.send(content, **kwargs)
         except discord.NotFound: # cached webhooks got deleted
             del self.bot.webhooks[self.channel.id]
-            hook = await self.bot.get_webhook(self.channel)
-            msg = await hook.send(content, **kwargs)
+            msg = await self.wsend(content, err_msg=err_msg, **kwargs)
+        except discord.Forbidden: # missing permission
+            if err_msg:
+                await self.send(err_msg)
+                msg = None
+            else: raise
 
         return msg
 
@@ -67,7 +85,7 @@ class ClockBot(commands.Bot):
     async def get_context(self, message, *, cls=MacLak):
         return await super().get_context(message, cls=cls)
 
-    async def get_webhook(self, channel: discord.TextChannel) -> Optional[discord.Webhook]:
+    async def get_webhook(self, channel: discord.TextChannel) -> discord.Webhook:
         """
         Returns channel's webhook owned by Bot
         Creates new one if there isn't any
@@ -95,9 +113,9 @@ class ClockBot(commands.Bot):
         if isinstance(error, commands.CommandNotFound):
             pass
         elif isinstance(error, commands.NoPrivateMessage):
-            await ctx.send("```에러: 해당 명령어는 서버에서만 사용할 수 있습니다```")
+            await ctx.send("에러: 해당 명령어는 서버에서만 사용할 수 있습니다")
         elif isinstance(error, commands.PrivateMessageOnly):
-            await ctx.send("```에러: 해당 명령어는 DM에서만 사용할 수 있습니다```")
+            await ctx.send("에러: 해당 명령어는 DM에서만 사용할 수 있습니다")
         elif isinstance(error, commands.BotMissingPermissions):
             pass # TODO
         elif isinstance(error, commands.MissingPermissions):

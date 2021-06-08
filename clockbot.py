@@ -30,6 +30,8 @@ class MacLak(commands.Context):
      ~ Literature Teacher
     """
 
+    bot: 'ClockBot'
+
     async def tick(self, value: bool):
         """
         Adds emoji check / cross mark as reaction
@@ -51,7 +53,6 @@ class MacLak(commands.Context):
         raises discord.Forbidden by default.
         If err_msg != None, sends err_msg instead
         """
-        assert isinstance(self.bot, ClockBot)
         assert isinstance(self.channel, discord.TextChannel)
 
         try:
@@ -69,22 +70,23 @@ class MacLak(commands.Context):
         return msg
 
 class ClockBot(commands.Bot):
-    def __init__(self, DB, *args, **kwargs):
+    def __init__(self, pool, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.started = None
         self.exitopt = ExitOpt.UNSET
         self.session = aiohttp.ClientSession(loop=self.loop)
 
-        # database cursor
-        self.DB = DB
+        # database connection pool
+        self.pool = pool
         # cached webhook
         self.webhooks: Dict[int, Webhook] = {}
         # special channels (ex: bamboo forest) { channel_id : "reason" }
         self.specials: Dict[int, str] = {}
 
     async def close(self):
-        await self.session.close()
         await super().close()
+        await self.session.close()
+        # TODO: close DB pool
 
     async def get_context(self, message, *, cls=MacLak):
         return await super().get_context(message, cls=cls)

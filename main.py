@@ -11,9 +11,9 @@ from clockbot import ClockBot, ExitOpt
 from typing import Dict
 
 if not os.path.exists("config.yml"):
-    print("config.yml is missing!")
+    print("config.yml is missing; copied default.yml")
     shutil.copy("default.yml", "config.yml")
-    exit(1)
+    exit(ExitOpt.ERROR)
 
 print("Loading config.yml")
 with open("config.yml", 'r') as f:
@@ -21,7 +21,7 @@ with open("config.yml", 'r') as f:
 
 loop = asyncio.get_event_loop()
 
-print("Creating DB connection pool")
+print("Connecting to database")
 try:
     minsize = 1
     maxsize = len(config["init_exts"]) # should be enough?
@@ -47,7 +47,7 @@ bot = ClockBot(
     pool = pool,
     command_prefix = prefix,
     intents = intents,
-    help_command = None, # TODO (seriously)
+    help_command = commands.MinimalHelpCommand(), # TODO (seriously)
     pm_help = False,
     heartbeat_timeout = 60
 )
@@ -57,7 +57,7 @@ init_exts = config['init_exts']
 counter = 0
 for ext in init_exts:
     try:
-        bot.load_extension('cogs.' + ext)
+        bot.load_extension(ext)
         counter += 1
     except Exception as e:
         print(f"Failed loading {ext}")
@@ -66,6 +66,7 @@ print(f"Loaded [{counter}/{len(init_exts)}] extensions")
 
 print("Launching client")
 bot.run(config['token'], reconnect=True)
+print("Client terminated")
 
-print(f"exitcode: {bot.exitopt.name}({bot.exitopt.value})")
+print(f"Exitcode: {bot.exitopt.name}({bot.exitopt.value})")
 exit(bot.exitopt.value)

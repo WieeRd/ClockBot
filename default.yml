@@ -1,8 +1,7 @@
 token:
 prefix: ['!', '시계야']
 init_exts:
-    - owner
-    - clock
+    - jishaku
 database:
     host: "localhost"
     port: 3306

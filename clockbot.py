@@ -86,7 +86,8 @@ class ClockBot(commands.Bot):
     async def close(self):
         await super().close()
         await self.session.close()
-        # TODO: close DB pool
+        self.pool.close()
+        await self.pool.wait_closed()
 
     async def get_context(self, message, *, cls=MacLak):
         return await super().get_context(message, cls=cls)

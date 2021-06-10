@@ -155,8 +155,6 @@ class Meme(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Meme(bot))
-    print(f"{__name__} has been loaded")
 
 def teardown(bot):
     save_change()
-    print(f"{__name__} has been unloaded")

@@ -141,9 +141,7 @@ class Bamboo(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Bamboo(bot))
-    print(f"{__name__} has been loaded")
 
 def teardown(bot):
     save_change()
-    print(f"{__name__} has been unloaded")
 

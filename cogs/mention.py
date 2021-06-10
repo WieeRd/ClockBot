@@ -76,7 +76,6 @@ class Mention(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Mention(bot))
-    print(f"{__name__} has been loaded")
 
 def teardown(bot):
-    print(f"{__name__} has been unloaded")
+    pass

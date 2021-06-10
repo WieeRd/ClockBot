@@ -31,6 +31,8 @@ class MacLak(commands.Context):
     """
 
     bot: 'ClockBot'
+    
+    # TODO: send markdown
 
     async def tick(self, value: bool):
         """
@@ -113,8 +115,10 @@ class ClockBot(commands.Bot):
         return hook
 
     async def on_ready(self):
-        if not self.started:
+        if not self.started: # initial launch
             self.started = time.time()
+            print(f"{self.user.name}#{self.user.discriminator} is now online")
+            print(f"Connected to {len(self.guilds)} servers and {len(self.users)} users")
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):

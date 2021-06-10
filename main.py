@@ -52,17 +52,20 @@ bot = ClockBot(
     heartbeat_timeout = 60
 )
 
-print("Loading extensions")
+print("Loading initial extensions")
 init_exts = config['init_exts']
-counter = 0
-for ext in init_exts:
+success = 0
+for i, ext in enumerate(init_exts):
     try:
+        print(f"[{i}] Loading '{ext}' ", end='', flush=True)
         bot.load_extension(ext)
-        counter += 1
     except Exception as e:
-        print(f"Failed loading {ext}")
+        print("[failed]")
         print(f"{type(e).__name__}: {e}")
-print(f"Loaded [{counter}/{len(init_exts)}] extensions")
+    else:
+        print("[success]")
+        success += 1
+print(f"Loaded [{success}/{len(init_exts)}] extensions")
 
 print("Launching client")
 bot.run(config['token'], reconnect=True)

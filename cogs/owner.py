@@ -106,7 +106,6 @@ class Owner(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Owner(bot))
-    print(f"{__name__} has been loaded ")
 
 def teardown(bot):
-    print(f"{__name__} has been unloaded")
+    pass

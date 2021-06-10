@@ -95,7 +95,6 @@ class Clock(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Clock(bot))
-    print(f"{__name__} has been loaded")
 
 def teardown(bot):
-    print(f"{__name__} has been unloaded")
+    pass

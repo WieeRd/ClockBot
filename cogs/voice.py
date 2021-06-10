@@ -108,7 +108,6 @@ class Voice(commands.Cog):
 def setup(bot: commands.Bot):
     voice = Voice(bot)
     bot.add_cog(voice)
-    print(f"{__name__} has been loaded")
 
 def teardown(bot):
-    print(f"{__name__} has been unloaded")
+    pass

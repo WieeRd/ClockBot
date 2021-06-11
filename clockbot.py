@@ -31,7 +31,7 @@ class MacLak(commands.Context):
     """
 
     bot: 'ClockBot'
-    
+
     # TODO: send markdown
 
     async def tick(self, value: bool):
@@ -88,8 +88,9 @@ class ClockBot(commands.Bot):
     async def close(self):
         await super().close()
         await self.session.close()
-        self.pool.close()
-        await self.pool.wait_closed()
+        for vc in self.voice_clients:
+            await vc.disconnect(force=False)
+        self.pool.terminate(); await self.pool.wait_closed()
 
     async def get_context(self, message, *, cls=MacLak):
         return await super().get_context(message, cls=cls)

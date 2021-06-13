@@ -142,8 +142,11 @@ class Bamboo(commands.Cog, name="대나무숲"):
             return
 
         # len(candidates)==1
-        # TODO: block banned servers
         target = candidates[0]
+        if reason := self.forests[target].banned.get(ctx.author.id):
+            await ctx.send(f"해당 서버의 대나무숲에서 차단되셨습니다 :(\n이유: {reason}")
+            return
+
         await ctx.send(
             f"[{target.name}]의 대나무숲에 연결합니다.\n"
              "익명이지만 매너를 지켜주세요!\n"

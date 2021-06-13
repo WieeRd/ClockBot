@@ -9,6 +9,9 @@ from clockbot import ClockBot, MacLak
 from dataclasses import dataclass, field
 from typing import Dict, List
 
+CHAT_PREFIX = "??: "
+LINK_TIMEOUT = 300
+
 @dataclass
 class Forest:
     channel: discord.TextChannel
@@ -25,9 +28,11 @@ class Forest:
         if len(msg.attachments)>0 or re.search(contain_url, msg.content):
             return await msg.channel.send("[대나무숲] 익명 채널 특성상 파일/링크는 제한됩니다")
 
-        content = "??: " + msg.content
+        content = CHAT_PREFIX + msg.content
         ret = await self.channel.send(content)
-        target = filter(lambda u: u!=msg.author, self.links) # exclude original author
+        target = self.links
+        if isinstance(msg.channel, discord.DMChannel): # exclude original author
+            target = filter(lambda u: u!=msg.author, self.links)
         await asyncio.gather(*map(lambda u: u.send(content), target))
         return ret
 
@@ -98,6 +103,11 @@ class Bamboo(commands.Cog, name="대나무숲"):
     @bamboo.command(name="연결")
     @commands.dm_only()
     async def link(self, ctx: MacLak, *, server: str = None):
+        assert isinstance(ctx.author, discord.User)
+        if link := self.dm_links.get(ctx.author):
+            await ctx.send(f"이미 [{link.forest.channel.guild.name}]의 대나무숲과 연결되어있습니다")
+            return
+
         joined = tuple(filter(lambda g: self.forests.get(g), ctx.author.mutual_guilds))
         if len(joined)==0: # no mutual guild with forest
             await ctx.send(
@@ -132,10 +142,12 @@ class Bamboo(commands.Cog, name="대나무숲"):
             return
 
         # len(candidates)==1
+        # TODO: block banned servers
         target = candidates[0]
         await ctx.send(
-            f"[{target.name}]에 연결합니다\n"
-             "익명이지만 매너를 지켜주세요!"
+            f"[{target.name}]의 대나무숲에 연결합니다.\n"
+             "익명이지만 매너를 지켜주세요!\n"
+             "접속 종료하기: '`대숲 나가기`'"
         )
 
         assert isinstance(ctx.author, discord.User)
@@ -144,10 +156,13 @@ class Bamboo(commands.Cog, name="대나무숲"):
         self.dm_links[ctx.author] = DMlink(forest, time.time())
         # TODO: link timeout
 
-    @bamboo.command(name="연결해제")
+    @bamboo.command(name="나가기")
     @commands.dm_only()
     async def unlink(self, ctx: MacLak):
-        pass
+        assert isinstance(ctx.author, discord.User)
+        self.dm_links[ctx.author].forest.links.remove(ctx.author)
+        del self.dm_links[ctx.author]
+        await ctx.send("대나무숲 연결이 종료되었습니다")
 
     @bamboo.command(name="밴")
     @commands.has_permissions(administrator=True)

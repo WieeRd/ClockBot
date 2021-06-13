@@ -95,13 +95,34 @@ class Bamboo(commands.Cog, name="대나무숲"):
 
     @bamboo.command(name="밴")
     @commands.has_permissions(administrator=True)
-    async def ban(self, ctx: MacLak, user: discord.User, reason: str):
-        pass
+    async def ban(self, ctx: MacLak, user: discord.User, *, reason: str = "주어지지 않음"):
+        assert isinstance(ctx.guild, discord.Guild)
+        assert isinstance(ctx.channel, discord.TextChannel)
+
+        if forest := self.forests.get(ctx.guild):
+            if user.id in forest.banned:
+                reason = forest.banned[user.id]
+                await ctx.send(f"이미 차단된 유저입니다\n(이유: {reason})")
+            else:
+                forest.banned[user.id] = reason
+                await ctx.send(f"{user.mention}가 대나무숲에서 차단됬습니다")
+        else:
+            await ctx.send("서버에 대나무숲이 존재하지 않습니다")
 
     @bamboo.command(name="사면")
     @commands.has_permissions(administrator=True)
     async def unban(self, ctx: MacLak, user: discord.User):
-        pass
+        assert isinstance(ctx.guild, discord.Guild)
+        assert isinstance(ctx.channel, discord.TextChannel)
+
+        if forest := self.forests.get(ctx.guild):
+            if user.id in forest.banned:
+                del forest.banned[user.id]
+                await ctx.send(f"{user.mention}을 사면했습니다. 처신 잘하라고 ;)")
+            else:
+                await ctx.send("차단된 유저가 아닙니다")
+        else:
+            await ctx.send("서버에 대나무숲이 존재하지 않습니다")
 
     @bamboo.command(name="열람")
     @commands.has_permissions(administrator=True)

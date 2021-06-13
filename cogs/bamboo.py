@@ -7,7 +7,7 @@ from discord.ext import commands
 from clockbot import ClockBot, MacLak
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Union
+from typing import Dict, List
 
 @dataclass
 class Forest:
@@ -15,11 +15,21 @@ class Forest:
     links: List[discord.User] = field(default_factory=list)
     banned: Dict[int, str] = field(default_factory=dict) # user.id : reason
 
-    async def send(self, content: str = None, **kwargs) -> discord.Message:
-        msg = await self.channel.send(content, **kwargs)
-        dm = map(lambda u: u.send(content, **kwargs), self.links)
-        await asyncio.gather(*dm)
-        return msg
+    async def deliever(self, msg: discord.Message) -> discord.Message:
+        """
+        Redirects message to server forest channel and linked DMs
+        No files or links allowed
+        return message sent to server
+        """
+        contain_url = re.compile(r"http[s]?://")
+        if len(msg.attachments)>0 or re.search(contain_url, msg.content):
+            return await msg.channel.send("[대나무숲] 익명 채널 특성상 파일/링크는 제한됩니다")
+
+        content = "??: " + msg.content
+        ret = await self.channel.send(content)
+        target = filter(lambda u: u!=msg.author, self.links) # exclude original author
+        await asyncio.gather(*map(lambda u: u.send(content), target))
+        return ret
 
 @dataclass
 class DMlink:
@@ -34,7 +44,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
     def __init__(self, bot: ClockBot):
         self.bot = bot
         self.forests: Dict[discord.Guild, Forest] = {} # int: guild.id
-        self.links: Dict[discord.User, DMlink] = {}   # int: user.id
+        self.dm_links: Dict[discord.User, DMlink] = {}   # int: user.id
 
     @commands.group(name="대숲")
     async def bamboo(self, ctx: MacLak):
@@ -57,7 +67,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
             else: # but the channel got deleted
                 del self.forests[ctx.guild]
 
-        await ctx.channel.edit(name="대나무숲", topic="방금 그건 누가 한 말일까?")
+        await ctx.channel.edit(name="대나무숲", topic="대체 누가 한 말이야?")
         msg = await ctx.send(f"채널이 대나무숲으로 설정되었습니다!\n"
                               "모든 메세지는 익명으로 전환됩니다")
         await msg.pin()
@@ -74,6 +84,8 @@ class Bamboo(commands.Cog, name="대나무숲"):
 
         exist = self.forests.get(ctx.guild)
         if exist and exist.channel==ctx.channel:
+            for user in self.forests[ctx.guild].links:
+                del self.dm_links[user]
             del self.forests[ctx.guild]
             del self.bot.specials[ctx.channel.id]
             await ctx.send("대나무숲을 제거했습니다")
@@ -85,8 +97,52 @@ class Bamboo(commands.Cog, name="대나무숲"):
 
     @bamboo.command(name="연결")
     @commands.dm_only()
-    async def link(self, ctx: MacLak):
-        pass
+    async def link(self, ctx: MacLak, *, server: str = None):
+        joined = tuple(filter(lambda g: self.forests.get(g), ctx.author.mutual_guilds))
+        if len(joined)==0: # no mutual guild with forest
+            await ctx.send(
+                "연결 가능한 대나무숲이 없습니다.\n"
+                "('`대숲 설치`'로 새로운 대나무숲을 만들어보세요!)"
+            )
+            return
+
+        if server==None: # no search target given
+            names = '\n'.join(g.name for g in joined)
+            await ctx.send(
+                 "연결 가능한 서버 목록:\n"
+                f"```{names}```\n"
+                 "`대숲 연결 <서버이름>`으로 접속하세요\n"
+                 "(이름 일부만 입력해도 인식됩니다)"
+            )
+            return
+
+        candidates = tuple(filter(lambda g: server in g.name, joined))
+        if len(candidates)>1: # multiple search results
+            names = '\n'.join(g.name for g in candidates)
+            await ctx.send(
+                f"\"{server}\"에 대한 검색 결과:\n"
+                f"```{names}```\n"
+                 "`대숲 연결 <서버이름>`으로 접속하세요\n"
+                 "(이름 일부만 입력해도 인식됩니다)"
+            )
+            return
+
+        if len(candidates)==0: # no search result
+            await ctx.send(f"\"{server}\"에 대한 검색 결과가 없습니다")
+            return
+
+        # len(candidates)==1
+        target = candidates[0]
+        await ctx.send(
+            f"[{target.name}]에 연결합니다\n"
+             "익명이지만 매너를 지켜주세요!"
+        )
+
+        assert isinstance(ctx.author, discord.User)
+        forest = self.forests[target]
+        forest.links.append(ctx.author)
+        self.dm_links[ctx.author] = DMlink(forest, time.time())
+        # TODO: link timeout
 
     @bamboo.command(name="연결해제")
     @commands.dm_only()
@@ -150,17 +206,16 @@ class Bamboo(commands.Cog, name="대나무숲"):
                 send = True
 
         elif isinstance(msg.channel, discord.DMChannel):
-            if link := self.links.get(msg.channel.recipient):
+            if msg.author.bot:
+                return
+            if link := self.dm_links.get(msg.channel.recipient):
                 link.recent = time.time()
                 forest = link.forest
+
                 send = True
 
         if send:
-            contain_url = re.compile(r"http[s]?://")
-            if len(msg.attachments)>0 or re.search(contain_url, msg.content):
-                await msg.channel.send("[대나무숲] 익명 채널 특성상 파일/링크는 제한됩니다")
-                return
-            msg = await forest.send('??: ' + msg.content)
+            sent = await forest.deliever(msg)
             # TODO: logger
 
 def setup(bot):

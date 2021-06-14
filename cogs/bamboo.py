@@ -7,7 +7,7 @@ from discord.ext import commands
 from clockbot import ClockBot, MacLak
 
 from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 CHAT_PREFIX = "??: "
 LINK_TIMEOUT = 300
@@ -50,6 +50,8 @@ class Bamboo(commands.Cog, name="대나무숲"):
         self.bot = bot
         self.forests: Dict[discord.Guild, Forest] = {} # int: guild.id
         self.dm_links: Dict[discord.User, DMlink] = {}   # int: user.id
+        
+        self.log: Dict[Tuple[int, int], int] = {} # (channel, message): author
 
     @commands.group(name="대숲")
     async def bamboo(self, ctx: MacLak):
@@ -100,7 +102,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         else:
             await ctx.send("대나무숲으로 설정된 채널이 아닙니다")
 
-    @bamboo.command(name="연결")
+    @bamboo.command(name="열기")
     @commands.dm_only()
     async def link(self, ctx: MacLak, *, server: str = None):
         assert isinstance(ctx.author, discord.User)
@@ -132,7 +134,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
             await ctx.send(
                 f"\"{server}\"에 대한 검색 결과:\n"
                 f"```{names}```\n"
-                 "`대숲 연결 <서버이름>`으로 접속하세요\n"
+                 "`대숲 열기 <서버이름>`으로 접속하세요\n"
                  "(이름 일부만 입력해도 인식됩니다)"
             )
             return
@@ -150,7 +152,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         await ctx.send(
             f"[{target.name}]의 대나무숲에 연결합니다.\n"
              "익명이지만 매너를 지켜주세요!\n"
-             "접속 종료하기: '`대숲 나가기`'"
+             "접속 종료하기: '`대숲 닫기`'"
         )
 
         assert isinstance(ctx.author, discord.User)
@@ -159,7 +161,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         self.dm_links[ctx.author] = DMlink(forest, time.time())
         # TODO: link timeout
 
-    @bamboo.command(name="나가기")
+    @bamboo.command(name="닫기")
     @commands.dm_only()
     async def unlink(self, ctx: MacLak):
         assert isinstance(ctx.author, discord.User)
@@ -201,7 +203,25 @@ class Bamboo(commands.Cog, name="대나무숲"):
     @bamboo.command(name="열람")
     @commands.has_permissions(administrator=True)
     async def inspect(self, ctx: MacLak):
-        pass
+        target = ctx.message.reference
+        if target==None:
+            await ctx.send("열람하고자 하는 메세지에 답장하며 사용하세요")
+            return
+
+        assert target.channel_id and target.message_id
+        author = self.log.get((target.channel_id, target.message_id))
+        original = target.resolved
+        assert isinstance(original, discord.Message)
+
+        if author==None:
+            await ctx.send("로그가 삭제되었거나 익명 메세지가 아닙니다")
+            return
+
+        await ctx.send( # TODO: should this be forest.send()?
+            f"{ctx.author.mention}님이 익명 메세지를 열람했습니다.\n"
+            f"작성자: <@!{author}>",
+            reference=original
+        )
 
     @commands.Cog.listener()
     async def on_message(self, msg: discord.Message):
@@ -234,7 +254,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
 
         if send:
             sent = await forest.deliever(msg)
-            # TODO: logger
+            self.log[(sent.channel.id, sent.id)] = msg.author.id
 
 def setup(bot):
     bot.add_cog(Bamboo(bot))

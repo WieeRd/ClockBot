@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
 CHAT_PREFIX = "??: "
-TIMEOUT = 300
+TIMEOUT = 5 # link auto disconnect timeout (minute)
 
 @dataclass
 class Forest:
@@ -102,7 +102,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         else:
             await ctx.send("대나무숲으로 설정된 채널이 아닙니다")
 
-    @bamboo.command(name="열기")
+    @bamboo.command(name="연결")
     @commands.dm_only()
     async def link(self, ctx: MacLak, *, server: str = None):
         assert isinstance(ctx.author, discord.User)
@@ -134,7 +134,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
             await ctx.send(
                 f"\"{server}\"에 대한 검색 결과:\n"
                 f"```{names}```\n"
-                 "`대숲 열기 <서버이름>`으로 접속하세요\n"
+                 "`대숲 연결 <서버이름>`으로 접속하세요\n"
                  "(이름 일부만 입력해도 인식됩니다)"
             )
             return
@@ -151,7 +151,6 @@ class Bamboo(commands.Cog, name="대나무숲"):
 
         await ctx.send(
             f"[{target.name}]의 대나무숲과 연결합니다.\n"
-             "DM으로 보낸 챗이 해당 채널로 전달됩니다\n"
              "익명이지만 매너를 지켜주세요!\n"
              "접속 종료하기: '`대숲 닫기`'"
         )
@@ -167,15 +166,14 @@ class Bamboo(commands.Cog, name="대나무숲"):
         assert user in self.dm_links
 
         while (dt := time.time() - self.dm_links[user].recent) < TIMEOUT:
-            await asyncio.sleep(TIMEOUT - dt + 1) # + 1s to make sure
+            await asyncio.sleep(TIMEOUT*60 - dt + 1) # + 1s to make sure
             if user not in self.dm_links:
                 return # probably manually unlinked
 
         self.dm_links[user].forest.links.remove(user)
         del self.dm_links[user]
 
-        # TODO: wonder if the task automatically ends on shutdown
-        await user.send(f"{TIMEOUT//60}분동안 활동이 없어 대나무숲 연결을 종료합니다")
+        await user.send(f"{TIMEOUT}분 동안 활동이 없어 대나무숲 연결을 종료합니다")
 
     @bamboo.command(name="닫기")
     @commands.dm_only()
@@ -238,9 +236,13 @@ class Bamboo(commands.Cog, name="대나무숲"):
             await ctx.send("로그가 삭제되었거나 익명 메세지가 아닙니다")
             return
 
+        await asyncio.sleep(0.5)
+
+        datestr = original.created_at.strftime("%Y/%m/%d %I:%M %p")
         await ctx.send( # TODO: should this be forest.send()?
-            f"{ctx.author.mention}님이 익명 메세지를 열람했습니다.\n"
-            f"작성자: <@!{author}>",
+             "**[대나무숲 로그 열람]**\n"
+            f"관리자 {ctx.author.mention}님이 익명 메세지를 열람했습니다.\n"
+            f"메세지 작성자: <@!{author}>, {datestr}\n",
             reference=original
         )
 

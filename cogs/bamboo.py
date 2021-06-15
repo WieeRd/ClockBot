@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
 CHAT_PREFIX = "??: "
-LINK_TIMEOUT = 300
+TIMEOUT = 300
 
 @dataclass
 class Forest:
@@ -150,7 +150,8 @@ class Bamboo(commands.Cog, name="대나무숲"):
             return
 
         await ctx.send(
-            f"[{target.name}]의 대나무숲에 연결합니다.\n"
+            f"[{target.name}]의 대나무숲과 연결합니다.\n"
+             "DM으로 보낸 챗이 해당 채널로 전달됩니다\n"
              "익명이지만 매너를 지켜주세요!\n"
              "접속 종료하기: '`대숲 닫기`'"
         )
@@ -159,12 +160,32 @@ class Bamboo(commands.Cog, name="대나무숲"):
         forest = self.forests[target]
         forest.links.append(ctx.author)
         self.dm_links[ctx.author] = DMlink(forest, time.time())
-        # TODO: link timeout
+
+        await self.link_timeout(ctx.author)
+
+    async def link_timeout(self, user: discord.User):
+        assert user in self.dm_links
+
+        while (dt := time.time() - self.dm_links[user].recent) < TIMEOUT:
+            await asyncio.sleep(TIMEOUT - dt + 1) # + 1s to make sure
+            if user not in self.dm_links:
+                return # probably manually unlinked
+
+        self.dm_links[user].forest.links.remove(user)
+        del self.dm_links[user]
+
+        # TODO: wonder if the task automatically ends on shutdown
+        await user.send(f"{TIMEOUT//60}분동안 활동이 없어 대나무숲 연결을 종료합니다")
 
     @bamboo.command(name="닫기")
     @commands.dm_only()
     async def unlink(self, ctx: MacLak):
         assert isinstance(ctx.author, discord.User)
+
+        if ctx.author not in self.dm_links:
+            await ctx.send("활성화된 대나무숲 연결이 없습니다")
+            return
+
         self.dm_links[ctx.author].forest.links.remove(ctx.author)
         del self.dm_links[ctx.author]
         await ctx.send("대나무숲 연결이 종료되었습니다")

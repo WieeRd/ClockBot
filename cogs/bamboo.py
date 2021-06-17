@@ -10,7 +10,32 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
 DEFAULT_PREFIX = "??: "
-TIMEOUT = 5 # link auto disconnect timeout (minute)
+TIMEOUT = 5 # minute
+
+TABLES = {
+'forest': """
+CREATE TABLE forest (
+    name VARCHAR(30),
+    guild BIGINT UNSIGNED PRIMARY KEY,
+    channel BIGINT UNSIGNED,
+    prefix VARCHAR(10)
+)
+""",
+
+'forest_ban': """
+CREATE TABLE forest_ban (
+    guild BIGINT UNSIGNED,
+    user BIGINT UNSIGNED
+)
+""",
+
+'forest_log': """
+CREATE TABLE forest_log (
+    channel BIGINT UNSIGNED,
+    user BIGINT UNSIGNED
+)
+"""
+}
 
 @dataclass
 class Forest:
@@ -42,28 +67,6 @@ class DMlink:
     forest: Forest
     recent: float
 
-TABLE_FOREST = """
-CREATE TABLE forest (
-    guild BIGINT UNSIGNED PRIMARY KEY,
-    channel BIGINT UNSIGNED,
-    prefix VARCHAR(10)
-)
-"""
-
-TABLE_BAN = """
-CREATE TABLE forest_ban (
-    guild BIGINT UNSIGNED,
-    user BIGINT UNSIGNED
-)
-"""
-
-TABLE_LOG = """
-CREATE TABLE forest_log (
-    channel BIGINT UNSIGNED,
-    user BIGINT UNSIGNED
-)
-"""
-
 class Bamboo(commands.Cog, name="대나무숲"):
     """
     익명 채팅 채널을 생성하고 관리합니다.
@@ -72,14 +75,25 @@ class Bamboo(commands.Cog, name="대나무숲"):
     def __init__(self, bot: ClockBot):
         self.bot = bot
         self.forests: Dict[discord.Guild, Forest] = {} # int: guild.id
-        self.dm_links: Dict[discord.User, DMlink] = {}   # int: user.id
-
+        self.dm_links: Dict[discord.User, DMlink] = {} # int: user.id
         self.log: Dict[Tuple[int, int], int] = {} # (channel, message): author
+
+        self.init_forest.start()
 
     @tasks.loop(count=1)
     async def init_forest(self):
-        # TODO
         conn = await self.bot.pool.acquire()
+
+        async with conn.cursor() as cur:
+            for name, create in TABLES.items():
+                if await cur.execute("SHOW TABLES LIKE %s", (name,)):
+                    continue # table already exists
+                await cur.execute(create)
+
+            await cur.execute("SELECT guild,channel FROM forest")
+            # TODO
+
+        conn.close()
 
     @commands.group(name="대숲")
     async def bamboo(self, ctx: MacLak):

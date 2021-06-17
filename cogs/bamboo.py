@@ -71,6 +71,8 @@ class Bamboo(commands.Cog, name="대나무숲"):
         assert isinstance(ctx.guild, discord.Guild)
         assert isinstance(ctx.channel, discord.TextChannel)
 
+        # TODO: check self.bot.specials
+
         if exist := self.forests.get(ctx.guild): # already exist
             channel = self.bot.get_channel(exist.channel.id)
             if channel:
@@ -285,6 +287,8 @@ class Bamboo(commands.Cog, name="대나무숲"):
             self.log[(sent.channel.id, sent.id)] = msg.author.id
 
 def setup(bot: ClockBot):
+    if bot.pool==None: # which exception is appropriate?
+        raise Exception(f"{__name__} requires database")
     bot.add_cog(Bamboo(bot))
 
 def teardown(bot):

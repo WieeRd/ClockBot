@@ -92,7 +92,8 @@ class ClockBot(commands.Bot):
         await self.session.close()
         for vc in self.voice_clients:
             await vc.disconnect(force=False)
-        self.pool.terminate(); await self.pool.wait_closed()
+        if self.pool!=None:
+            self.pool.terminate(); await self.pool.wait_closed()
 
     async def get_context(self, message, *, cls=MacLak):
         return await super().get_context(message, cls=cls)

@@ -21,15 +21,18 @@ with open("config.yml", 'r') as f:
 
 loop = asyncio.get_event_loop()
 
-print("Connecting to database")
+print("Creating DB connection pool")
 try:
     minsize = 1
-    maxsize = len(config["init_exts"]) # should be enough?
+    maxsize = 10 # should be enough?
     kwargs = config["database"]
     pool = loop.run_until_complete(aiomysql.create_pool(minsize, maxsize, **kwargs))
 except Exception as e:
     print(f"{type(e).__name__}: {e}")
-    exit(ExitOpt.ERROR.value)
+    print("Warning: Continuing without database")
+    pool = None
+else:
+    print(f"Connected to DB '{config['database']['db']}'")
 
 prefix = config["prefix"]
 

@@ -75,8 +75,10 @@ class Clock(commands.Cog):
             try:
                 await asyncio.wait_for(self.bot.user.edit(avatar=img), 10)
             except Exception as e:
-                print(f"Avatar update failed at {hh:02d}:{mm:02d}:{ss:02d}")
-                print(f"{type(e).__name__}: {e}")
+                # TODO: constantly fails, I have no idea why
+                # disabling log for now
+                # print(f"Avatar update failed at {hh:02d}:{mm:02d}:{ss:02d}")
+                # print(f"{type(e).__name__}: {e}")
                 await self.bot.wait_until_ready()
 
         activity=discord.Game(name=time.strftime("%p %I:%M KST", tm))

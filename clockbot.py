@@ -9,6 +9,10 @@ from discord import Permissions, Webhook
 from discord.ext import commands
 from typing import Dict, Optional
 
+# TODO: at least print out permission error to see what's inside
+# TODO: owner_or_admin
+# TODO: ctx.code("content", lang="python")
+
 PERM_KR_NAME: Dict[Permissions, str] = {
 
 }
@@ -31,8 +35,6 @@ class MacLak(commands.Context):
     """
 
     bot: 'ClockBot'
-
-    # TODO: send markdown
 
     async def tick(self, value: bool):
         """
@@ -90,7 +92,8 @@ class ClockBot(commands.Bot):
         await self.session.close()
         for vc in self.voice_clients:
             await vc.disconnect(force=False)
-        self.pool.terminate(); await self.pool.wait_closed()
+        if self.pool!=None:
+            self.pool.terminate(); await self.pool.wait_closed()
 
     async def get_context(self, message, *, cls=MacLak):
         return await super().get_context(message, cls=cls)

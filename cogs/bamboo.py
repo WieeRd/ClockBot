@@ -9,7 +9,7 @@ from clockbot import ClockBot, MacLak
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
-CHAT_PREFIX = "??: "
+DEFAULT_PREFIX = "??: "
 TIMEOUT = 5 # link auto disconnect timeout (minute)
 
 @dataclass
@@ -17,6 +17,7 @@ class Forest:
     channel: discord.TextChannel
     links: List[discord.User] = field(default_factory=list)
     banned: Dict[int, str] = field(default_factory=dict) # user.id : reason
+    prefix: str = DEFAULT_PREFIX
 
     async def deliever(self, msg: discord.Message) -> discord.Message:
         """
@@ -28,7 +29,7 @@ class Forest:
         if len(msg.attachments)>0 or re.search(contain_url, msg.content):
             return await msg.channel.send("[대나무숲] 익명 채널 특성상 파일/링크는 제한됩니다")
 
-        content = CHAT_PREFIX + msg.content
+        content = self.prefix + msg.content
         ret = await self.channel.send(content)
         target = self.links
         if isinstance(msg.channel, discord.DMChannel): # exclude original author
@@ -50,13 +51,17 @@ class Bamboo(commands.Cog, name="대나무숲"):
         self.bot = bot
         self.forests: Dict[discord.Guild, Forest] = {} # int: guild.id
         self.dm_links: Dict[discord.User, DMlink] = {}   # int: user.id
-        
+
         self.log: Dict[Tuple[int, int], int] = {} # (channel, message): author
 
     @commands.group(name="대숲")
     async def bamboo(self, ctx: MacLak):
         if ctx.invoked_subcommand==None:
-            pass
+            await ctx.send_help(self.bamboo)
+
+    @bamboo.command(name="설정") # TODO
+    async def settings(self, ctx: MacLak):
+        await ctx.send("coming soon!")
 
     @bamboo.command(name="설치")
     @commands.guild_only()
@@ -279,7 +284,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
             sent = await forest.deliever(msg)
             self.log[(sent.channel.id, sent.id)] = msg.author.id
 
-def setup(bot):
+def setup(bot: ClockBot):
     bot.add_cog(Bamboo(bot))
 
 def teardown(bot):

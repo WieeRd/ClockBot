@@ -3,7 +3,7 @@ import asyncio
 import time
 import re
 
-from discord.ext import commands
+from discord.ext import commands, tasks
 from clockbot import ClockBot, MacLak
 
 from dataclasses import dataclass, field
@@ -42,6 +42,28 @@ class DMlink:
     forest: Forest
     recent: float
 
+TABLE_FOREST = """
+CREATE TABLE forest (
+    guild BIGINT UNSIGNED PRIMARY KEY,
+    channel BIGINT UNSIGNED,
+    prefix VARCHAR(10)
+)
+"""
+
+TABLE_BAN = """
+CREATE TABLE forest_ban (
+    guild BIGINT UNSIGNED,
+    user BIGINT UNSIGNED
+)
+"""
+
+TABLE_LOG = """
+CREATE TABLE forest_log (
+    channel BIGINT UNSIGNED,
+    user BIGINT UNSIGNED
+)
+"""
+
 class Bamboo(commands.Cog, name="대나무숲"):
     """
     익명 채팅 채널을 생성하고 관리합니다.
@@ -53,6 +75,11 @@ class Bamboo(commands.Cog, name="대나무숲"):
         self.dm_links: Dict[discord.User, DMlink] = {}   # int: user.id
 
         self.log: Dict[Tuple[int, int], int] = {} # (channel, message): author
+
+    @tasks.loop(count=1)
+    async def init_forest(self):
+        # TODO
+        conn = await self.bot.pool.acquire()
 
     @commands.group(name="대숲")
     async def bamboo(self, ctx: MacLak):

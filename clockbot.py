@@ -139,3 +139,13 @@ class ClockBot(commands.Bot):
             print("***Something went wrong!***")
             print(f"Caused by: {ctx.message.content}")
             print(f"{type(error).__name__}: {error}")
+
+    async def singleQ(self, query: str, args: tuple = None):
+        "Executes single query in DB"
+        # TODO: WTF WHY IS ASYNC WITH NOT WORKING
+        conn = await self.pool.acquire()
+        cur = await conn.cursor()
+        ret = await cur.execute(query, args)
+        await cur.close()
+        conn.close()
+        return ret

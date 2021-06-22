@@ -7,42 +7,43 @@ from discord.ext import commands, tasks
 from clockbot import ClockBot, MacLak
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 DEFAULT_PREFIX = "??: "
 TIMEOUT = 5 # minute
 
-TABLES = {
-'forest': """
+TABLE_FOREST = """
 CREATE TABLE forest (
     name VARCHAR(30),
     guild BIGINT UNSIGNED PRIMARY KEY,
     channel BIGINT UNSIGNED,
-    prefix VARCHAR(10)
-)
-""",
-
-'forest_ban': """
-CREATE TABLE forest_ban (
-    guild BIGINT UNSIGNED,
-    user BIGINT UNSIGNED
-)
-""",
-
-'forest_log': """
-CREATE TABLE forest_log (
-    channel BIGINT UNSIGNED,
-    user BIGINT UNSIGNED
+    prefix VARCHAR(10) DEFAULT ''
 )
 """
-}
+
+TABLE_FOREST_BAN = """
+CREATE TABLE forest_ban (
+    guild BIGINT UNSIGNED,
+    user BIGINT UNSIGNED,
+    reason VARCHAR(100) DEFAULT ''
+)
+"""
+
+TABLE_FOREST_LOG = """
+CREATE TABLE forest_log (
+    channel BIGINT UNSIGNED,
+    message BIGINT UNSIGNED,
+    user BIGINT UNSIGNED,
+    date DATE DEFAULT CURDATE()
+)
+"""
 
 @dataclass
 class Forest:
     channel: discord.TextChannel
+    prefix: str
     links: List[discord.User] = field(default_factory=list)
-    banned: Dict[int, str] = field(default_factory=dict) # user.id : reason
-    prefix: str = DEFAULT_PREFIX
+    banned: Dict[int, str] = field(default_factory=dict)
 
     async def deliever(self, msg: discord.Message) -> discord.Message:
         """
@@ -76,23 +77,40 @@ class Bamboo(commands.Cog, name="대나무숲"):
         self.bot = bot
         self.forests: Dict[discord.Guild, Forest] = {} # int: guild.id
         self.dm_links: Dict[discord.User, DMlink] = {} # int: user.id
-        self.log: Dict[Tuple[int, int], int] = {} # (channel, message): author
+        # self.log: Dict[Tuple[int, int], int] = {} # (channel, message): author
 
         self.init_forest.start()
 
     @tasks.loop(count=1)
     async def init_forest(self):
+        await self.bot.wait_until_ready()
+
         conn = await self.bot.pool.acquire()
+        cur = await conn.cursor()
 
-        async with conn.cursor() as cur:
-            for name, create in TABLES.items():
-                if await cur.execute("SHOW TABLES LIKE %s", (name,)):
-                    continue # table already exists
-                await cur.execute(create)
+        # create required tables if it doesn't exist
+        if not await cur.execute("SHOW TABLES LIKE 'forest'"):
+            await cur.execute(TABLE_FOREST)
+        if not await cur.execute("SHOW TABLES LIKE 'forest_ban'"):
+            await cur.execute(TABLE_FOREST_BAN)
+        if not await cur.execute("SHOW TABLES LIKE 'forest_log'"):
+            await cur.execute(TABLE_FOREST_LOG)
 
-            await cur.execute("SELECT guild,channel FROM forest")
-            # TODO
+        await cur.execute("SELECT guild,channel,prefix FROM forest")
+        for gid,cid,prefix in await cur.fetchall():
+            guild = self.bot.get_guild(gid)
+            channel = self.bot.get_channel(cid)
+            prefix = prefix + ' ' if prefix else DEFAULT_PREFIX
+            if guild and isinstance(channel, discord.TextChannel):
+                self.forests[guild] = Forest(channel, prefix)
 
+        await cur.execute("SELECT guild,user,reason FROM forest_ban")
+        for gid,uid,reason in await cur.fetchall(): 
+            if guild := self.bot.get_guild(gid):
+                if forest := self.forests.get(guild):
+                    forest.banned[uid] = reason
+
+        await cur.close()
         conn.close()
 
     @commands.group(name="대숲")
@@ -112,8 +130,6 @@ class Bamboo(commands.Cog, name="대나무숲"):
         assert isinstance(ctx.guild, discord.Guild)
         assert isinstance(ctx.channel, discord.TextChannel)
 
-        # TODO: check self.bot.specials
-
         if exist := self.forests.get(ctx.guild): # already exist
             channel = self.bot.get_channel(exist.channel.id)
             if channel:
@@ -122,13 +138,20 @@ class Bamboo(commands.Cog, name="대나무숲"):
             else: # but the channel got deleted
                 del self.forests[ctx.guild]
 
+        if special := self.bot.specials.get(ctx.channel.id):
+            await ctx.send(f"채널이 {special}(으)로 설정되어 있어 불가합니다")
+            return
+
         await ctx.channel.edit(name="대나무숲", topic="대체 누가 한 말이야?")
         msg = await ctx.send(f"채널이 대나무숲으로 설정되었습니다!\n"
                               "모든 메세지는 익명으로 전환됩니다")
         await msg.pin()
 
-        self.forests[ctx.guild] = Forest(ctx.channel)
+        self.forests[ctx.guild] = Forest(ctx.channel, DEFAULT_PREFIX)
         self.bot.specials[ctx.channel.id] = "대나무숲"
+
+        args = (ctx.guild.name, ctx.guild.id, ctx.channel.id)
+        await self.bot.singleQ("INSERT INTO forest VALUES (%s, %s, %s)", args)
 
     @bamboo.command(name="제거")
     @commands.guild_only()
@@ -143,10 +166,14 @@ class Bamboo(commands.Cog, name="대나무숲"):
                 del self.dm_links[user]
             del self.forests[ctx.guild]
             del self.bot.specials[ctx.channel.id]
+
             await ctx.send("대나무숲을 제거했습니다")
             for pin in await ctx.channel.pins():
                 if pin.author==self.bot.user:
                     await pin.unpin()
+
+            await self.bot.singleQ("DELETE FROM forest WHERE guild = %s", (ctx.guild.id,))
+
         else:
             await ctx.send("대나무숲으로 설정된 채널이 아닙니다")
 
@@ -238,7 +265,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
 
     @bamboo.command(name="밴")
     @commands.has_permissions(administrator=True)
-    async def ban(self, ctx: MacLak, user: discord.User, *, reason: str = "주어지지 않음"):
+    async def ban(self, ctx: MacLak, user: discord.User, *, reason: str = ""):
         assert isinstance(ctx.guild, discord.Guild)
         assert isinstance(ctx.channel, discord.TextChannel)
 
@@ -249,6 +276,9 @@ class Bamboo(commands.Cog, name="대나무숲"):
             else:
                 forest.banned[user.id] = reason
                 await ctx.send(f"{user.mention}가 대나무숲에서 차단됬습니다")
+
+                args = (ctx.guild.id, user.id, reason)
+                await self.bot.singleQ("INSERT INTO forest_ban VALUES (%s, %s, %s)", args)
         else:
             await ctx.send("서버에 대나무숲이 존재하지 않습니다")
 
@@ -262,6 +292,9 @@ class Bamboo(commands.Cog, name="대나무숲"):
             if user.id in forest.banned:
                 del forest.banned[user.id]
                 await ctx.send(f"{user.mention}을 사면했습니다. 처신 잘하라고 ;)")
+
+                args = (ctx.guild.id, user.id)
+                await self.bot.singleQ("DELETE FROM forest_ban WHERE guild = %s AND user = %s", args)
             else:
                 await ctx.send("차단된 유저가 아닙니다")
         else:
@@ -275,16 +308,24 @@ class Bamboo(commands.Cog, name="대나무숲"):
             await ctx.send("열람하고자 하는 메세지에 답장하며 사용하세요")
             return
 
-        assert target.channel_id and target.message_id
-        author = self.log.get((target.channel_id, target.message_id))
         original = target.resolved
         assert isinstance(original, discord.Message)
+        
+        # TODO: what in the name of FUCK why is async with NOT WORKING
+        conn = await self.bot.pool.acquire()
+        cur = await conn.cursor()
+
+        args = (original.channel.id, original.author.id)
+        await cur.execute("SELECT user FROM forest_log WHERE channel = %s AND message = %s", args)
+        uid = await cur.fetchone()
+        author = self.bot.get_user(uid)
+
+        await cur.close()
+        conn.close()
 
         if author==None:
             await ctx.send("로그가 삭제되었거나 익명 메세지가 아닙니다")
             return
-
-        await asyncio.sleep(0.5)
 
         datestr = original.created_at.strftime("%Y/%m/%d %I:%M %p")
         await ctx.send( # TODO: should this be forest.send()?
@@ -325,7 +366,8 @@ class Bamboo(commands.Cog, name="대나무숲"):
 
         if send:
             sent = await forest.deliever(msg)
-            self.log[(sent.channel.id, sent.id)] = msg.author.id
+            args = (sent.channel.id, sent.id, msg.author.id)
+            await self.bot.singleQ("INSERT INTO forest_log VALUES (%s, %s, %s)", args)
 
 def setup(bot: ClockBot):
     if bot.pool==None: # which exception is appropriate?

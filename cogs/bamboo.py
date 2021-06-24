@@ -7,36 +7,10 @@ from discord.ext import commands, tasks
 from clockbot import ClockBot, MacLak
 
 from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 DEFAULT_PREFIX = "??: "
 TIMEOUT = 5 # minute
-
-TABLE_FOREST = """
-CREATE TABLE forest (
-    name VARCHAR(30),
-    guild BIGINT UNSIGNED PRIMARY KEY,
-    channel BIGINT UNSIGNED,
-    prefix VARCHAR(10) DEFAULT ''
-)
-"""
-
-TABLE_FOREST_BAN = """
-CREATE TABLE forest_ban (
-    guild BIGINT UNSIGNED,
-    user BIGINT UNSIGNED,
-    reason VARCHAR(100) DEFAULT ''
-)
-"""
-
-TABLE_FOREST_LOG = """
-CREATE TABLE forest_log (
-    channel BIGINT UNSIGNED,
-    message BIGINT UNSIGNED,
-    user BIGINT UNSIGNED,
-    date DATE DEFAULT CURDATE()
-)
-"""
 
 @dataclass
 class Forest:
@@ -77,41 +51,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         self.bot = bot
         self.forests: Dict[discord.Guild, Forest] = {} # int: guild.id
         self.dm_links: Dict[discord.User, DMlink] = {} # int: user.id
-        # self.log: Dict[Tuple[int, int], int] = {} # (channel, message): author
-
-        self.init_forest.start()
-
-    @tasks.loop(count=1)
-    async def init_forest(self):
-        await self.bot.wait_until_ready()
-
-        conn = await self.bot.pool.acquire()
-        cur = await conn.cursor()
-
-        # create required tables if it doesn't exist
-        if not await cur.execute("SHOW TABLES LIKE 'forest'"):
-            await cur.execute(TABLE_FOREST)
-        if not await cur.execute("SHOW TABLES LIKE 'forest_ban'"):
-            await cur.execute(TABLE_FOREST_BAN)
-        if not await cur.execute("SHOW TABLES LIKE 'forest_log'"):
-            await cur.execute(TABLE_FOREST_LOG)
-
-        await cur.execute("SELECT guild,channel,prefix FROM forest")
-        for gid,cid,prefix in await cur.fetchall():
-            guild = self.bot.get_guild(gid)
-            channel = self.bot.get_channel(cid)
-            prefix = prefix + ' ' if prefix else DEFAULT_PREFIX
-            if guild and isinstance(channel, discord.TextChannel):
-                self.forests[guild] = Forest(channel, prefix)
-
-        await cur.execute("SELECT guild,user,reason FROM forest_ban")
-        for gid,uid,reason in await cur.fetchall(): 
-            if guild := self.bot.get_guild(gid):
-                if forest := self.forests.get(guild):
-                    forest.banned[uid] = reason
-
-        await cur.close()
-        conn.close()
+        self.log: Dict[Tuple[int, int], int] = {} # (channel, message): author
 
     @commands.group(name="대숲")
     async def bamboo(self, ctx: MacLak):
@@ -150,9 +90,6 @@ class Bamboo(commands.Cog, name="대나무숲"):
         self.forests[ctx.guild] = Forest(ctx.channel, DEFAULT_PREFIX)
         self.bot.specials[ctx.channel.id] = "대나무숲"
 
-        args = (ctx.guild.name, ctx.guild.id, ctx.channel.id)
-        await self.bot.singleQ("INSERT INTO forest VALUES (%s, %s, %s)", args)
-
     @bamboo.command(name="제거")
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
@@ -171,9 +108,6 @@ class Bamboo(commands.Cog, name="대나무숲"):
             for pin in await ctx.channel.pins():
                 if pin.author==self.bot.user:
                     await pin.unpin()
-
-            await self.bot.singleQ("DELETE FROM forest WHERE guild = %s", (ctx.guild.id,))
-
         else:
             await ctx.send("대나무숲으로 설정된 채널이 아닙니다")
 
@@ -276,9 +210,6 @@ class Bamboo(commands.Cog, name="대나무숲"):
             else:
                 forest.banned[user.id] = reason
                 await ctx.send(f"{user.mention}가 대나무숲에서 차단됬습니다")
-
-                args = (ctx.guild.id, user.id, reason)
-                await self.bot.singleQ("INSERT INTO forest_ban VALUES (%s, %s, %s)", args)
         else:
             await ctx.send("서버에 대나무숲이 존재하지 않습니다")
 
@@ -292,9 +223,6 @@ class Bamboo(commands.Cog, name="대나무숲"):
             if user.id in forest.banned:
                 del forest.banned[user.id]
                 await ctx.send(f"{user.mention}을 사면했습니다. 처신 잘하라고 ;)")
-
-                args = (ctx.guild.id, user.id)
-                await self.bot.singleQ("DELETE FROM forest_ban WHERE guild = %s AND user = %s", args)
             else:
                 await ctx.send("차단된 유저가 아닙니다")
         else:
@@ -310,20 +238,10 @@ class Bamboo(commands.Cog, name="대나무숲"):
 
         original = target.resolved
         assert isinstance(original, discord.Message)
-        
-        # TODO: what in the name of FUCK why is async with NOT WORKING
-        conn = await self.bot.pool.acquire()
-        cur = await conn.cursor()
 
-        args = (original.channel.id, original.author.id)
-        await cur.execute("SELECT user FROM forest_log WHERE channel = %s AND message = %s", args)
-        uid = await cur.fetchone()
-        author = self.bot.get_user(uid)
+        author_id = self.log.get((original.channel.id, original.id))
 
-        await cur.close()
-        conn.close()
-
-        if author==None:
+        if author_id==None:
             await ctx.send("로그가 삭제되었거나 익명 메세지가 아닙니다")
             return
 
@@ -331,7 +249,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         await ctx.send( # TODO: should this be forest.send()?
              "**[대나무숲 로그 열람]**\n"
             f"관리자 {ctx.author.mention}님이 익명 메세지를 열람했습니다.\n"
-            f"메세지 작성자: <@!{author}>, {datestr}\n",
+            f"메세지 작성자: <@!{author_id}>, {datestr}\n",
             reference=original
         )
 
@@ -366,8 +284,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
 
         if send:
             sent = await forest.deliever(msg)
-            args = (sent.channel.id, sent.id, msg.author.id)
-            await self.bot.singleQ("INSERT INTO forest_log VALUES (%s, %s, %s)", args)
+            self.log[(sent.channel.id, sent.id)] = msg.author.id
 
 def setup(bot: ClockBot):
     if bot.pool==None: # which exception is appropriate?

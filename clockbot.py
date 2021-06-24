@@ -36,6 +36,9 @@ class MacLak(commands.Context):
 
     bot: 'ClockBot'
 
+    async def code(self, content: str, lang: str = ''):
+        await self.send(f"```{lang}\n{content}\n```")
+
     async def tick(self, value: bool):
         """
         Adds emoji check / cross mark as reaction
@@ -132,9 +135,9 @@ class ClockBot(commands.Bot):
         elif isinstance(error, commands.PrivateMessageOnly):
             await ctx.send("에러: 해당 명령어는 DM에서만 사용할 수 있습니다")
         elif isinstance(error, commands.BotMissingPermissions):
-            pass # TODO
+            print(f"BotMissingPermissions: {error.missing_perms}") # TODO missing_perms are List[str] btw
         elif isinstance(error, commands.MissingPermissions):
-            pass # TODO
+            print(f"MissingPermissions: {error.missing_perms}")
         else: # TODO: Proper logging
             print("***Something went wrong!***")
             print(f"Caused by: {ctx.message.content}")

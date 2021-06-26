@@ -49,6 +49,18 @@ PERM_KR_NAME: Dict[str, str] = {
     "view_guild_insights": "서버 인사이트 보기",
 }
 
+def owner_or_permissions(**perms):
+    """bot owner or has_permissions"""
+    original = commands.has_permissions(**perms).predicate
+    async def extended_check(ctx):
+        if ctx.guild is None:
+            return False
+        return ctx.guild.owner_id == ctx.author.id or await original(ctx)
+    return commands.check(extended_check)
+
+def owner_or_admin():
+    return owner_or_permissions(administrator=True)
+
 class ExitOpt(enum.IntFlag):
     ERROR = -1
     QUIT = 0

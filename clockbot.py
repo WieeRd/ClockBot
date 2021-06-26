@@ -8,8 +8,6 @@ from discord import Webhook
 from discord.ext import commands
 from typing import Dict, List, Optional
 
-# TODO: owner_or_admin
-
 PERM_KR_NAME: Dict[str, str] = {
     "add_reactions": "반응 추가",
     "administrator": "관리자",

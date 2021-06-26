@@ -3,7 +3,7 @@ import asyncio
 import time
 import random
 from discord.ext import commands
-from lib.KoreanNumber import num2kr, kr2num
+from utils.KoreanNumber import num2kr, kr2num
 
 #02 Miscellaneous features
 

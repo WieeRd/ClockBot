@@ -1,7 +1,7 @@
 import discord
 import asyncio
 from discord.ext import commands
-import lib.MemberFilter as MemberFilter
+import utils.MemberFilter as MemberFilter
 
 class Mention(commands.Cog):
     def __init__(self, bot):

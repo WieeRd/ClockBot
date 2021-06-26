@@ -59,7 +59,7 @@ def owner_or_permissions(**perms):
 def owner_or_admin():
     return owner_or_permissions(administrator=True)
 
-class ExitOpt(enum.IntFlag):
+class ExitOpt(enum.IntEnum):
     ERROR = -1
     QUIT = 0
     UNSET = 1
@@ -139,7 +139,7 @@ class ClockBot(commands.Bot):
         await self.session.close()
         for vc in self.voice_clients:
             await vc.disconnect(force=False)
-        if self.pool!=None:
+        if self.pool!=None: # TODO: planning to switching to MongoDB
             self.pool.terminate(); await self.pool.wait_closed()
 
     async def get_context(self, message, *, cls=MacLak):

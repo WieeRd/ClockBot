@@ -172,13 +172,17 @@ class ClockBot(commands.Bot):
             print(f"{self.user.name}#{self.user.discriminator} is now online")
             print(f"Connected to {len(self.guilds)} servers and {len(self.users)} users")
 
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(self, ctx: MacLak, error):
         if isinstance(error, commands.CommandNotFound):
             pass # TODO maybe this can be used to send help when mentioned
+        elif isinstance(error, commands.UserInputError):
+            await ctx.send_help(ctx.command)
+
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.code("에러: 해당 명령어는 서버에서만 사용할 수 있습니다")
         elif isinstance(error, commands.PrivateMessageOnly):
             await ctx.code("에러: 해당 명령어는 DM에서만 사용할 수 있습니다")
+
         elif isinstance(error, commands.BotMissingPermissions):
             perm_lst = ', '.join([PERM_KR_NAME[str(perm)] for perm in error.missing_perms])
             many = '들' if len(perm_lst)>1 else ''
@@ -187,10 +191,12 @@ class ClockBot(commands.Bot):
             perm_lst = ', '.join([PERM_KR_NAME[str(perm)] for perm in error.missing_perms])
             many = '들' if len(perm_lst)>1 else ''
             await ctx.code(f"에러: 다음 권한{many}이 필요합니다: {perm_lst}")
+
         elif isinstance(error, commands.NotOwner):
             await ctx.code("에러: 봇 관리자 전용인데 후원하면 쓰게 해줄지도?")
         elif isinstance(error, commands.CommandOnCooldown):
             pass # TODO
+
         else:
             print(f"Unknown Error by: {ctx.message.content}")
             print(err_msg := f"{type(error).__name__}: {error}")

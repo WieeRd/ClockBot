@@ -47,6 +47,7 @@ PERM_KR_NAME: Dict[str, str] = {
     "view_guild_insights": "서버 인사이트 보기",
 }
 
+# TODO: move these to utils/
 def owner_or_permissions(**perms):
     """bot owner or has_permissions"""
     original = commands.has_permissions(**perms).predicate

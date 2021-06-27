@@ -27,7 +27,7 @@ EXIT_REPLY: List[Tuple[str, str]] = [
     ("퇴근", "퇴근이다 퇴근!"),
     ("칼퇴근", "뭔가 잘못됬는데...?"),
     ("재시작", "I'll be back :thumbsup:"),
-    ("업데이트", "더 많아진 버그와 함께 돌아오겠습니다"),
+    ("업데이트", "https://raw.githubusercontent.com/WieeRd/ClockBot/master/assets/memes/update.png"),
     ("장비를 정지", "장비를 정지합니다"),
     ("재부팅", "껐다 켜면 정말로 고쳐질까?"),
     ("에러", "뭔가 큰일이 난것 같은데 잘은 모르겠다..."),

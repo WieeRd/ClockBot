@@ -187,11 +187,13 @@ class ClockBot(commands.Bot):
             perm_lst = ', '.join([PERM_KR_NAME[str(perm)] for perm in error.missing_perms])
             many = '들' if len(perm_lst)>1 else ''
             await ctx.code(f"에러: 다음 권한{many}이 필요합니다: {perm_lst}")
+        elif isinstance(error, commands.NotOwner):
+            await ctx.code("에러: 봇 관리자 전용인데 후원하면 쓰게 해줄지도?")
         elif isinstance(error, commands.CommandOnCooldown):
             pass # TODO
         else:
             print(f"Unknown Error by: {ctx.message.content}")
-            print(f"{type(error).__name__}: {error}")
+            print(err_msg := f"{type(error).__name__}: {error}")
             print(f"Dumping context #{len(self.dumped)}")
             self.dumped.append(ctx)
-            await ctx.code("에러: 알려지지 않은 오류가 발생했습니다")
+            await ctx.code(f"에러: 알려지지 않은 오류가 발생했습니다\n{err_msg}")

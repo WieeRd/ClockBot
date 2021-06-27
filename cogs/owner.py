@@ -21,8 +21,6 @@ def run_cmd(cmd, timeout=None):
         proc.kill()
         return None
 
-# many features were replaced with 'jishaku'
-
 EXIT_REPLY: List[Tuple[str, str]] = [
     ("퇴근", "퇴근이다 퇴근!"),
     ("칼퇴근", "뭔가 잘못됬는데...?"),
@@ -32,6 +30,8 @@ EXIT_REPLY: List[Tuple[str, str]] = [
     ("재부팅", "껐다 켜면 정말로 고쳐질까?"),
     ("에러", "뭔가 큰일이 난것 같은데 잘은 모르겠다..."),
 ]
+
+# TODO: bot status / avatar
 
 class Owner(commands.Cog):
     def __init__(self, bot: ClockBot):
@@ -50,17 +50,23 @@ class Owner(commands.Cog):
 
         await self.bot.close()
 
-    # TODO
-    # @commands.group()
-    # @commands.is_owner()
-    # async def server(self, ctx: MacLak):
-    #     elif cmd=='list':
-    #         info = f"Connected to {len(self.bot.guilds)} servers and {len(self.bot.users)} users"
-    #         servers = '\n'.join([f"{s.name} : {s.member_count}" for s in list(self.bot.guilds)])
-    #         await ctx.send(info)
-    #         await ctx.send(f"```{servers}```")
-    #     else:
-    #         await ctx.send(f"```Server: unknown command '{cmd}'```")
+    @commands.group()
+    @commands.is_owner()
+    async def server(self, ctx: MacLak):
+        if ctx.invoked_subcommand==None:
+            await ctx.send_help(self.server)
+
+    @server.command()
+    async def list(self, ctx: MacLak):
+        server_c = len(self.bot.guilds)
+        user_c = len(self.bot.users)
+        info = '\n'.join(f"{s.name} : {s.member_count}" for s in list(self.bot.guilds))
+        content = f"Connected to {server_c} servers and {user_c} users\n```{info}```"
+        await ctx.send(content)
+
+    @server.command()
+    async def network(self, ctx: MacLak):
+        await ctx.send("Coming soon!") # TODO: pyvis network generator
 
     @commands.Cog.listener(name='on_message')
     async def terminal(self, msg):

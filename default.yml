@@ -1,11 +1,12 @@
 token:
-prefix: ['!', '시계야']
+prefix: '!'
+status:
 init_exts:
     - jishaku
     - cogs.owner
 database:
-    host: "localhost"
+    host: localhost
     port: 3306
     user:
     password:
-    db: "clockbot"
+    db: clockbot

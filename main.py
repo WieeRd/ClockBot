@@ -34,8 +34,6 @@ except Exception as e:
 else:
     print(f"Connected to DB '{config['database']['db']}'")
 
-prefix = config["prefix"]
-
 intents = discord.Intents(
     guilds=True,
     members=True,
@@ -46,13 +44,17 @@ intents = discord.Intents(
     reactions=True,
 )
 
+prefix = config["prefix"]
+activity = discord.Game(config["status"] or "Hello World")
+
 bot = ClockBot(
     pool = pool,
     command_prefix = prefix,
     intents = intents,
     help_command = commands.MinimalHelpCommand(), # TODO (seriously)
     pm_help = False,
-    heartbeat_timeout = 60
+    heartbeat_timeout = 60,
+    activity = activity,
 )
 
 print("Loading initial extensions")

@@ -2,7 +2,7 @@ import discord
 import asyncio
 
 from discord.ext import commands
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, Tuple, Union
 
 from clockbot import ClockBot, MacLak
 
@@ -56,50 +56,74 @@ def doggoslate(txt: str) -> str:
         ret.append(bark*len(word))
     return '! '.join(ret) + "!!!"
 
-SPECIAL_LANGS = {
-    '랜덤': randslate,
-    '개소리': doggoslate,
-}
+Translator = Callable[[str], str]
 
-def resolve_translator(lang: str) -> Optional[Callable[[str], str]]:
+def resolve_translator(lang: str) -> Optional[Translator]:
+    """
+    receives Korean language name and returns appropriate translator
+    """
+    SPECIAL_LANGS = {
+        '랜덤': randslate,
+        '개소리': doggoslate,
+    }
+
     if special := SPECIAL_LANGS.get(lang):
         return special
 
     lang_name = translate(lang, 'en').lower()
-    lang_code = LANG_DICT.get(lang_name)
-
-    if lang_code!=None:
+    if lang_code := LANG_DICT.get(lang_name, ''):
         return lambda t: translate(t, lang_code)
 
-    # TODO
+    return None
 
 class Babel(commands.Cog, name="바벨탑"):
     def __init__(self, bot: ClockBot):
         self.bot = bot
+        self.target: Dict[Tuple[int, int], Translator] = {}
 
-    @commands.command(name="번역", usage="\"언어\" \"번역할 내용\"")
+    @commands.command(name="번역", usage="<언어> <번역할 내용>")
     async def translate_chat(self, ctx: MacLak, lang: str, *, txt: str):
-        lang_name = translate(lang, 'en').lower()
-        lang_code = LANG_DICT.get(lang_name)
-        if not lang_code:
+        if t := resolve_translator(lang):
+            await ctx.message.reply(t(txt), mention_author=False)
+        else:
             await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
-            return
 
-        await ctx.send(translate(txt, lang_code), reference=ctx.message)
-
-    @commands.command(name="통역", usage="@유저 \"언어\"")
+    @commands.command(name="통역", usage="@유저 <언어>")
     @commands.guild_only()
-    async def translate_user(self, ctx: MacLak, target: discord.User, lang: str):
-        assert isinstance(ctx.channel, discord.TextChannel)
-        assert isinstance(ctx.author, discord.Member)
-
-        lang_name = translate(lang, 'en').lower()
-        lang_code = LANG_DICT.get(lang_name)
-        if not lang_code:
-            await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
+    async def translate_user(self, ctx: MacLak, target: discord.Member, lang: str):
+        if lang=="중단":
+            query = (target.guild.id, target.id)
+            if query in self.target:
+                del self.target[query]
+                await ctx.tick(True)
+            else:
+                await ctx.tick(False)
             return
 
-        # TODO
+        if t := resolve_translator(lang):
+            await ctx.send(
+                f"{target.mention}님의 채팅을 {lang}로 통역합니다\n"
+                f"`{ctx.prefix}통역 @유저 중단`으로 해제할 수 있습니다"
+            )
+            await asyncio.sleep(0.5)
+            self.target[(target.guild.id, target.id)] = t
+        else:
+            await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
+
+    @commands.command(name="필터", usage="@유저 <언어>")
+    @commands.bot_has_guild_permissions(manage_webhooks=True, manage_messages=True)
+    async def filter_chat(self, ctx: MacLak, target: discord.Member, lang: str):
+        await ctx.send("Coming soon!") # TODO
+
+    @commands.Cog.listener()
+    async def on_message(self, msg: discord.Message):
+        if msg.guild is None:
+            return
+        if not msg.content:
+            return
+
+        if t := self.target.get((msg.guild.id, msg.author.id)):
+            await msg.reply(t(msg.content), mention_author=False)
 
 def setup(bot: ClockBot):
     bot.add_cog(Babel(bot))

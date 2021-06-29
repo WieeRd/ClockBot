@@ -81,10 +81,13 @@ def resolve_translator(lang: str) -> Optional[Translator]:
     return None
 
 class Babel(commands.Cog, name="바벨탑"):
+    """
+    대충 일일히 설명달기 귀찮다는 내용
+    """
     def __init__(self, bot: ClockBot):
         self.bot = bot
         self.trans_reply: Dict[Tuple[int, int], Translator] = {}
-        self.trans_filter: Dict[Tuple[int, int], Translator] = {}
+        self.trans_filter: Dict[Tuple[int, int], Tuple[Translator, bool]] = {}
 
     # TODO: translate message using reply
     @commands.command(name="번역", usage="<언어> <번역할 내용>")
@@ -111,7 +114,7 @@ class Babel(commands.Cog, name="바벨탑"):
                 f"{target.mention}님의 채팅을 {lang}로 통역합니다\n"
                 f"`{ctx.prefix}통역 @유저 중단`으로 해제할 수 있습니다"
             )
-            await asyncio.sleep(0.5) # prevents translating command itself
+            await asyncio.sleep(1) # prevents translating command itself
             self.trans_reply[(target.guild.id, target.id)] = t
         else:
             await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
@@ -119,13 +122,23 @@ class Babel(commands.Cog, name="바벨탑"):
     @commands.command(name="필터", usage="@유저 <언어>")
     @commands.bot_has_guild_permissions(manage_webhooks=True, manage_messages=True)
     async def filter_chat(self, ctx: MacLak, target: discord.Member, lang: str):
+        assert isinstance(ctx.author, discord.Member)
+        by_admin = ctx.author.guild_permissions.administrator
+
         if lang=="중단":
             query = (target.guild.id, target.id)
-            if query in self.trans_filter:
-                del self.trans_filter[query]
-                await ctx.tick(True)
+            if t := self.trans_filter.get(query):
+                if t[1] and not by_admin:
+                    await ctx.code("에러: 관리자가 적용한 필터는 관리자만 해제할 수 있습니다")
+                else:
+                    del self.trans_filter[query]
+                    await ctx.tick(True)
             else:
-                await ctx.tick(False)
+                await ctx.code("에러: 적용되어 있는 필터가 없습니다")
+            return
+
+        if ctx.author!=target and not by_admin:
+            await ctx.code("에러: 타인에게 필터를 적용하려면 관리자 권한이 필요합니다")
             return
 
         if t := resolve_translator(lang):
@@ -133,10 +146,15 @@ class Babel(commands.Cog, name="바벨탑"):
                 f"{target.mention}님의 채팅에 {lang} 필터를 적용합니다\n"
                 f"`{ctx.prefix}필터 @유저 중단`으로 해제할 수 있습니다"
             )
-            await asyncio.sleep(0.5) # prevents translating command itself
-            self.trans_filter[(target.guild.id, target.id)] = t
+            await asyncio.sleep(1) # prevents translating command itself
+            self.trans_filter[(target.guild.id, target.id)] = (t, by_admin)
         else:
             await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
+
+    @commands.command(name="사칭", usage="@유저 <선동&날조>")
+    @commands.bot_has_guild_permissions(manage_webhooks=True)
+    async def impersonate(self, ctx: MacLak, user: discord.Member, *, txt):
+        await ctx.send("coming soon!") # TODO
 
     @commands.Cog.listener()
     async def on_message(self, msg: discord.Message):
@@ -148,9 +166,9 @@ class Babel(commands.Cog, name="바벨탑"):
         if t := self.trans_reply.get((msg.guild.id, msg.author.id)):
             await msg.reply(t(msg.content), mention_author=False)
         elif t := self.trans_filter.get((msg.guild.id, msg.author.id)):
+            ctx = self.bot.ctx[msg]
             await msg.delete()
-            ctx = await self.bot.get_context(msg)
-            # TODO: get_context is already called inside original on_message
+            await ctx.mimic(msg.author, t[0](msg.content))
 
 def setup(bot: ClockBot):
     bot.add_cog(Babel(bot))

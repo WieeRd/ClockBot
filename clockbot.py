@@ -93,9 +93,9 @@ class MacLak(commands.Context):
         except discord.HTTPException:
             pass
 
-    async def wsend(self, content: str = None, *, err_msg: str = None, **kwargs) -> Optional[discord.WebhookMessage]:
+    async def wsend(self, content: str = None, *, err_msg: bool = True, **kwargs) -> Optional[discord.WebhookMessage]:
         """
-        Sends webhook message to the channel
+        Send webhook message to the channel
         ctx.channel has to be TextChannel
         Returns the message that was sent
 
@@ -113,17 +113,19 @@ class MacLak(commands.Context):
             msg = await self.wsend(content, err_msg=err_msg, **kwargs)
         except discord.Forbidden: # missing permission
             if err_msg:
-                await self.send(err_msg)
+                await self.code("에러: 봇에게 웹훅 관리 권한이 필요합니다")
                 msg = None
             else: raise
 
         return msg
 
-    async def impersonate(self, target: Union[discord.User, discord.Member], content: str = None, *args, **kwargs):
-        # TODO
+    async def mimic(self, target: Union[discord.User, discord.Member], content: str = None, *args, **kwargs) -> Optional[discord.WebhookMessage]:
+        """
+        Send webhook message with name & avatar of target
+        """
         name = target.display_name
-        avatar_url = target.avatar_url
-        await self.wsend(content=content, name=name, avatar_url=avatar_url, *args, **kwargs)
+        avatar = target.avatar_url
+        return await self.wsend(content=content, username=name, avatar_url=avatar, *args, **kwargs)
 
 class ClockBot(commands.Bot):
     def __init__(self, pool, *args, **kwargs):
@@ -134,6 +136,8 @@ class ClockBot(commands.Bot):
 
         # database connection pool
         self.pool = pool
+        # cached context
+        self.ctx: Dict[discord.Message, MacLak] = {}
         # cached webhook
         self.webhooks: Dict[int, Webhook] = {}
         # special channels (ex: bamboo forest) { channel_id : "reason" }
@@ -149,8 +153,20 @@ class ClockBot(commands.Bot):
         if self.pool!=None: # TODO: planning to switching to MongoDB
             self.pool.terminate(); await self.pool.wait_closed()
 
-    async def get_context(self, message, *, cls=MacLak):
-        return await super().get_context(message, cls=cls)
+    async def get_context(self, msg: discord.Message) -> MacLak:
+        return await super().get_context(msg, cls=MacLak)
+
+    async def process_commands(self, msg: discord.Message):
+        if msg.author.bot:
+            return
+
+        ctx = await self.get_context(msg)
+        self.ctx[msg] = ctx
+
+        await self.invoke(ctx)
+
+        await asyncio.sleep(1) # during this 1s, Cog listeners can use cached ctx
+        del self.ctx[msg]      # is it worth it? I have no idea
 
     async def get_webhook(self, channel: discord.TextChannel) -> discord.Webhook:
         """

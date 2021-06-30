@@ -120,7 +120,7 @@ class Babel(commands.Cog, name="바벨탑"):
             await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
 
     @commands.command(name="필터", usage="@유저 <언어>")
-    @commands.bot_has_guild_permissions(manage_webhooks=True, manage_messages=True)
+    @commands.bot_has_permissions(manage_webhooks=True, manage_messages=True)
     async def filter_chat(self, ctx: MacLak, target: discord.Member, lang: str):
         assert isinstance(ctx.author, discord.Member)
         by_admin = await self.bot.owner_or_admin(ctx.author)

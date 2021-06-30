@@ -123,7 +123,7 @@ class Babel(commands.Cog, name="바벨탑"):
     @commands.bot_has_guild_permissions(manage_webhooks=True, manage_messages=True)
     async def filter_chat(self, ctx: MacLak, target: discord.Member, lang: str):
         assert isinstance(ctx.author, discord.Member)
-        by_admin = ctx.author.guild_permissions.administrator
+        by_admin = await self.bot.owner_or_admin(ctx.author)
 
         if lang=="중단":
             query = (target.guild.id, target.id)
@@ -150,6 +150,10 @@ class Babel(commands.Cog, name="바벨탑"):
             self.trans_filter[(target.guild.id, target.id)] = (t, by_admin)
         else:
             await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
+
+    @commands.command(name="개소리", usage="@유저")
+    async def doggofilter(self, ctx: MacLak, target: discord.Member):
+        await self.filter_chat(ctx, target, "개소리")
 
     @commands.command(name="사칭", usage="@유저 <선동&날조>")
     @commands.bot_has_guild_permissions(manage_webhooks=True)

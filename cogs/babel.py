@@ -100,7 +100,7 @@ class Babel(commands.Cog, name="바벨탑"):
     @commands.command(name="통역", usage="@유저 <언어>")
     @commands.guild_only()
     async def translate_user(self, ctx: MacLak, target: discord.Member, lang: str):
-        if lang=="중단":
+        if lang=="해제":
             query = (target.guild.id, target.id)
             if query in self.trans_reply:
                 del self.trans_reply[query]
@@ -112,7 +112,7 @@ class Babel(commands.Cog, name="바벨탑"):
         if t := resolve_translator(lang):
             await ctx.send(
                 f"{target.mention}님의 채팅을 {lang}로 통역합니다\n"
-                f"`{ctx.prefix}통역 @유저 중단`으로 해제할 수 있습니다"
+                f"`{ctx.prefix}통역 @유저 해제`으로 해제할 수 있습니다"
             )
             await asyncio.sleep(1) # prevents translating command itself
             self.trans_reply[(target.guild.id, target.id)] = t
@@ -125,7 +125,7 @@ class Babel(commands.Cog, name="바벨탑"):
         assert isinstance(ctx.author, discord.Member)
         by_admin = await self.bot.owner_or_admin(ctx.author)
 
-        if lang=="중단":
+        if lang=="해제":
             query = (target.guild.id, target.id)
             if t := self.trans_filter.get(query):
                 if t[1] and not by_admin:
@@ -144,7 +144,7 @@ class Babel(commands.Cog, name="바벨탑"):
         if t := resolve_translator(lang):
             await ctx.send(
                 f"{target.mention}님의 채팅에 {lang} 필터를 적용합니다\n"
-                f"`{ctx.prefix}필터 @유저 중단`으로 해제할 수 있습니다"
+                f"`{ctx.prefix}필터 @유저 해제`으로 해제할 수 있습니다"
             )
             await asyncio.sleep(1) # prevents translating command itself
             self.trans_filter[(target.guild.id, target.id)] = (t, by_admin)

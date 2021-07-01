@@ -70,8 +70,8 @@ class Owner(commands.Cog):
     async def network(self, ctx: MacLak):
         await ctx.send("Coming soon!") # TODO: pyvis network generator
 
-    @commands.command()
-    @commands.is_owner()
+    @commands.command(name="코드", usage="<명령어>")
+    # @commands.is_owner()
     async def impl(self, ctx: MacLak, cmd: str):
         if target := self.bot.get_command(cmd):
             code = inspect.getsource(target.callback)

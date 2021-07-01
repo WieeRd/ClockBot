@@ -1,5 +1,7 @@
 import discord
 import asyncio
+import inspect
+import io
 
 from clockbot import ClockBot, MacLak, ExitOpt
 from discord.ext import commands
@@ -67,6 +69,20 @@ class Owner(commands.Cog):
     @server.command()
     async def network(self, ctx: MacLak):
         await ctx.send("Coming soon!") # TODO: pyvis network generator
+
+    @commands.command()
+    @commands.is_owner()
+    async def impl(self, ctx: MacLak, cmd: str):
+        if target := self.bot.get_command(cmd):
+            code = inspect.getsource(target.callback)
+            if len(code)<2000:
+                await ctx.code(code, lang='python')
+            else:
+                raw = code.encode(encoding='utf8')
+                fname = target.callback.__name__ + '.py'
+                await ctx.send(file=discord.File(io.BytesIO(raw), filename=fname))
+            return
+        await ctx.tick(False)
 
     @commands.Cog.listener(name='on_message')
     async def terminal(self, msg):

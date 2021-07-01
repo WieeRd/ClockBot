@@ -71,6 +71,7 @@ def kittyslate(txt: str) -> str:
     for word in txt.split():
         if len(word)<2:
             ret.append("냥")
+            ret.append(random.choice(punc) + ' ')
         else:
             mid = len(word) - 2
             ret.append(nya[0] + nya[1]*mid + nya[2])
@@ -172,6 +173,10 @@ class Babel(commands.Cog, name="바벨탑"):
     @commands.command(name="개소리", usage="@유저")
     async def doggofilter(self, ctx: MacLak, target: discord.Member):
         await self.filter_chat(ctx, target, "개소리")
+
+    @commands.command(name="냥소리", usage="@유저")
+    async def kittyfilter(self, ctx: MacLak, target: discord.Member):
+        await self.filter_chat(ctx, target, "냥소리")
 
     @commands.command(name="사칭", usage="@유저 <선동&날조>")
     @commands.bot_has_guild_permissions(manage_webhooks=True)

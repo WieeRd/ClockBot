@@ -51,14 +51,31 @@ def doggoslate(txt: str) -> str:
     > 왈! 왈왈! 왈왈! 왈! 왈왈왈! 왈왈왈왈왈왈!!!
     """
     bark_variants = "멍컹왈왕"
-    exclaim = "깨갱깨갱!", "깨개갱..."
-    if len(txt)>80:
+    exclaim = ["깨갱깨갱!", "깨개갱..."]
+    if len(txt)>40:
         return random.choice(exclaim)
     ret = []
     bark = random.choice(bark_variants)
     for word in txt.split():
         ret.append(bark*len(word))
     return '! '.join(ret) + "!!!"
+
+def kittyslate(txt: str) -> str:
+    punc = ['~', '!', '?', '...', '?!']
+    nya_variants = ["냐아아", "야오옹", "캬오오", "샤아악", "그르르"]
+    exclaim = ["꺄오!", "끼아아옹!"]
+    if len(txt)>40:
+        return random.choice(exclaim)
+    ret = []
+    nya = random.choice(nya_variants)
+    for word in txt.split():
+        if len(word)<2:
+            ret.append("냥")
+        else:
+            mid = len(word) - 2
+            ret.append(nya[0] + nya[1]*mid + nya[2])
+            ret.append(random.choice(punc) + ' ')
+    return ''.join(ret)
 
 Translator = Callable[[str], str]
 
@@ -69,6 +86,7 @@ def resolve_translator(lang: str) -> Optional[Translator]:
     SPECIAL_LANGS = {
         '랜덤': randslate,
         '개소리': doggoslate,
+        '냥소리': kittyslate,
     }
 
     if special := SPECIAL_LANGS.get(lang):

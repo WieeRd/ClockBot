@@ -5,7 +5,7 @@ import re
 
 from discord.ext import commands
 from jamo import h2j, j2h, j2hcj
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple
 
 from clockbot import ClockBot, MacLak
 
@@ -65,7 +65,7 @@ def doggoslate(txt: str) -> str:
 def kittyslate(txt: str) -> str:
     punc = ['~', '!', '?', '...', '?!']
     nya_variants = ["냐아아", "야오옹", "캬오오", "샤아악", "그르르", "먀아아"]
-    exclaim = ["캬오!", "끼아아옹!"]
+    exclaim = ["야오옹...?", "끼아아옹!"]
     if len(txt)>40:
         return random.choice(exclaim)
     ret = []
@@ -80,35 +80,34 @@ def kittyslate(txt: str) -> str:
             ret.append(random.choice(punc) + ' ')
     return ''.join(ret)
 
-HANGUL = re.compile(r"[ㄱ-ㅎㅏ-ㅣ가-힣]")
-def is_hangul(c: str) -> bool:
-    return bool(HANGUL.match(c))
+FULL_HANGUL = re.compile(r"[가-힣]")
 
 def mumslate(txt: str) -> str:
     """멈뭄미의 저주"""
     ret = []
     for c in txt:
-        if is_hangul(c):
+        if FULL_HANGUL.match(c):
             decom = j2hcj(h2j(c))
             mum = decom.replace('ㅇ', 'ㅁ')
             ret.append(j2h(*mum))
+        elif c=='ㅇ':
+            ret.append('ㅁ')
         else:
             ret.append(c)
     return ''.join(ret)
 
 Translator = Callable[[str], str]
+SPECIAL_LANGS = {
+    # '랜덤': randslate,
+    '개소리': doggoslate,
+    '냥소리': kittyslate,
+    '멈뭄미': mumslate,
+}
 
 def resolve_translator(lang: str) -> Optional[Translator]:
     """
     receives Korean language name and returns appropriate translator
     """
-    SPECIAL_LANGS = {
-        '랜덤': randslate,
-        '개소리': doggoslate,
-        '냥소리': kittyslate,
-        '멈뭄미': mumslate,
-    }
-
     if special := SPECIAL_LANGS.get(lang):
         return special
 
@@ -157,50 +156,47 @@ class Babel(commands.Cog, name="바벨탑"):
         else:
             await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
 
-    @commands.command(name="필터", usage="@유저 <언어>")
-    @commands.bot_has_permissions(manage_webhooks=True, manage_messages=True)
-    async def filter_chat(self, ctx: MacLak, target: discord.Member, lang: str):
-        assert isinstance(ctx.author, discord.Member)
-        by_admin = await self.bot.owner_or_admin(ctx.author)
+    @commands.command(name="사칭", usage="@유저 <선동&날조>")
+    @commands.bot_has_guild_permissions(manage_webhooks=True)
+    async def impersonate(self, ctx: MacLak, user: discord.Member, *, txt):
+        await ctx.send("coming soon!") # TODO
 
-        if lang=="해제":
-            query = (target.guild.id, target.id)
-            if t := self.trans_filter.get(query):
-                if t[1] and not by_admin:
-                    await ctx.code("에러: 관리자가 적용한 필터는 관리자만 해제할 수 있습니다")
-                else:
-                    del self.trans_filter[query]
-                    await ctx.tick(True)
-            else:
-                await ctx.code("에러: 적용되어 있는 필터가 없습니다")
-            return
+    @commands.command(aliases=list(SPECIAL_LANGS), usage="@유저")
+    async def _filter(self, ctx: MacLak, target: discord.Member):
+        assert isinstance(ctx.author, discord.Member)
+        assert isinstance(ctx.invoked_with, str)
+        by_admin = await self.bot.owner_or_admin(ctx.author)
 
         if ctx.author!=target and not by_admin:
             await ctx.code("에러: 타인에게 필터를 적용하려면 관리자 권한이 필요합니다")
             return
 
-        if t := resolve_translator(lang):
-            await ctx.send(
-                f"{target.mention}님의 채팅에 {lang} 필터를 적용합니다\n"
-                f"`{ctx.prefix}필터 @유저 해제`으로 해제할 수 있습니다"
-            )
-            await asyncio.sleep(1) # prevents translating command itself
-            self.trans_filter[(target.guild.id, target.id)] = (t, by_admin)
+        lang = ctx.invoked_with
+        t = SPECIAL_LANGS[lang]
+        await ctx.send(
+            f"{target.mention}님에게 '{lang}' 필터를 적용합니다\n"
+            f"`{ctx.prefix}필터해제 @유저`으로 해제할 수 있습니다"
+        )
+        await asyncio.sleep(1) # prevents translating command itself
+        self.trans_filter[(target.guild.id, target.id)] = (t, by_admin)
+
+    @commands.command(name="필터해제", usage="@유저")
+    async def disable_filter(self, ctx: MacLak, target: discord.Member):
+        assert isinstance(ctx.author, discord.Member)
+        by_admin = await self.bot.owner_or_admin(ctx.author)
+
+        query = (target.guild.id, target.id)
+        if t := self.trans_filter.get(query):
+            if t[1] and not by_admin:
+                await ctx.code(
+                    "에러: 관리자가 적용한 필터는 관리자만 해제할 수 있습니다\n"
+                    "(팁: 평소에 처신을 잘하세요)"
+                )
+            else:
+                del self.trans_filter[query]
+                await ctx.tick(True)
         else:
-            await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
-
-    @commands.command(name="개소리", usage="@유저")
-    async def doggofilter(self, ctx: MacLak, target: discord.Member):
-        await self.filter_chat(ctx, target, "개소리")
-
-    @commands.command(name="냥소리", usage="@유저")
-    async def kittyfilter(self, ctx: MacLak, target: discord.Member):
-        await self.filter_chat(ctx, target, "냥소리")
-
-    @commands.command(name="사칭", usage="@유저 <선동&날조>")
-    @commands.bot_has_guild_permissions(manage_webhooks=True)
-    async def impersonate(self, ctx: MacLak, user: discord.Member, *, txt):
-        await ctx.send("coming soon!") # TODO
+            await ctx.code("에러: 적용되어 있는 필터가 없습니다")
 
     @commands.Cog.listener()
     async def on_message(self, msg: discord.Message):

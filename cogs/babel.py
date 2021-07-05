@@ -1,12 +1,14 @@
 import discord
 import asyncio
+import random
+import re
 
 from discord.ext import commands
+from jamo import h2j, j2h, j2hcj
 from typing import Callable, Dict, Optional, Tuple, Union
 
 from clockbot import ClockBot, MacLak
 
-import random
 from google_trans_new import google_translator
 from google_trans_new.constant import LANGUAGES
 
@@ -50,7 +52,7 @@ def doggoslate(txt: str) -> str:
     < 개 짖는 소리 좀 안나게 하라ㅏㅏㅏㅏ
     > 왈! 왈왈! 왈왈! 왈! 왈왈왈! 왈왈왈왈왈왈!!!
     """
-    bark_variants = "멍컹왈왕"
+    bark_variants = "멍컹왈왕월"
     exclaim = ["깨갱깨갱!", "깨개갱..."]
     if len(txt)>40:
         return random.choice(exclaim)
@@ -62,8 +64,8 @@ def doggoslate(txt: str) -> str:
 
 def kittyslate(txt: str) -> str:
     punc = ['~', '!', '?', '...', '?!']
-    nya_variants = ["냐아아", "야오옹", "캬오오", "샤아악", "그르르"]
-    exclaim = ["꺄오!", "끼아아옹!"]
+    nya_variants = ["냐아아", "야오옹", "캬오오", "샤아악", "그르르", "먀아아"]
+    exclaim = ["캬오!", "끼아아옹!"]
     if len(txt)>40:
         return random.choice(exclaim)
     ret = []
@@ -78,6 +80,22 @@ def kittyslate(txt: str) -> str:
             ret.append(random.choice(punc) + ' ')
     return ''.join(ret)
 
+HANGUL = re.compile(r"[ㄱ-ㅎㅏ-ㅣ가-힣]")
+def is_hangul(c: str) -> bool:
+    return bool(HANGUL.match(c))
+
+def mumslate(txt: str) -> str:
+    """멈뭄미의 저주"""
+    ret = []
+    for c in txt:
+        if is_hangul(c):
+            decom = j2hcj(h2j(c))
+            mum = decom.replace('ㅇ', 'ㅁ')
+            ret.append(j2h(*mum))
+        else:
+            ret.append(c)
+    return ''.join(ret)
+
 Translator = Callable[[str], str]
 
 def resolve_translator(lang: str) -> Optional[Translator]:
@@ -88,6 +106,7 @@ def resolve_translator(lang: str) -> Optional[Translator]:
         '랜덤': randslate,
         '개소리': doggoslate,
         '냥소리': kittyslate,
+        '멈뭄미': mumslate,
     }
 
     if special := SPECIAL_LANGS.get(lang):

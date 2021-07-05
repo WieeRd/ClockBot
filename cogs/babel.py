@@ -157,9 +157,16 @@ class Babel(commands.Cog, name="바벨탑"):
             await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
 
     @commands.command(name="사칭", usage="@유저 <선동&날조>")
-    @commands.bot_has_guild_permissions(manage_webhooks=True)
+    @commands.bot_has_guild_permissions(manage_webhooks=True, manage_messages=True)
     async def impersonate(self, ctx: MacLak, user: discord.Member, *, txt):
-        await ctx.send("coming soon!") # TODO
+        mimic_msg = await ctx.mimic(user, txt, wait=True)
+        check = lambda msg: msg==ctx.message
+        try:
+            await self.bot.wait_for('message_delete', check=check, timeout=90)
+        except asyncio.TimeoutError:
+            pass
+        else:
+            await mimic_msg.delete()
 
     @commands.command(aliases=list(SPECIAL_LANGS), usage="@유저")
     async def _filter(self, ctx: MacLak, target: discord.Member):

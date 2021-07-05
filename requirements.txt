@@ -6,3 +6,4 @@ aiogTTS>=1.1.0
 discord>=1.0.1
 PyYAML>=5.4.1
 PyNaCl>=1.4.0
+jamo

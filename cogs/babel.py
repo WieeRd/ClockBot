@@ -148,7 +148,7 @@ class Babel(commands.Cog, name="바벨탑"):
 
         if t := resolve_translator(lang):
             await ctx.send(
-                f"{target.mention}님의 채팅을 {lang}로 통역합니다\n"
+                f"{target.display_name}님의 채팅을 {lang}로 통역합니다\n"
                 f"`{ctx.prefix}통역 @유저 해제`으로 해제할 수 있습니다"
             )
             await asyncio.sleep(1) # prevents translating command itself
@@ -157,7 +157,7 @@ class Babel(commands.Cog, name="바벨탑"):
             await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
 
     @commands.command(name="사칭", usage="@유저 <선동&날조>")
-    @commands.bot_has_guild_permissions(manage_webhooks=True, manage_messages=True)
+    # @commands.bot_has_guild_permissions(manage_webhooks=True, manage_messages=True)
     async def impersonate(self, ctx: MacLak, user: discord.Member, *, txt):
         mimic_msg = await ctx.mimic(user, txt, wait=True)
         check = lambda msg: msg==ctx.message
@@ -181,7 +181,7 @@ class Babel(commands.Cog, name="바벨탑"):
         lang = ctx.invoked_with
         t = SPECIAL_LANGS[lang]
         await ctx.send(
-            f"{target.mention}님에게 '{lang}' 필터를 적용합니다\n"
+            f"{target.display_name}님에게 '{lang}' 필터를 적용합니다\n"
             f"`{ctx.prefix}필터해제 @유저`으로 해제할 수 있습니다"
         )
         await asyncio.sleep(1) # prevents translating command itself

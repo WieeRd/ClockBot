@@ -174,6 +174,15 @@ class Babel(commands.Cog, name="바벨탑"):
         assert isinstance(ctx.invoked_with, str)
         by_admin = await self.bot.owner_or_admin(ctx.author)
 
+        query = (target.guild.id, target.id)
+        if t := self.trans_filter.get(query):
+            if t[1] and not by_admin:
+                await ctx.code(
+                    "에러: 관리자에 의해 다른 필터가 걸려있습니다\n"
+                    "(팁: 평소에 처신을 잘하세요)"
+                )
+                return
+
         if ctx.author!=target and not by_admin:
             await ctx.code("에러: 타인에게 필터를 적용하려면 관리자 권한이 필요합니다")
             return

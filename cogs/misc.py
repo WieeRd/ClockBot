@@ -1,11 +1,12 @@
 import discord
+from discord.ext import commands
+
 import asyncio
 import time
 import random
-from discord.ext import commands
-from utils.KoreanNumber import num2kr, kr2num
 
-#02 Miscellaneous features
+from clockbot import ClockBot, MacLak
+from utils.KoreanNumber import num2kr, kr2num
 
 def txt2emoji(txt):
     num_names = ["zero","one","two","three","four","five","six","seven","eight","nine"]
@@ -26,8 +27,11 @@ def txt2emoji(txt):
             ret += ":grey_exclamation:"
     return ret
 
-class Misc(commands.Cog):
-    def __init__(self, bot):
+class Misc(commands.Cog, name="기타"):
+    """
+    봇들에게 흔히 있는 기능들
+    """
+    def __init__(self, bot: ClockBot):
         self.bot = bot
 
     # @commands.command(name="시계", aliases=["닉값"])
@@ -36,48 +40,54 @@ class Misc(commands.Cog):
     #     now_str = time.strftime('%Y-%m-%d %a, %I:%M:%S %p', now)
     #     await ctx.send(f"현재시각 {now_str}")
 
-    @commands.command(name="여긴어디")
-    async def where(self, ctx):
-        if isinstance(ctx.channel, discord.channel.DMChannel):
-            await ctx.send("후훗... 여긴... 너와 나 단 둘뿐이야")
-            return
-        server = ctx.guild.name
-        channel = ctx.channel.name
-        await ctx.send(f"여긴 [{server}]의 #{channel} 이라는 곳이라네")
+    # @commands.command(name="여긴어디")
+    # async def where(self, ctx):
+    #     if isinstance(ctx.channel, discord.channel.DMChannel):
+    #         await ctx.send("후훗... 여긴... 너와 나 단 둘뿐이야")
+    #         return
+    #     server = ctx.guild.name
+    #     channel = ctx.channel.name
+    #     await ctx.send(f"여긴 [{server}]의 #{channel} 이라는 곳이라네")
 
     @commands.command(name="동전")
-    async def coin(self, ctx):
-        if(random.randint(0,1)):
+    async def coin(self, ctx: MacLak):
+        """
+        50:50:1 (?)
+        """
+        result = random.randint(0, 100)
+        if not result: # 0
+            await ctx.send("***옆면***")
+            return
+        if result%2:
             await ctx.send("앞면")
         else:
             await ctx.send("뒷면")
 
-    @commands.command(name="주사위")
-    async def dice(self, ctx, *, arg=None):
-        if(arg == None):
-            await ctx.send("사용법: !주사위 <숫자>")
-            return
+    @commands.command(name="주사위", usage="<N>")
+    async def dice(self, ctx: MacLak, val: int):
+        """
+        N면체 주사위를 굴려드립니다.
+        3면체를 어떻게 만드는지는 묻지 마세요.
+        """
         if len(ctx.message.content) == 2000:
             await ctx.send("디스코드 글자수 제한값이군요. 그렇게 할일이 없습니까 휴먼")
             return
-        try:
-            val = int(arg)
-            if(val<1): raise ValueError
-        except ValueError:
-            await ctx.send(f"\"{arg}\"면체 주사위를 본 적이 있습니까 휴먼")
-            return
-        if(val == 1):
-            await ctx.send("그게 의미가 있긴 합니까 휴먼")
-        elif(val == 2):
-            await ctx.send("!동전")
+        # try:
+        #     val = int(arg)
+        #     if(val<1): raise ValueError
+        # except ValueError:
+        #     await ctx.send(f"\"{arg}\"면체 주사위를 본 적이 있습니까 휴먼")
+        #     return
+        if val<2:
+            raise commands.BadArgument()
+        elif val==2:
+            await ctx.send(f"{ctx.prefix}동전")
             await self.coin(ctx)
         else:
-            msg = f">> {random.randint(1,val)}"
-            if set(arg)=={'2'}:
-                msg = msg + '\n' + msg
-            await ctx.send(msg)
+            result = random.randint(1, val)
+            await ctx.send(str(result))
     
-    @commands.command(name="추첨")
+    @commands.command(name="추첨", usage="abc 또는 a b c")
     async def choose(self, ctx, *, argv=""):
         argv = argv.split() # not using *argv due to unclosed quote bug
         argc = len(argv)    # Side effect: "a b" is 2 different args now

@@ -4,19 +4,21 @@ from discord.ext import commands
 import asyncio
 import time
 import random
+import re
 
 from clockbot import ClockBot, MacLak
 from utils.KoreanNumber import num2kr, kr2num
 
-def txt2emoji(txt):
-    num_names = ["zero","one","two","three","four","five","six","seven","eight","nine"]
+NUM_NAMES = ["zero","one","two","three","four","five","six","seven","eight","nine"]
+
+def txt2emoji(txt: str) -> str:
     txt = txt.lower()
     ret = ""
     for c in txt:
-        if c.isalpha():
+        if c.upper() != c.lower(): # isalpha() returns True for Korean str
             ret += f":regional_indicator_{c}:"
         elif c.isdigit():
-            ret += f":{num_names[int(c)]}:"
+            ret += f":{NUM_NAMES[int(c)]}:"
         elif c == ' ':
             ret += " "*13
         elif c == '\n':
@@ -64,56 +66,52 @@ class Misc(commands.Cog, name="기타"):
             await ctx.send("뒷면")
 
     @commands.command(name="주사위", usage="<N>")
-    async def dice(self, ctx: MacLak, val: int):
+    async def dice(self, ctx: MacLak, arg: str):
         """
         N면체 주사위를 굴려드립니다.
-        3면체를 어떻게 만드는지는 묻지 마세요.
         """
-        if len(ctx.message.content) == 2000:
-            await ctx.send("디스코드 글자수 제한값이군요. 그렇게 할일이 없습니까 휴먼")
+        try:
+            rng = int(arg)
+            if rng<4 and rng!=2:
+                raise ValueError
+        except ValueError:
+            await ctx.send(f"{arg}면체 주사위 제작에 실패했습니다")
             return
-        # try:
-        #     val = int(arg)
-        #     if(val<1): raise ValueError
-        # except ValueError:
-        #     await ctx.send(f"\"{arg}\"면체 주사위를 본 적이 있습니까 휴먼")
-        #     return
-        if val<2:
-            raise commands.BadArgument()
-        elif val==2:
+        if rng==2:
             await ctx.send(f"{ctx.prefix}동전")
-            await self.coin(ctx)
+            await self.coin()
         else:
-            result = random.randint(1, val)
-            await ctx.send(str(result))
-    
-    @commands.command(name="추첨", usage="abc 또는 a b c")
-    async def choose(self, ctx, *, argv=""):
-        argv = argv.split() # not using *argv due to unclosed quote bug
-        argc = len(argv)    # Side effect: "a b" is 2 different args now
-        choice_lst = list() # Can be solved with regex but I'm scared of regex
-        choice_set = set()  # I think I'll just leave it this way
+            roll = random.randint(1, rng)
+            txt = txt2emoji(str(roll))
+            if set(arg)=={'2'}:
+                msg = await ctx.send(txt + '\n' + txt)
+                await msg.add_reaction("2️⃣")
+            else:
+                await ctx.send(txt)
 
-        if argc==0:
-            await ctx.send("사용법: !추첨 abc or !추첨 a b c")
-            return
-        elif argc==1:
-            choice_lst = list(argv[0])
-        else:
-            choice_lst = list(argv)
+    @commands.command(name="추첨", usage="A B C")
+    async def choose(self, ctx, *, arg: str):
+        """
+        결정장애 해결사
+        """
+        argv = arg.split()
+        argc = len(set(argv))
 
-        choice_set = set(choice_lst)
-        if len(choice_set)>1:
-            await ctx.send(f"{random.choice(choice_lst)} 당첨")
+        if argc<2:
+            await ctx.send("대체 뭘 기대하는 겁니까")
         else:
-            await ctx.send("대체 뭘 기대하는 겁니까 휴먼")
-    
-    @commands.command(name="빼액")
-    async def yell(self, ctx, *, arg=None):
-        if(arg == None):
-            await ctx.send("사용법: !빼액 \"ABC123!?\"")
+            await ctx.send(f"{random.choice(argv)} 당첨")
+
+    @commands.command(name="빼액", usage="<영문/숫자>")
+    async def yell(self, ctx, *, txt: str):
+        """
+        텍스트를 이모티콘으로 변환합니다
+        """
+        converted = txt2emoji(txt)
+        if converted:
+            await ctx.send(txt2emoji(txt))
         else:
-            await ctx.send(txt2emoji(arg))
+            await ctx.tick(False)
 
     @commands.command(name='한글로')
     async def n2kr(self, ctx, val=None, mode='0'):

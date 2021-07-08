@@ -197,7 +197,7 @@ class ClockBot(commands.Bot):
             print(f"{self.user.name}#{self.user.discriminator} is now online")
             print(f"Connected to {len(self.guilds)} servers and {len(self.users)} users")
 
-    async def on_command_error(self, ctx: MacLak, error):
+    async def on_command_error(self, ctx: MacLak, error: commands.CommandError):
         if isinstance(error, commands.CommandNotFound):
             pass # TODO maybe this can be used to send help when mentioned
         elif isinstance(error, commands.UserInputError):

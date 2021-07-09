@@ -1,8 +1,6 @@
 import discord
 from discord.ext import commands
 
-import inspect
-
 from contextlib import contextmanager
 from typing import Any, Union
 
@@ -30,15 +28,18 @@ class Page:
     def generate(self) -> Any:
         ...
 
+    def clear(self):
+        ...
+
 class TextPage(Page):
-    def __init__(self, width: int = 80):
-        self.width = width
+    def __init__(self):
         self.buffer = []
         self.istack = []
 
-    def add_line(self, content: str):
-        self.buffer.extend(self.istack)
-        self.buffer.append(content)
+    def add_line(self, content: str = ''):
+        if content:
+            self.buffer.extend(self.istack)
+            self.buffer.append(content)
         self.buffer.append('\n')
 
     def add_lines(self, content: str):
@@ -57,14 +58,24 @@ class TextPage(Page):
     def generate(self) -> str:
         return ''.join(self.buffer)
 
-    def __str__(self) -> str:
-        return self.generate()
+    def clear(self):
+        self.buffer = []
+        self.istack = []
 
 class TextHelp(commands.HelpCommand):
     def __init__(self, *, head: str = None, tail: str = None, no_category: str = None, dm_help: bool = None, dm_limit: int = None, **options):
         super().__init__(**options)
+        self.page = TextPage()
         self.head = head
         self.tail = tail
         self.no_category = no_category
         self.dm_help = dm_help
         self.dm_limit = dm_limit
+
+    def cmd_simple(self, cmd: commands.Command):
+        self.page.add_line(f"{self.clean_prefix}{cmd.qualified_name} {cmd.signature}")
+        with self.page.indented(' > '):
+            self.page.add_line(cmd.short_doc)
+
+    def cmd_detail(self, cmd: commands.Command):
+        pass

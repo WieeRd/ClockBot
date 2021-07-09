@@ -33,8 +33,15 @@ class Misc(commands.Cog, name="기타"):
     """
     봇들에게 흔히 있는 기능들
     """
+
     def __init__(self, bot: ClockBot):
         self.bot = bot
+        # self.CMD_ORDER = [
+        #     self.coin,
+        #     self.dice,
+        #     self.choose,
+        #     self.yell,
+        # ]
 
     # @commands.command(name="시계", aliases=["닉값"])
     # async def time(self, ctx):
@@ -105,7 +112,7 @@ class Misc(commands.Cog, name="기타"):
     @commands.command(name="빼액", usage="<영문/숫자>")
     async def yell(self, ctx, *, txt: str):
         """
-        텍스트를 이모티콘으로 변환합니다
+        텍스트를 이모티콘으로 변환해 출력합니다
         """
         converted = txt2emoji(txt)
         if converted:
@@ -113,29 +120,27 @@ class Misc(commands.Cog, name="기타"):
         else:
             await ctx.tick(False)
 
-    @commands.command(name='한글로')
-    async def n2kr(self, ctx, val=None, mode='0'):
-        try:
-            num = int(val)
-            mode = int(mode)
-        except (ValueError, TypeError):
-            await ctx.send("사용법: !한글로 <정수> <모드(0/1)>")
-            return
-        try:
-            kr_str = num2kr.num2kr(num, mode)
-        except ValueError:
-            await ctx.send("아 몰라 때려쳐") # change to gif
-            return
-        await ctx.send(kr_str)
+    # @commands.command(name="한글로")
+    # async def n2kr(self, ctx, val=None, mode='0'):
+    #     try:
+    #         num = int(val)
+    #         mode = int(mode)
+    #     except (ValueError, TypeError):
+    #         await ctx.send("사용법: !한글로 <정수> <모드(0/1)>")
+    #         return
+    #     try:
+    #         kr_str = num2kr.num2kr(num, mode)
+    #     except ValueError:
+    #         await ctx.send("아 몰라 때려쳐") # change to gif
+    #         return
+    #     await ctx.send(kr_str)
 
-
-    @commands.command(name='숫자로')
-    async def kr2n(self, ctx, kr_str=None):
-        if(kr_str==None):
-            await ctx.send("사용법: !숫자로 <한글 숫자>")
-            return
-        await ctx.send(f"{kr2num.kr2num(kr_str)}")
-
+    # @commands.command(name="숫자로")
+    # async def kr2n(self, ctx, kr_str=None):
+    #     if(kr_str==None):
+    #         await ctx.send("사용법: !숫자로 <한글 숫자>")
+    #         return
+    #     await ctx.send(f"{kr2num.kr2num(kr_str)}")
 
 def setup(bot):
     bot.add_cog(Misc(bot))

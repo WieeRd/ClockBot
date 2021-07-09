@@ -36,12 +36,12 @@ class Misc(commands.Cog, name="기타"):
 
     def __init__(self, bot: ClockBot):
         self.bot = bot
-        # self.CMD_ORDER = [
-        #     self.coin,
-        #     self.dice,
-        #     self.choose,
-        #     self.yell,
-        # ]
+        self.HELP_MENU = [
+            self.coin,
+            self.dice,
+            self.choose,
+            self.yell,
+        ]
 
     # @commands.command(name="시계", aliases=["닉값"])
     # async def time(self, ctx):
@@ -109,10 +109,11 @@ class Misc(commands.Cog, name="기타"):
         else:
             await ctx.send(f"{random.choice(argv)} 당첨")
 
-    @commands.command(name="빼액", usage="<영문/숫자>")
+    @commands.command(name="빼액", usage="<텍스트>")
     async def yell(self, ctx, *, txt: str):
         """
         텍스트를 이모티콘으로 변환해 출력합니다
+        지원되는 문자: 영어/숫자/?!
         """
         converted = txt2emoji(txt)
         if converted:

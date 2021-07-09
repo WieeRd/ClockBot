@@ -8,6 +8,7 @@ import aiomysql
 
 from discord.ext import commands
 from clockbot import ClockBot, ExitOpt
+from utils.help import TextHelp
 from typing import Dict
 
 if not os.path.exists("config.yml"):
@@ -51,7 +52,7 @@ bot = ClockBot(
     pool = pool,
     command_prefix = prefix,
     intents = intents,
-    help_command = commands.MinimalHelpCommand(), # TODO (seriously)
+    help_command = TextHelp(), # TODO (seriously)
     pm_help = False,
     heartbeat_timeout = 60,
     activity = activity,

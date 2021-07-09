@@ -37,31 +37,45 @@ class Misc(commands.Cog, name="기타"):
     def __init__(self, bot: ClockBot):
         self.bot = bot
         self.HELP_MENU = [
+            self.user_pic,
+            self.server_pic,
+            self.get_emoji,
             self.coin,
             self.dice,
             self.choose,
             self.yell,
         ]
 
-    # @commands.command(name="시계", aliases=["닉값"])
-    # async def time(self, ctx):
-    #     now = time.localtime()
-    #     now_str = time.strftime('%Y-%m-%d %a, %I:%M:%S %p', now)
-    #     await ctx.send(f"현재시각 {now_str}")
+    @commands.command(name="프사", usage="닉네임/@멘션")
+    async def user_pic(self, ctx: MacLak, user: discord.Member):
+        """
+        해당 유저의 프로필 사진을 받아온다
+        멘션에 발작하는 친구가 있다면 닉네임으로도 가능하다
+        참고로 영어는 대소문자 구별이며,
+        공백이 들어간 이름은 따옴표 ""로 감싸주자
+        """
+        await ctx.send(user.avatar_url)
 
-    # @commands.command(name="여긴어디")
-    # async def where(self, ctx):
-    #     if isinstance(ctx.channel, discord.channel.DMChannel):
-    #         await ctx.send("후훗... 여긴... 너와 나 단 둘뿐이야")
-    #         return
-    #     server = ctx.guild.name
-    #     channel = ctx.channel.name
-    #     await ctx.send(f"여긴 [{server}]의 #{channel} 이라는 곳이라네")
+    @commands.command(name="서버프사")
+    @commands.guild_only()
+    async def server_pic(self, ctx: MacLak):
+        """
+        서버 아이콘 파일을 받아온다
+        """
+        await ctx.send(ctx.guild.icon_url)
+
+    @commands.command(name="이모지", usage=":thonk:")
+    async def get_emoji(self, ctx: MacLak, emoji: discord.Emoji):
+        """
+        커스텀 이모지 원본 이미지를 받아온다
+        """
+        await ctx.send(emoji.url)
 
     @commands.command(name="동전")
     async def coin(self, ctx: MacLak):
         """
         50:50:1 (?)
+        옆면 나오면 인증샷 부탁드립니다
         """
         result = random.randint(0, 100)
         if not result: # 0
@@ -75,11 +89,13 @@ class Misc(commands.Cog, name="기타"):
     @commands.command(name="주사위", usage="<N>")
     async def dice(self, ctx: MacLak, arg: str):
         """
-        N면체 주사위를 굴려드립니다.
+        N면체 주사위를 굴린다
+        가끔 3면체는 존재할 수 없다는 사람들이 있는데
+        제발 이런것까지 태클을 거는건 그만두기 바란다
         """
         try:
             rng = int(arg)
-            if rng<4 and rng!=2:
+            if rng<2:
                 raise ValueError
         except ValueError:
             await ctx.send(f"{arg}면체 주사위 제작에 실패했습니다")
@@ -100,6 +116,9 @@ class Misc(commands.Cog, name="기타"):
     async def choose(self, ctx, *, arg: str):
         """
         결정장애 해결사
+        하지만 예상컨데 당신은 이 명령어의 결과를 보고도
+        그것을 따를 것인가에 대해 계속해서 고민할 것이다
+        그럼 애초에 나한테 물어본 이유가 뭔데?
         """
         argv = arg.split()
         argc = len(set(argv))
@@ -110,16 +129,33 @@ class Misc(commands.Cog, name="기타"):
             await ctx.send(f"{random.choice(argv)} 당첨")
 
     @commands.command(name="빼액", usage="<텍스트>")
-    async def yell(self, ctx, *, txt: str):
+    async def yell(self, ctx: MacLak, *, txt: str):
         """
-        텍스트를 이모티콘으로 변환해 출력합니다
+        대충 MUYAHO를 넣어보자
         지원되는 문자: 영어/숫자/?!
+        봇 계정은 커스텀 이모지 사용이 가능하니
+        한글도 변환 가능하겠지만 제작자는 매우 피곤하다
         """
         converted = txt2emoji(txt)
         if converted:
             await ctx.send(txt2emoji(txt))
         else:
-            await ctx.tick(False)
+            await ctx.send_help(self.yell)
+
+    # @commands.command(name="시계", aliases=["닉값"])
+    # async def time(self, ctx):
+    #     now = time.localtime()
+    #     now_str = time.strftime('%Y-%m-%d %a, %I:%M:%S %p', now)
+    #     await ctx.send(f"현재시각 {now_str}")
+
+    # @commands.command(name="여긴어디")
+    # async def where(self, ctx):
+    #     if isinstance(ctx.channel, discord.channel.DMChannel):
+    #         await ctx.send("후훗... 여긴... 너와 나 단 둘뿐이야")
+    #         return
+    #     server = ctx.guild.name
+    #     channel = ctx.channel.name
+    #     await ctx.send(f"여긴 [{server}]의 #{channel} 이라는 곳이라네")
 
     # @commands.command(name="한글로")
     # async def n2kr(self, ctx, val=None, mode='0'):

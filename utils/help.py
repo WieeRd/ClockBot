@@ -86,7 +86,7 @@ class TextHelp(commands.HelpCommand):
          > short_doc
         """
         self.page.line(f"{self.clean_prefix}{cmd.qualified_name} {cmd.signature}")
-        with self.page.indented(' > '):
+        with self.page.indented(' -> '):
             self.page.line(cmd.short_doc)
 
     def _cog_simple(self, cog: commands.Cog):
@@ -115,10 +115,12 @@ class TextHelp(commands.HelpCommand):
         category = cmd.cog_name or "없음"
         self.page.line(f"[카테고리:{category}]")
         self.page.line(f"사용법: {self.clean_prefix}{cmd.qualified_name} {cmd.signature}")
-        if cmd.help:
-            lines = cmd.help.split('\n')
-            with self.page.indented(' -> '):
-                self.page.line(lines[0])
-            with self.page.indented(4):
-                self.page.lines(lines[1:])
+
+        doc = cmd.help or "제작자의 코멘트가 없습니다"
+        lines = doc.split('\n')
+        with self.page.indented(' -> '):
+            self.page.line(lines[0])
+        with self.page.indented(4):
+            self.page.lines(lines[1:])
+
         await self.send_page()

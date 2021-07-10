@@ -75,6 +75,7 @@ class Owner(commands.Cog):
     async def impl(self, ctx: MacLak, cmd: str):
         if target := self.bot.get_command(cmd):
             code = inspect.getsource(target.callback)
+            code = inspect.cleandoc(code)
             if len(code)<2000:
                 await ctx.code(code, lang='python')
             else:

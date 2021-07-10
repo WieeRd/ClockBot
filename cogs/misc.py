@@ -40,7 +40,7 @@ class Misc(commands.Cog, name="기타"):
             self.user_pic,
             self.server_pic,
             self.get_emoji,
-            # self.coin,
+            self.coin,
             self.dice,
             self.choose,
             self.yell,

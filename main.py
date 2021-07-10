@@ -45,6 +45,19 @@ intents = discord.Intents(
     reactions=True,
 )
 
+help_attrs = {
+    "name": "도움",
+    "aliases": ["help", "설명"],
+    "usage": "<카테고리/명령어>",
+    "help": '\n'.join([
+        "해당 항목의 도움말을 띄운다",
+        "제발 매뉴얼 좀 만들라는 무수한 요청 끝에",
+        "무려 6개월 뒤 점심시간에 간신히 작성된 기능으로,",
+        "사실 말이 도움말이지 별 도움은 안되는",
+        "제작자의 온갖 불평과 만담들이 섞여있다.",
+    ])
+}
+
 prefix = config["prefix"]
 activity = discord.Game(config["status"] or "Hello World")
 
@@ -52,7 +65,7 @@ bot = ClockBot(
     pool = pool,
     command_prefix = prefix,
     intents = intents,
-    help_command = TextHelp(), # TODO (seriously)
+    help_command = TextHelp(command_attrs=help_attrs), # TODO (seriously)
     pm_help = False,
     heartbeat_timeout = 60,
     activity = activity,

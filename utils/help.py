@@ -4,6 +4,8 @@ from discord.ext import commands
 from contextlib import contextmanager
 from typing import Any, List, Union
 
+# TODO: alias_as_arg decorator
+
 class Page:
     def line(self, content):
         """Add single line to the page"""
@@ -57,6 +59,12 @@ class TextPage(Page):
     def dedent(self):
         self.istack.pop()
 
+    @contextmanager
+    def codeblock(self, lang: str = ''):
+        self.buffer.append('```' + lang)
+        yield
+        self.buffer.append('```')
+
     def generate(self) -> str:
         return ''.join(self.buffer)
 
@@ -76,20 +84,22 @@ class TextHelp(commands.HelpCommand):
     async def send_page(self) -> discord.Message:
         destin = self.get_destination()
         content = self.page.generate()
-        msg = await destin.send("```" + content + "```")
+        msg = await destin.send(content)
         return msg
 
-    def _cmd_simple(self, cmd: commands.Command):
+    def _add_cmd_info(self, cmd: commands.Command):
         """
         Add simple command/group info to the page
+        ```
         !name <usage>
-         > short_doc
+         -> short_doc
+        ```
         """
         self.page.line(f"{self.clean_prefix}{cmd.qualified_name} {cmd.signature}")
         with self.page.indented(' -> '):
             self.page.line(cmd.short_doc)
 
-    def _cog_simple(self, cog: commands.Cog):
+    def _add_cog_info(self, cog: commands.Cog):
         """
         Add simple cog info to the page
         [name]: desc
@@ -98,29 +108,38 @@ class TextHelp(commands.HelpCommand):
         self.page.line(f"[{cog.qualified_name}]: {cog.description}")
         cmd_lst = getattr(cog, 'HELP_MENU', cog.get_commands())
         cmd_names = [f"{self.clean_prefix}{c.name}" for c in cmd_lst]
-        with self.page.indented(' > '):
-            self.page.line(' '.join(cmd_names))
+        self.page.line('  > ' + ' '.join(cmd_names))
 
     async def send_bot_help(self):
         ...
 
     async def send_cog_help(self, cog: commands.Cog):
-        ...
+        self.page.line(f"**[{cog.qualified_name}]** : {cog.description}")
+        cmd_lst = getattr(cog, 'HELP_MENU', cog.get_commands())
+        for cmd in cmd_lst:
+            with self.page.codeblock():
+                self._add_cmd_info(cmd)
+        with self.page.codeblock():
+            helpcmd = self.context.command.name
+            self.page.line(f"자세한 정보: {self.clean_prefix}{helpcmd} <명령어>")
+        await self.send_page()
 
     async def send_group_help(self, group: commands.Group):
-        ...
+        category = group.cog_name or "없음"
+        self.page.line(f"[카테고리: {category}]")
 
     async def send_command_help(self, cmd: commands.Command):
-        ctx = self.context
-        category = cmd.cog_name or "없음"
-        self.page.line(f"[카테고리:{category}]")
-        self.page.line(f"사용법: {self.clean_prefix}{cmd.qualified_name} {cmd.signature}")
+        # TODO: alias-as-arg commands
+        with self.page.codeblock():
+            category = cmd.cog_name or "없음"
+            self.page.line(f"[카테고리: {category}]")
+            self.page.line(f"사용법: {self.clean_prefix}{cmd.qualified_name} {cmd.signature}")
 
-        doc = cmd.help or "제작자의 코멘트가 없습니다"
-        lines = doc.split('\n')
-        with self.page.indented(' -> '):
-            self.page.line(lines[0])
-        with self.page.indented(4):
-            self.page.lines(lines[1:])
+            doc = cmd.help or "제작자의 코멘트가 없습니다"
+            lines = doc.split('\n')
+            with self.page.indented(' -> '):
+                self.page.line(lines[0])
+            with self.page.indented(4):
+                self.page.lines(lines[1:])
 
         await self.send_page()

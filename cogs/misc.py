@@ -1,13 +1,13 @@
 import discord
+import asyncio
 from discord.ext import commands
 
-import asyncio
 import time
 import random
 import re
 
 from clockbot import ClockBot, MacLak
-from utils.KoreanNumber import num2kr, kr2num
+# from utils.KoreanNumber import num2kr, kr2num
 
 NUM_NAMES = ["zero","one","two","three","four","five","six","seven","eight","nine"]
 
@@ -40,19 +40,19 @@ class Misc(commands.Cog, name="기타"):
             self.user_pic,
             self.server_pic,
             self.get_emoji,
-            self.coin,
+            # self.coin,
             self.dice,
             self.choose,
             self.yell,
         ]
 
     @commands.command(name="프사", usage="닉네임/@멘션")
-    async def user_pic(self, ctx: MacLak, user: discord.Member):
+    async def user_pic(self, ctx: MacLak, user: discord.User):
         """
-        해당 유저의 프로필 사진을 받아온다
+        해당 유저의 프로필 사진을 띄운다
         멘션에 발작하는 친구가 있다면 닉네임으로도 가능하다
         참고로 영어는 대소문자 구별이며,
-        공백이 들어간 이름은 따옴표 ""로 감싸주자
+        공백이 들어간 이름은 ""로 감싸주자
         """
         await ctx.send(user.avatar_url)
 
@@ -60,14 +60,17 @@ class Misc(commands.Cog, name="기타"):
     @commands.guild_only()
     async def server_pic(self, ctx: MacLak):
         """
-        서버 아이콘 파일을 받아온다
+        현재 서버의 프로필 사진을 띄운다
         """
+        # TODO: when used in DM
         await ctx.send(ctx.guild.icon_url)
 
-    @commands.command(name="이모지", usage=":thonk:")
+    @commands.command(name="이모지", aliases=["이모티콘"], usage=":thonk:")
     async def get_emoji(self, ctx: MacLak, emoji: discord.Emoji):
         """
-        커스텀 이모지 원본 이미지를 받아온다
+        커스텀 이모티콘의 원본 이미지를 띄운다
+        서버 주인장에 따라 자작 이모티콘을 맘대로
+        가져가는 건 싫어할지도 모르니 주의하자
         """
         await ctx.send(emoji.url)
 
@@ -118,7 +121,7 @@ class Misc(commands.Cog, name="기타"):
         결정장애 해결사
         하지만 예상컨데 당신은 이 명령어의 결과를 보고도
         그것을 따를 것인가에 대해 계속해서 고민할 것이다
-        그럼 애초에 나한테 물어본 이유가 뭔데?
+        그럴꺼면 애초에 나한테 물어본 이유가 뭔데?
         """
         argv = arg.split()
         argc = len(set(argv))
@@ -134,13 +137,13 @@ class Misc(commands.Cog, name="기타"):
         대충 MUYAHO를 넣어보자
         지원되는 문자: 영어/숫자/?!
         봇 계정은 커스텀 이모지 사용이 가능하니
-        한글도 변환 가능하겠지만 제작자는 매우 피곤하다
+        한글도 변환 가능하겠지만 대단히 귀찮다
         """
-        converted = txt2emoji(txt)
-        if converted:
-            await ctx.send(txt2emoji(txt))
+        if converted := txt2emoji(txt):
+            await ctx.send(converted)
         else:
-            await ctx.send_help(self.yell)
+            await ctx.code("에러: 지원되는 문자: 영어/숫자/?!")
+            # await ctx.send_help(self.yell)
 
     # @commands.command(name="시계", aliases=["닉값"])
     # async def time(self, ctx):

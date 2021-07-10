@@ -81,32 +81,27 @@ class TextHelp(commands.HelpCommand):
         self.dm_help = dm_help
         self.dm_limit = dm_limit
 
+    async def prepare_help_command(self, ctx, cmd):
+        self.page.clear()
+
     async def send_page(self) -> discord.Message:
         destin = self.get_destination()
         content = self.page.generate()
         msg = await destin.send(content)
         return msg
 
-    def _add_cmd_info(self, cmd: commands.Command, default_doc: str = ''):
+    def _add_cmd_info(self, cmd: commands.Command, short_doc: str = '', usage: str = ''):
         """
         Add simple command/group info to the page
         !name <usage>
          -> short_doc
         """
+        usage = cmd.usage or usage
+        short_doc = cmd.short_doc or short_doc
+
         self.page.line(f"{self.clean_prefix}{cmd.qualified_name} {cmd.signature}")
         with self.page.indented(' -> '):
-            self.page.line(cmd.short_doc or default_doc)
-
-    def _add_cog_info(self, cog: commands.Cog):
-        """
-        Add simple cog info to the page
-        [name]: desc
-         -> !aaa !bbb !ccc
-        """
-        self.page.line(f"[{cog.qualified_name}]: {cog.description}")
-        cmd_lst = getattr(cog, 'HELP_MENU', cog.get_commands())
-        cmd_names = [f"{self.clean_prefix}{c.name}" for c in cmd_lst]
-        self.page.line(' -> ' + ' '.join(cmd_names))
+            self.page.line(short_doc)
 
     def _add_cmd_detail(self, cmd: commands.Command, _help: str = '', usage: str = ''):
         """
@@ -128,6 +123,17 @@ class TextHelp(commands.HelpCommand):
             self.page.line(short_doc)
         with self.page.indented(4):
             self.page.lines(more_info)
+
+    def _add_cog_info(self, cog: commands.Cog):
+        """
+        Add simple cog info to the page
+        [name]: desc
+         -> !aaa !bbb !ccc
+        """
+        self.page.line(f"[{cog.qualified_name}]: {cog.description}")
+        cmd_lst = getattr(cog, 'HELP_MENU', cog.get_commands())
+        cmd_names = [f"{self.clean_prefix}{c.name}" for c in cmd_lst]
+        self.page.line(' -> ' + ' '.join(cmd_names))
 
     async def send_command_help(self, cmd: commands.Command):
         # TODO: alias-as-arg commands
@@ -166,5 +172,6 @@ class TextHelp(commands.HelpCommand):
         await self.send_page()
 
     async def send_bot_help(self):
-        ...
-
+        ctx = self.context
+        bot = ctx.bot
+        # TODO

@@ -61,7 +61,7 @@ class TextPage(Page):
 
     @contextmanager
     def codeblock(self, lang: str = ''):
-        self.buffer.append('```' + lang)
+        self.buffer.append('```' + lang + '\n')
         yield
         self.buffer.append('```')
 

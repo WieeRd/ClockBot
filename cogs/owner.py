@@ -63,7 +63,7 @@ class Owner(commands.Cog):
         server_c = len(self.bot.guilds)
         user_c = len(self.bot.users)
         info = '\n'.join(f"{s.name} : {s.member_count}" for s in list(self.bot.guilds))
-        content = f"Connected to {server_c} servers and {user_c} users\n```{info}```"
+        content = f"Connected to {server_c} servers and {user_c} users```\n{info}```"
         await ctx.send(content)
 
     @server.command()

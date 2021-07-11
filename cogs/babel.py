@@ -148,7 +148,7 @@ class Babel(commands.Cog, name="바벨탑"):
 
         if t := resolve_translator(lang):
             await ctx.send(
-                f"{target.mention}님의 채팅을 {lang}로 통역합니다\n"
+                f"{target.display_name}님의 채팅을 {lang}로 통역합니다\n"
                 f"`{ctx.prefix}통역 @유저 해제`으로 해제할 수 있습니다"
             )
             await asyncio.sleep(1) # prevents translating command itself
@@ -157,15 +157,31 @@ class Babel(commands.Cog, name="바벨탑"):
             await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
 
     @commands.command(name="사칭", usage="@유저 <선동&날조>")
-    @commands.bot_has_guild_permissions(manage_webhooks=True)
+    # @commands.bot_has_guild_permissions(manage_webhooks=True, manage_messages=True)
     async def impersonate(self, ctx: MacLak, user: discord.Member, *, txt):
-        await ctx.send("coming soon!") # TODO
+        mimic_msg = await ctx.mimic(user, txt, wait=True)
+        check = lambda msg: msg==ctx.message
+        try:
+            await self.bot.wait_for('message_delete', check=check, timeout=90)
+        except asyncio.TimeoutError:
+            pass
+        else:
+            await mimic_msg.delete()
 
     @commands.command(aliases=list(SPECIAL_LANGS), usage="@유저")
     async def _filter(self, ctx: MacLak, target: discord.Member):
         assert isinstance(ctx.author, discord.Member)
         assert isinstance(ctx.invoked_with, str)
         by_admin = await self.bot.owner_or_admin(ctx.author)
+
+        query = (target.guild.id, target.id)
+        if t := self.trans_filter.get(query):
+            if t[1] and not by_admin:
+                await ctx.code(
+                    "에러: 관리자에 의해 다른 필터가 걸려있습니다\n"
+                    "(팁: 평소에 처신을 잘하세요)"
+                )
+                return
 
         if ctx.author!=target and not by_admin:
             await ctx.code("에러: 타인에게 필터를 적용하려면 관리자 권한이 필요합니다")
@@ -174,7 +190,7 @@ class Babel(commands.Cog, name="바벨탑"):
         lang = ctx.invoked_with
         t = SPECIAL_LANGS[lang]
         await ctx.send(
-            f"{target.mention}님에게 '{lang}' 필터를 적용합니다\n"
+            f"{target.display_name}님에게 '{lang}' 필터를 적용합니다\n"
             f"`{ctx.prefix}필터해제 @유저`으로 해제할 수 있습니다"
         )
         await asyncio.sleep(1) # prevents translating command itself

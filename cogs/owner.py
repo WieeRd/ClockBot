@@ -35,7 +35,7 @@ EXIT_REPLY: List[Tuple[str, str]] = [
 
 # TODO: bot status / avatar
 
-class Owner(commands.Cog):
+class Owner(commands.Cog, name="개발자"):
     def __init__(self, bot: ClockBot):
         self.bot = bot
 
@@ -70,19 +70,32 @@ class Owner(commands.Cog):
     async def network(self, ctx: MacLak):
         await ctx.send("Coming soon!") # TODO: pyvis network generator
 
-    @commands.command(name="코드", usage="<명령어>")
-    # @commands.is_owner()
-    async def impl(self, ctx: MacLak, cmd: str):
-        if target := self.bot.get_command(cmd):
-            code = inspect.getsource(target.callback)
-            if len(code)<2000:
-                await ctx.code(code, lang='python')
-            else:
-                raw = code.encode(encoding='utf8')
-                fname = target.callback.__name__ + '.py'
-                await ctx.send(file=discord.File(io.BytesIO(raw), filename=fname))
+    @commands.command(name="코드", usage="<명령어/카테고리>")
+    async def getsource(self, ctx: MacLak, entity: str):
+        """
+        해당 명령어/카테고리의 소스코드를 출력한다
+        시계봇은 오픈소스 프로젝트라는 사실
+        그러나 아무도 개발을 도와주지 않았다는 사실
+        전체 코드: https://github.com/WieeRd/ClockBot
+        """
+        if cmd := self.bot.get_command(entity):
+            target = cmd.callback
+            code = inspect.getsource(target)
+            code = inspect.cleandoc(code)
+        elif cog := self.bot.get_cog(entity):
+            target = cog.__class__
+            code = inspect.getsource(target)
+        else:
+            await ctx.tick(False)
             return
-        await ctx.tick(False)
+
+        if len(code)<2000:
+            await ctx.code(code, lang='python')
+        else:
+            raw = code.encode(encoding='utf8')
+            fname = target.__name__ + '.py'
+            await ctx.send(file=discord.File(io.BytesIO(raw), filename=fname))
+        return
 
     @commands.Cog.listener(name='on_message')
     async def terminal(self, msg):

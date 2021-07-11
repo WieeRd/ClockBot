@@ -45,6 +45,9 @@ intents = discord.Intents(
     reactions=True,
 )
 
+prefix = config["prefix"]
+activity = discord.Game(config["status"] or "Hello World")
+
 help_attrs = {
     "name": "도움",
     "aliases": ["help", "설명"],
@@ -58,18 +61,29 @@ help_attrs = {
     ])
 }
 
-prefix = config["prefix"]
-activity = discord.Game(config["status"] or "Hello World")
+helpcmd = TextHelp(
+    prefix = "",
+    suffix = "봇 초대코드: http://add.clockbot.kro.kr",
+    command_attrs = help_attrs,
+)
 
 bot = ClockBot(
     pool = pool,
     command_prefix = prefix,
     intents = intents,
-    help_command = TextHelp(command_attrs=help_attrs), # TODO (seriously)
+    help_command = helpcmd, # TODO (seriously)
     pm_help = False,
     heartbeat_timeout = 60,
     activity = activity,
 )
+
+@bot.command(name="초대코드")
+async def invitecode(ctx: commands.Context):
+    """
+    봇 초대코드 생성
+    """
+    link = "http://add.clockbot.kro.kr"
+    await ctx.send(f"다른 서버에 봇 추가하기:\n{link}")
 
 print("Loading initial extensions")
 init_exts = config['init_exts']

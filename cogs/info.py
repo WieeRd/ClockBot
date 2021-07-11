@@ -10,12 +10,6 @@ class Info(commands.Cog):
         self.bot: commands.Bot = bot
         # self.flags = bot.get_cog('Flags')
 
-    @commands.command(name="초대코드")
-    async def invitation(self, ctx):
-        app_id = (await self.bot.application_info()).id
-        link = "http://add.clockbot.kro.kr"
-        await ctx.send(f"다른 서버에 <@!{self.bot.user.id}> 추가하기:\n{link}")
-
     @commands.command(name="핑")
     async def ping(self, ctx):
         await ctx.send(f"{int(self.bot.latency*1000)}ms")

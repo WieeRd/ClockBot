@@ -4,8 +4,6 @@ from discord.ext import commands
 from contextlib import contextmanager
 from typing import Any, List, Union
 
-# TODO: alias_as_arg decorator
-
 class Page:
     def line(self, content):
         """Add single line to the page"""
@@ -81,13 +79,13 @@ class TextHelp(commands.HelpCommand):
 
     context: commands.Context
 
-    def __init__(self, *, head: str = None, tail: str = None, dm_help: bool = None, dm_limit: int = None, **options):
+    def __init__(self, *, prefix: str = '', suffix: str = '', **options):
+        # TODO: COG_PRIORITY
+        # TODO: COG_EXCLUDE
         super().__init__(**options)
         self.page = TextPage()
-        self.head = head
-        self.tail = tail
-        self.dm_help = dm_help
-        self.dm_limit = dm_limit
+        self.prefix = prefix
+        self.suffix = suffix
 
     async def prepare_help_command(self, ctx, cmd):
         self.page.clear()
@@ -110,7 +108,7 @@ class TextHelp(commands.HelpCommand):
         usage = cmd.usage or usage
         short_doc = cmd.short_doc or short_doc
 
-        self.page.line(f"{self.clean_prefix}{cmd.qualified_name} {cmd.signature}")
+        self.page.line(self._cmd_usage(cmd))
         with self.page.indented(' -> '):
             self.page.line(short_doc)
 
@@ -129,7 +127,7 @@ class TextHelp(commands.HelpCommand):
         short_doc = lines[0]
         more_info = lines[1:]
 
-        self.page.line(f"사용법: {self.clean_prefix}{cmd.qualified_name} {usage}")
+        self.page.line(f"사용법: {self._cmd_usage(cmd)}")
         with self.page.indented(' -> '):
             self.page.line(short_doc)
         with self.page.indented(4):
@@ -174,9 +172,11 @@ class TextHelp(commands.HelpCommand):
     async def send_cog_help(self, cog: commands.Cog):
         self.page.line(f"**[{cog.qualified_name}]** : {cog.description}")
         cmd_lst = getattr(cog, 'HELP_MENU', cog.get_commands())
+
         for cmd in cmd_lst:
             with self.page.codeblock():
                 self._add_cmd_info(cmd)
+
         with self.page.codeblock():
             helpcmd = self.clean_prefix + self.context.command.name
             self.page.line(f"자세한 정보: {helpcmd} <명령어>")
@@ -184,18 +184,25 @@ class TextHelp(commands.HelpCommand):
         await self.send_page()
 
     async def send_bot_help(self, mapping):
+        # TODO: custom cog order
         ctx = self.context
         bot = ctx.bot
-        self.page.line("***D E S C R I P T I O N***")
+        self.page.line(self.prefix)
+
         for name, cog in bot.cogs.items():
             with self.page.codeblock():
                 cmd_lst = getattr(cog, 'HELP_MENU', cog.get_commands())
                 cmd_names = [f"{self.clean_prefix}{c.name}" for c in cmd_lst]
                 self.page.line(f"[{name}]: {cog.description}")
                 self.page.line(' > ' + ' '.join(cmd_names))
+
         with self.page.codeblock():
             helpcmd = self.clean_prefix + self.context.command.name
             self.page.line(f"자세한 정보: {helpcmd} <카테고리/명령어>")
-            self.page.line("봇 초대코드: http://add.clockbot.kro.kr")
+            self.page.line(self.suffix)
 
         await self.send_page()
+
+    async def subcommand_not_found(self, cmd: commands.Command, sub: str):
+        # TODO
+        ...

@@ -61,9 +61,10 @@ class TextPage(Page):
 
     @contextmanager
     def codeblock(self, lang: str = ''):
+        # so many bugs on mobile ahhhhh
         self.buffer.append('```' + lang + '\n')
         yield
-        self.buffer.append('```')
+        self.buffer.append('\n```')
 
     def generate(self) -> str:
         return ''.join(self.buffer)
@@ -73,6 +74,13 @@ class TextPage(Page):
         self.istack = []
 
 class TextHelp(commands.HelpCommand):
+    """
+    Text-based help command based on
+    discord's markdown feature
+    """
+
+    context: commands.Context
+
     def __init__(self, *, head: str = None, tail: str = None, dm_help: bool = None, dm_limit: int = None, **options):
         super().__init__(**options)
         self.page = TextPage()
@@ -89,6 +97,9 @@ class TextHelp(commands.HelpCommand):
         content = self.page.generate()
         msg = await destin.send(content)
         return msg
+
+    def _cmd_usage(self, cmd: commands.Command) -> str:
+        return f"{self.clean_prefix}{cmd.qualified_name} {cmd.signature}"
 
     def _add_cmd_info(self, cmd: commands.Command, short_doc: str = '', usage: str = ''):
         """
@@ -169,9 +180,22 @@ class TextHelp(commands.HelpCommand):
         with self.page.codeblock():
             helpcmd = self.clean_prefix + self.context.command.name
             self.page.line(f"자세한 정보: {helpcmd} <명령어>")
+
         await self.send_page()
 
-    async def send_bot_help(self):
+    async def send_bot_help(self, mapping):
         ctx = self.context
         bot = ctx.bot
-        # TODO
+        self.page.line("***D E S C R I P T I O N***")
+        for name, cog in bot.cogs.items():
+            with self.page.codeblock():
+                cmd_lst = getattr(cog, 'HELP_MENU', cog.get_commands())
+                cmd_names = [f"{self.clean_prefix}{c.name}" for c in cmd_lst]
+                self.page.line(f"[{name}]: {cog.description}")
+                self.page.line(' > ' + ' '.join(cmd_names))
+        with self.page.codeblock():
+            helpcmd = self.clean_prefix + self.context.command.name
+            self.page.line(f"자세한 정보: {helpcmd} <카테고리/명령어>")
+            self.page.line("봇 초대코드: http://add.clockbot.kro.kr")
+
+        await self.send_page()

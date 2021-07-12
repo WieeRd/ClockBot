@@ -77,11 +77,11 @@ class TextHelp(commands.HelpCommand):
     discord's markdown feature
     """
 
+    # TODO: help_menu, help_priority, help_exclude, help_showcase
+
     context: commands.Context
 
     def __init__(self, *, prefix: str = '', suffix: str = '', **options):
-        # TODO: COG_PRIORITY
-        # TODO: COG_EXCLUDE
         super().__init__(**options)
         self.page = TextPage()
         self.prefix = prefix
@@ -150,12 +150,11 @@ class TextHelp(commands.HelpCommand):
          -> !aaa !bbb !ccc
         """
         self.page.line(f"[{cog.qualified_name}]: {cog.description}")
-        cmd_lst = getattr(cog, 'HELP_MENU', cog.get_commands())
+        cmd_lst = getattr(cog, 'help_menu', cog.get_commands())
         cmd_names = [f"{self.clean_prefix}{c.name}" for c in cmd_lst]
         self.page.line(' -> ' + ' '.join(cmd_names))
 
     async def send_command_help(self, cmd: commands.Command):
-        # TODO: alias-as-arg commands
         with self.page.codeblock():
             category = cmd.cog_name or "없음"
             self.page.line(f"[카테고리: {category}]")
@@ -181,7 +180,7 @@ class TextHelp(commands.HelpCommand):
 
     async def send_cog_help(self, cog: commands.Cog):
         self.page.line(f"**[{cog.qualified_name}]** : {cog.description}")
-        cmd_lst = getattr(cog, 'HELP_MENU', cog.get_commands())
+        cmd_lst = getattr(cog, 'help_menu', cog.get_commands())
 
         for cmd in cmd_lst:
             with self.page.codeblock():
@@ -194,14 +193,13 @@ class TextHelp(commands.HelpCommand):
         await self.send_page()
 
     async def send_bot_help(self, mapping):
-        # TODO: custom cog order
         ctx = self.context
         bot = ctx.bot
         self.page.line(self.prefix)
 
         for name, cog in bot.cogs.items():
             with self.page.codeblock():
-                cmd_lst = getattr(cog, 'HELP_MENU', cog.get_commands())
+                cmd_lst = getattr(cog, 'help_menu', cog.get_commands())
                 cmd_names = [f"{self.clean_prefix}{c.name}" for c in cmd_lst]
                 self.page.line(f"[{name}]: {cog.description}")
                 self.page.line(' > ' + ' '.join(cmd_names))
@@ -213,6 +211,24 @@ class TextHelp(commands.HelpCommand):
 
         await self.send_page()
 
+    async def command_not_found(self, cmd: str):
+        p = self.clean_prefix
+        _help = self.context.command.name
+        where = self.get_destination()
+        await where.send(
+            "```\n"
+            f"에러: 카테고리/명령어 '{cmd}'을(를) 찾을 수 없습니다\n"
+            f"전체 목록 확인: {p}{_help}"
+            "\n```"
+        )
+
     async def subcommand_not_found(self, cmd: commands.Command, sub: str):
-        # TODO
-        ...
+        p = self.clean_prefix
+        _help = self.context.command.name
+        where = self.get_destination()
+        await where.send(
+            "```\n"
+            f"에러: 하위 명령어 '{sub}'을(를) 찾을 수 없습니다\n"
+            f"전체 목록 확인: {p}{_help} {cmd.name}"
+            "\n```"
+        )

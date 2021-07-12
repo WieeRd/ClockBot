@@ -36,7 +36,7 @@ class Misc(commands.Cog, name="기타"):
 
     def __init__(self, bot: ClockBot):
         self.bot = bot
-        self.HELP_MENU = [
+        self.help_menu = [
             self.user_pic,
             self.server_pic,
             self.get_emoji,

@@ -96,30 +96,36 @@ class TextHelp(commands.HelpCommand):
         msg = await destin.send(content)
         return msg
 
-    def _cmd_usage(self, cmd: commands.Command) -> str:
-        return f"{self.clean_prefix}{cmd.qualified_name} {cmd.signature}"
-
     def _add_cmd_info(self, cmd: commands.Command, short_doc: str = '', usage: str = ''):
         """
         Add simple command/group info to the page
-        !name <usage>
+        !name usage
          -> short_doc
         """
+        p = self.clean_prefix
         usage = cmd.usage or usage
         short_doc = cmd.short_doc or short_doc
 
-        self.page.line(self._cmd_usage(cmd))
+        if cmd.name.startswith('_'):
+            if cmd.parent:
+                aliases = '/'.join(cmd.aliases)
+                self.page.line(f"{p}{cmd.full_parent_name} [{aliases}] {usage}")
+            else:
+                self.page.line('\n'.join(f"{p}{alias} {usage}" for alias in cmd.aliases))
+        else:
+            self.page.line(f"{p}{cmd.qualified_name} {usage}")
+
         with self.page.indented(' -> '):
             self.page.line(short_doc)
 
     def _add_cmd_detail(self, cmd: commands.Command, _help: str = '', usage: str = ''):
         """
         Add detailed command info to the page
-        doc, usage param is used when help/usage attr isn't available
-        Usage: !name <usage>
+        Usage: !name usage
          -> short_doc
             more_info
         """
+        p = self.clean_prefix
         usage = cmd.usage or usage
         _help = cmd.help or _help
         lines = _help.split('\n')
@@ -127,9 +133,13 @@ class TextHelp(commands.HelpCommand):
         short_doc = lines[0]
         more_info = lines[1:]
 
-        self.page.line(f"사용법: {self._cmd_usage(cmd)}")
-        with self.page.indented(' -> '):
-            self.page.line(short_doc)
+        if cmd.name.startswith('_'):
+            self.page.line(f"사용법: {p}{cmd.name[1:]} {usage}")
+            self.page.line(f"{cmd.name[1:]}: [{', '.join(cmd.aliases)}]")
+        else:
+            self.page.line(f"사용법: {p}{cmd.name} {usage}")
+
+        self.page.line(' -> ' + short_doc)
         with self.page.indented(4):
             self.page.lines(more_info)
 

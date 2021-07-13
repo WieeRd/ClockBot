@@ -1,9 +1,24 @@
 token:
 prefix: '!'
-status:
-init_exts:
+status: "Hello World"
+extensions:
     - jishaku
-    - cogs.owner
+    # - cogs.owner
+    # - cogs.bamboo
+    # - cogs.babel
+    # - cogs.mention
+    # - cogs.voice
+    # - cogs.clock
+    - cogs.misc
+help_options:
+    prefix: ''
+    suffix: "봇 초대코드: http://add.clockbot.kro.kr"
+    category:
+        - "대나무숲"
+        - "바벨탑"
+        - "고급멘션"
+        - "TTS"
+        - "기타"
 database:
     host: localhost
     port: 3306

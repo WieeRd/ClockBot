@@ -35,10 +35,11 @@ EXIT_REPLY: List[Tuple[str, str]] = [
 
 # TODO: bot status / avatar
 
-class Owner(commands.Cog, name="개발자"):
+class Owner(commands.Cog, name="제작자"):
     def __init__(self, bot: ClockBot):
         self.bot = bot
 
+    # TODO: reduce amount of options
     @commands.command(aliases=[e.name.lower() for e in tuple(ExitOpt)])
     @commands.is_owner()
     async def _terminate_bot(self, ctx: MacLak):

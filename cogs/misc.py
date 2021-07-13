@@ -66,7 +66,7 @@ class Misc(commands.Cog, name="기타"):
         await ctx.send(ctx.guild.icon_url)
 
     @commands.command(name="이모지", aliases=["이모티콘"], usage=":thonk:")
-    async def get_emoji(self, ctx: MacLak, emoji: discord.Emoji):
+    async def get_emoji(self, ctx: MacLak, emoji: discord.PartialEmoji):
         """
         커스텀 이모티콘의 원본 이미지를 띄운다
         서버 주인장에 따라 자작 이모티콘을 맘대로

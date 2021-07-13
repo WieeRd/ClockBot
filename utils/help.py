@@ -81,11 +81,17 @@ class TextHelp(commands.HelpCommand):
 
     context: commands.Context
 
-    def __init__(self, *, prefix: str = '', suffix: str = '', **options):
+    def __init__(self,
+            prefix: str = '',
+            suffix: str = '',
+            cogs: List[str] = [],
+            **options
+        ):
         super().__init__(**options)
         self.page = TextPage()
         self.prefix = prefix
         self.suffix = suffix
+        self.cogs = cogs
 
     async def prepare_help_command(self, ctx, cmd):
         self.page.clear()
@@ -119,12 +125,6 @@ class TextHelp(commands.HelpCommand):
             self.page.line(short_doc)
 
     def _add_cmd_detail(self, cmd: commands.Command, _help: str = '', usage: str = ''):
-        """
-        Add detailed command info to the page
-        Usage: !name usage
-         -> short_doc
-            more_info
-        """
         p = self.clean_prefix
         usage = cmd.usage or usage
         _help = cmd.help or _help
@@ -134,7 +134,7 @@ class TextHelp(commands.HelpCommand):
         more_info = lines[1:]
 
         if cmd.name.startswith('_'):
-            self.page.line(f"사용법: {p}{cmd.name[1:]} {usage}")
+            self.page.line(f"사용법: {p}<{cmd.name[1:]}> {usage}")
             self.page.line(f"{cmd.name[1:]}: [{', '.join(cmd.aliases)}]")
         else:
             self.page.line(f"사용법: {p}{cmd.name} {usage}")
@@ -144,11 +144,6 @@ class TextHelp(commands.HelpCommand):
             self.page.lines(more_info)
 
     def _add_cog_info(self, cog: commands.Cog):
-        """
-        Add simple cog info to the page
-        [name]: desc
-         -> !aaa !bbb !ccc
-        """
         self.page.line(f"[{cog.qualified_name}]: {cog.description}")
         cmd_lst = getattr(cog, 'help_menu', cog.get_commands())
         cmd_names = [f"{self.clean_prefix}{c.name}" for c in cmd_lst]
@@ -197,8 +192,14 @@ class TextHelp(commands.HelpCommand):
         bot = ctx.bot
         p = self.clean_prefix
 
+        if self.cogs:
+            cog_lst = [bot.get_cog(c) for c in self.cogs if c in bot.cogs]
+        else:
+            cog_lst = bot.cogs.values()
+
         self.page.line(self.prefix)
-        for name, cog in bot.cogs.items():
+        for cog in cog_lst:
+            name = cog.qualified_name
             with self.page.codeblock():
                 cmd_lst = []
                 for cmd in getattr(cog, 'help_menu', cog.get_commands()):

@@ -136,8 +136,6 @@ class ClockBot(commands.Bot):
 
         # database connection pool
         self.pool = pool
-        # cached context
-        self.ctx: Dict[discord.Message, MacLak] = {}
         # cached webhook
         self.webhooks: Dict[int, Webhook] = {}
         # special channels (ex: bamboo forest) { channel_id : "reason" }
@@ -155,18 +153,6 @@ class ClockBot(commands.Bot):
 
     async def get_context(self, msg: discord.Message) -> MacLak:
         return await super().get_context(msg, cls=MacLak)
-
-    async def process_commands(self, msg: discord.Message):
-        if msg.author.bot:
-            return
-
-        ctx = await self.get_context(msg)
-        self.ctx[msg] = ctx
-
-        await self.invoke(ctx)
-
-        await asyncio.sleep(1) # during this 1s, Cog listeners can use cached ctx
-        del self.ctx[msg]      # is it worth it? I have no idea
 
     async def get_webhook(self, channel: discord.TextChannel) -> discord.Webhook:
         """

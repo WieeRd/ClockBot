@@ -185,11 +185,12 @@ class Babel(commands.Cog, name="바벨탑"):
             await mimic_msg.delete()
 
     @commands.command(name="_필터", aliases=list(SPECIAL_LANGS), usage="닉네임/@멘션")
+    @commands.guild_only()
     async def _filter(self, ctx: MacLak, target: discord.Member):
         """
         해당 유저의 채팅에 필터(번역기, 말투변환기)를 적용한다
-        관리자가 적용한 필터는 관리자만 해제할 수 있다.
-         = 뮤트를 먹이는 창의적인 방법이 될 수 있다!
+        관리자가 적용한 필터는 관리자만 해제할 수 있으며,
+        이는 뮤트를 먹이는 창의적인 방법이 될 수 있다.
         아까부터 개소리(비유적)를 해대는 친구에게 개소리 필터를 걸어
         개소리(말 그대로)를 울부짖는 모습을 구경해보자.
         """
@@ -220,10 +221,8 @@ class Babel(commands.Cog, name="바벨탑"):
         self.filters[(target.guild.id, target.id)] = (t, by_admin)
 
     @commands.command(name="필터해제", usage="닉네임/@멘션")
+    @commands.guild_only()
     async def disable_filter(self, ctx: MacLak, target: discord.Member):
-        """
-        해당 유저에게 걸려있는 필터를 제거한다
-        """
         assert isinstance(ctx.author, discord.Member)
         by_admin = await self.bot.owner_or_admin(ctx.author)
 

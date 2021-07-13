@@ -195,14 +195,19 @@ class TextHelp(commands.HelpCommand):
     async def send_bot_help(self, mapping):
         ctx = self.context
         bot = ctx.bot
-        self.page.line(self.prefix)
+        p = self.clean_prefix
 
+        self.page.line(self.prefix)
         for name, cog in bot.cogs.items():
             with self.page.codeblock():
-                cmd_lst = getattr(cog, 'help_menu', cog.get_commands())
-                cmd_names = [f"{self.clean_prefix}{c.name}" for c in cmd_lst]
+                cmd_lst = []
+                for cmd in getattr(cog, 'help_menu', cog.get_commands()):
+                    if cmd.name.startswith('_'):
+                        cmd_lst.extend(cmd.aliases)
+                    else:
+                        cmd_lst.append(cmd.name)
                 self.page.line(f"[{name}]: {cog.description}")
-                self.page.line(' > ' + ' '.join(cmd_names))
+                self.page.line(' > ' + ' '.join(p+c for c in cmd_lst))
 
         with self.page.codeblock():
             helpcmd = self.clean_prefix + self.context.command.name
@@ -215,7 +220,7 @@ class TextHelp(commands.HelpCommand):
         p = self.clean_prefix
         _help = self.context.command.name
         where = self.get_destination()
-        await where.send(
+        return (
             "```\n"
             f"에러: 카테고리/명령어 '{cmd}'을(를) 찾을 수 없습니다\n"
             f"전체 목록 확인: {p}{_help}"
@@ -226,7 +231,7 @@ class TextHelp(commands.HelpCommand):
         p = self.clean_prefix
         _help = self.context.command.name
         where = self.get_destination()
-        await where.send(
+        return (
             "```\n"
             f"에러: 하위 명령어 '{sub}'을(를) 찾을 수 없습니다\n"
             f"전체 목록 확인: {p}{_help} {cmd.name}"

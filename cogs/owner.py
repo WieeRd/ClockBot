@@ -81,7 +81,8 @@ class Owner(commands.Cog, name="개발자"):
         if cmd := self.bot.get_command(entity):
             target = cmd.callback
             code = inspect.getsource(target)
-            code = inspect.cleandoc(code)
+            # TODO: needs proper indentation remover
+            # code = inspect.cleandoc(code)
         elif cog := self.bot.get_cog(entity):
             target = cog.__class__
             code = inspect.getsource(target)

@@ -5,7 +5,6 @@ from discord.ext import commands
 import utils.MemberFilter as MemberFilter
 
 from clockbot import ClockBot, MacLak
-from typing import List
 
 class Mention(commands.Cog, name="고급멘션"):
     """
@@ -25,9 +24,10 @@ class Mention(commands.Cog, name="고급멘션"):
     async def member(self, ctx: MacLak, *, expression: str):
         """
         조건식에 맞는 멤버 목록을 출력한다
-        권한을 조정하여 멘션 알림이 가지 않으니 안심하자.
-        그러나 메세지에서 알림 권한을 지우면 모바일 디코에서
-        @invalid-user로 표시되는 디스코드 측 버그가 있다
+        멘션 알림이 가지 않으니 안심하자.
+        메세지에서 멘션 권한을 없애면 모바일에선
+        @invalid-user로 표시되는 버그가 있다.
+        ***시계봇이 아니라 디스코드 버그다***
         """
         assert ctx.guild is not None
         try:
@@ -46,10 +46,10 @@ class Mention(commands.Cog, name="고급멘션"):
     async def mention(self, ctx: MacLak, *, expression: str):
         """
         조건식에 맞는 멤버들을 멘션한다
-        실수로 몇십 명씩 멘션해서 매도당하지 말고
+        실수로 몇십명씩 멘션해서 매도당하지 말고
         '멤버' 명령어로 결과를 미리 확인하자.
         제작자가 아는 누군가는 everyone을 해명하느라
-        시계봇에 트라우마가 생기고 말았다고...
+        시계봇에 트라우마가 생겼다 카더라
         """
         assert ctx.guild is not None
         try:
@@ -100,6 +100,7 @@ class Mention(commands.Cog, name="고급멘션"):
         (난 최대한 쉽게 만든건데...)
         언젠가 개선할 계획
         """
+        # TODO: use module docstring maybe?
         await ctx.send(
             "미안하지만 이젠 나도 잘 모르겠어\n"
             " - 제작자 - "

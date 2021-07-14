@@ -7,37 +7,14 @@ import asyncio
 from PIL import Image
 from io import BytesIO
 
+from utils.drawclock import DrawClock
+
 IMG_DIR = "assets/clock"
 FRAME = f"{IMG_DIR}/frame.png"
 H_HAND = f"{IMG_DIR}/hour.png"
 M_HAND = f"{IMG_DIR}/minute.png"
 
 # TODO: Default avatar
-
-class DrawClock:
-    def __init__(self, frame: Image.Image, h_hand: Image.Image, m_hand: Image.Image):
-        self.frame = frame
-        self.h_hand = h_hand
-        self.m_hand = m_hand
-
-    def draw(self, hour: int, minute: int) -> Image.Image:
-        base = self.frame.copy()
-
-        angle_h = 360 - hour*30 - minute//2
-        angle_m = 360 - minute*6
-
-        h_hand = self.h_hand.rotate(angle_h)
-        m_hand = self.m_hand.rotate(angle_m)
-
-        base.paste(h_hand, (0,0), h_hand.convert('RGBA'))
-        base.paste(m_hand, (0,0), m_hand.convert('RGBA'))
-
-        return base
-
-    def render(self, hour: int, minute: int, format='PNG') -> bytes:
-        buf = BytesIO()
-        self.draw(hour, minute).save(buf, format=format)
-        return buf.getvalue()
 
 class Clock(commands.Cog):
     """
@@ -94,6 +71,7 @@ class Clock(commands.Cog):
         if delay<10: delay += 60
         await asyncio.sleep(delay)
 
+    # # TODO: self param causes warning
     @liveClock.before_loop
     async def startClock(self):
         await self.bot.wait_until_ready()

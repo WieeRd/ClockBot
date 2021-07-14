@@ -40,6 +40,9 @@ class DrawClock:
         return buf.getvalue()
 
 class Clock(commands.Cog):
+    """
+    시계봇은 프사가 닉값을 한다는 사실
+    """
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.time = 0
@@ -51,8 +54,11 @@ class Clock(commands.Cog):
 
         self.liveClock.start()
 
-    @commands.command(name="시계")
+    @commands.command(name="시계", usage="HH:MM")
     async def clock(self, ctx: commands.Context, hh_mm: str = ""):
+        """
+        HH시 MM분의 시계를 그린다
+        """
         # TODO: Image too T H I C C require resize
         time_form = re.compile("([0-9]|0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])")
         match = re.match(time_form, hh_mm)

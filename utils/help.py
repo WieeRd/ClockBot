@@ -4,6 +4,8 @@ from discord.ext import commands
 from contextlib import contextmanager
 from typing import Any, List, Union
 
+# TODO: alias_group: send help on !name[1:]
+
 class Page:
     def line(self, content):
         """Add single line to the page"""
@@ -76,8 +78,6 @@ class TextHelp(commands.HelpCommand):
     Text-based help command based on
     discord's markdown feature
     """
-
-    # TODO: help_menu, help_priority, help_exclude, help_showcase
 
     context: commands.Context
 

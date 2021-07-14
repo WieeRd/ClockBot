@@ -30,7 +30,10 @@ def save_change():
     print("forests.json updated")
 
 # Bamboo forest - Anonymous chat
-class Bamboo(commands.Cog):
+class Bamboo(commands.Cog, name="대나무숲"):
+    """
+    곧 리메이크 예정이라 도움말이 없습니다 :)
+    """
     def __init__(self, bot):
         self.bot = bot
 

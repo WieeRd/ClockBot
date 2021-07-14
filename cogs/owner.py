@@ -123,6 +123,23 @@ class Owner(commands.Cog, name="제작자"):
                 await msg.channel.send(f"```'{cmd}' timed out: {timeout}s```")
                 print(f"{cmd} timed out: {timeout}s")
 
+    @commands.command(name="핑")
+    async def ping(self, ctx):
+        await ctx.send(f"{int(self.bot.latency*1000)}ms")
+
+    # TODO
+    # @commands.command(name="업타임")
+    # async def uptime(self, ctx):
+    #     uptime = time.time() - self.flags.start_time
+    #     dd, rem = divmod(uptime, 24*60*60)
+    #     hh, rem = divmod(rem, 60*60)
+    #     mm, ss = divmod(rem, 60)
+    #     dd, hh, mm, ss = int(dd), int(hh), int(mm), int(ss)
+    #     tm = f"{hh:02d}:{mm:02d}:{ss:02d}"
+    #     if(dd>0): tm = f"{dd}일 " + tm
+    #     await ctx.send(tm)
+
+
 def setup(bot: ClockBot):
     bot.add_cog(Owner(bot))
 

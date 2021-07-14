@@ -125,14 +125,14 @@ class Babel(commands.Cog, name="바벨탑"):
     """
     def __init__(self, bot: ClockBot):
         self.bot = bot
-        # self.trans_reply: Dict[Tuple[int, int], Translator] = {}
-        self.filters: Dict[Tuple[int, int], Tuple[Translator, bool]] = {}
-
         self.help_menu = [
             self.impersonate,
             self._filter,
             self.disable_filter,
         ]
+
+        # self.trans_reply: Dict[Tuple[int, int], Translator] = {}
+        self.filters: Dict[Tuple[int, int], Tuple[Translator, bool]] = {}
 
     # # TODO: translate message using reply
     # @commands.command(name="번역", usage="<언어> <번역할 내용>")
@@ -223,6 +223,9 @@ class Babel(commands.Cog, name="바벨탑"):
     @commands.command(name="필터해제", usage="닉네임/@멘션")
     @commands.guild_only()
     async def disable_filter(self, ctx: MacLak, target: discord.Member):
+        """
+        해당 유저에게 적용된 필터를 제거한다
+        """
         assert isinstance(ctx.author, discord.Member)
         by_admin = await self.bot.owner_or_admin(ctx.author)
 

@@ -7,6 +7,8 @@ import asyncio
 from PIL import Image
 from io import BytesIO
 
+from utils.drawclock import DrawClock
+
 IMG_DIR = "assets/clock"
 FRAME = f"{IMG_DIR}/frame.png"
 H_HAND = f"{IMG_DIR}/hour.png"
@@ -14,32 +16,10 @@ M_HAND = f"{IMG_DIR}/minute.png"
 
 # TODO: Default avatar
 
-class DrawClock:
-    def __init__(self, frame: Image.Image, h_hand: Image.Image, m_hand: Image.Image):
-        self.frame = frame
-        self.h_hand = h_hand
-        self.m_hand = m_hand
-
-    def draw(self, hour: int, minute: int) -> Image.Image:
-        base = self.frame.copy()
-
-        angle_h = 360 - hour*30 - minute//2
-        angle_m = 360 - minute*6
-
-        h_hand = self.h_hand.rotate(angle_h)
-        m_hand = self.m_hand.rotate(angle_m)
-
-        base.paste(h_hand, (0,0), h_hand.convert('RGBA'))
-        base.paste(m_hand, (0,0), m_hand.convert('RGBA'))
-
-        return base
-
-    def render(self, hour: int, minute: int, format='PNG') -> bytes:
-        buf = BytesIO()
-        self.draw(hour, minute).save(buf, format=format)
-        return buf.getvalue()
-
 class Clock(commands.Cog):
+    """
+    시계봇은 프사가 닉값을 한다는 사실
+    """
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.time = 0
@@ -51,8 +31,11 @@ class Clock(commands.Cog):
 
         self.liveClock.start()
 
-    @commands.command(name="시계")
+    @commands.command(name="시계", usage="HH:MM")
     async def clock(self, ctx: commands.Context, hh_mm: str = ""):
+        """
+        HH시 MM분의 시계를 그린다
+        """
         # TODO: Image too T H I C C require resize
         time_form = re.compile("([0-9]|0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])")
         match = re.match(time_form, hh_mm)
@@ -88,6 +71,7 @@ class Clock(commands.Cog):
         if delay<10: delay += 60
         await asyncio.sleep(delay)
 
+    # # TODO: self param causes warning
     @liveClock.before_loop
     async def startClock(self):
         await self.bot.wait_until_ready()

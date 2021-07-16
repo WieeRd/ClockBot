@@ -1,158 +1,264 @@
 import discord
 import asyncio
-import json
-from discord.ext import commands
-from typing import Dict
-
-import aiohttp
-from discord import Webhook, AsyncWebhookAdapter
-
 import random
-from google_trans_new import google_translator
-from google_trans_new.constant import LANGUAGES
+import re
 
-LANGS = tuple(LANGUAGES)
-translator = google_translator()
+from discord.ext import commands
+from jamo import h2j, j2h, j2hcj
+from typing import Callable, Dict, Optional, Tuple
 
-def translate(txt: str, lang='en') -> str:
-    # TODO: translate() could return None, list[Unknown], etc. 
-    return translator.translate(txt, lang_tgt=lang)
+from clockbot import ClockBot, MacLak
 
-def randslate(txt, lang_lst=LANGS) -> str:
-    lang = random.choice(lang_lst)
-    return translate(txt, lang)
+# TODO: google_trans_new is broken, find alternative
 
-def waldoslate(txt: str, craziness=1) -> str:
-    orig_lang = translator.detect(txt)[0]
-    for i in range(craziness):
-        txt = randslate(txt)
-    txt = translate(txt, orig_lang)
-    return txt
+# from google_trans_new import google_translator
+# from google_trans_new.constant import LANGUAGES
 
-def mirrorslate(txt: str) -> str:
-    return txt[::-1]
+# LANG_LIST = list(LANGUAGES)
+# LANG_DICT = dict((value, key) for key, value in LANGUAGES.items())
 
-def babelslate(txt) -> str:
-    func = random.choice([translate, randslate, waldoslate])
-    return func(txt)
+# translator = google_translator()
 
-if __name__=="__main__":
-    while True:
-        txt = input('>')
-        print("translate(ko): " + translate(txt, 'ko'))
-        print("randslate(): " + randslate(txt))
-        print("waldoslate(): " + waldoslate(txt, 3))
+# def translate(txt: str, lang: str = 'auto') -> str:
+#     ret = translator.translate(txt, lang)
+#     if isinstance(ret, str):
+#         return ret.strip()
+#     if isinstance(ret, list):
+#         return ret[0].strip()
+#     else: # when does this even happen?
+#         return '?'
 
-towers: Dict[int, dict] = dict()
-# {
-#     "server_id": {
-#         "name": "server_name"
-#         "channel": channel_id
-#         "webhook": "webhook_url"
-#     }
-# }
-try:
-    with open("settings/towers.json", 'r') as f:
-        tmp = json.load(f)
-        for key, val in tmp.items():
-            towers[int(key)] = val
-except json.decoder.JSONDecodeError:
-    print("Error: towers.json corrupted")
-    raise
-except FileNotFoundError:
-    pass
+# def randslate(txt, lang_lst=LANG_LIST) -> str:
+#     """translate to random language"""
+#     lang = random.choice(lang_lst)
+#     return translate(txt, lang)
 
-def save_change():
-    with open("settings/towers.json", 'w') as f:
-        json.dump(towers, f, indent=4, ensure_ascii=False)
-    print("towers.json updated")
+# def waldoslate(txt: str, craziness=1) -> str:
+#     """
+#     traslate to random language multiple times
+#     and translate back to original language
+#     the result probably doesn't make any sense
+#     """
+#     detect = translator.detect(txt)
+#     if isinstance(detect, list):
+#         origin = detect[0]
+#     else:
+#         origin = 'ko'
+#     for _ in range(craziness):
+#         txt = randslate(txt)
+#     txt = translate(txt, origin)
+#     return txt
 
-class Babel(commands.Cog):
-    def __init__(self, bot):
+def doggoslate(txt: str) -> str:
+    """
+    < 개 짖는 소리 좀 안나게 하라ㅏㅏㅏㅏ
+    > 왈! 왈왈! 왈왈! 왈! 왈왈왈! 왈왈왈왈왈왈!!!
+    """
+    bark_variants = "멍컹왈왕월"
+    exclaim = ["깨갱깨갱!", "깨개갱..."]
+    if len(txt)>40:
+        return random.choice(exclaim)
+    ret = []
+    bark = random.choice(bark_variants)
+    for word in txt.split():
+        ret.append(bark*len(word))
+    return '! '.join(ret) + "!!!"
+
+def kittyslate(txt: str) -> str:
+    punc = ['~', '!', '?', '...', '?!']
+    nya_variants = ["냐아아", "야오옹", "캬오오", "샤아악", "그르르", "먀아아"]
+    exclaim = ["야오옹...?", "끼아아옹!"]
+    if len(txt)>40:
+        return random.choice(exclaim)
+    ret = []
+    nya = random.choice(nya_variants)
+    for word in txt.split():
+        if len(word)<2:
+            ret.append("냥")
+            ret.append(random.choice(punc) + ' ')
+        else:
+            mid = len(word) - 2
+            ret.append(nya[0] + nya[1]*mid + nya[2])
+            ret.append(random.choice(punc) + ' ')
+    return ''.join(ret)
+
+FULL_HANGUL = re.compile(r"[가-힣]")
+
+def mumslate(txt: str) -> str:
+    """멈뭄미의 저주"""
+    ret = []
+    for c in txt:
+        if FULL_HANGUL.match(c):
+            decom = j2hcj(h2j(c))
+            mum = decom.replace('ㅇ', 'ㅁ')
+            ret.append(j2h(*mum))
+        elif c=='ㅇ':
+            ret.append('ㅁ')
+        else:
+            ret.append(c)
+    return ''.join(ret)
+
+Translator = Callable[[str], str]
+SPECIAL_LANGS = {
+    # '랜덤': randslate,
+    '개소리': doggoslate,
+    '냥소리': kittyslate,
+    '멈뭄미': mumslate,
+}
+
+def resolve_translator(lang: str) -> Optional[Translator]:
+    """
+    receives Korean language name and returns appropriate translator
+    """
+    if special := SPECIAL_LANGS.get(lang):
+        return special
+
+    # lang_name = translate(lang, 'en').lower()
+    # if lang_code := LANG_DICT.get(lang_name, ''):
+    #     return lambda t: translate(t, lang_code)
+
+    return None
+
+class Babel(commands.Cog, name="바벨탑"):
+    """
+    번역기와 말투변환기를 이용한 흥미로운 장난들
+    """
+    def __init__(self, bot: ClockBot):
         self.bot = bot
+        self.help_menu = [
+            self.impersonate,
+            self._filter,
+            self.disable_filter,
+        ]
 
-    @commands.command(name="바벨탑")
-    async def babel(self, ctx, cmd=None):
-        await asyncio.sleep(0.5)
-        if  not (ctx.author.guild_permissions.administrator
-                 or await self.bot.is_owner(ctx.author)):
-            await ctx.send("해당 커맨드는 서버 관리자 권한이 필요합니다")
-            return
-        if   cmd=="건설":
-            await self.add_tower(ctx)
-        elif cmd=="철거":
-            await self.rm_tower(ctx)
+        # self.trans_reply: Dict[Tuple[int, int], Translator] = {}
+        self.filters: Dict[Tuple[int, int], Tuple[Translator, bool]] = {}
+
+    # # TODO: translate message using reply
+    # @commands.command(name="번역", usage="<언어> <번역할 내용>")
+    # async def translate_chat(self, ctx: MacLak, lang: str, *, txt: str):
+    #     if t := resolve_translator(lang):
+    #         await ctx.message.reply(t(txt), mention_author=False)
+    #     else:
+    #         await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
+
+    # @commands.command(name="통역", usage="@유저 <언어>")
+    # @commands.guild_only()
+    # async def translate_user(self, ctx: MacLak, target: discord.Member, lang: str):
+    #     if lang=="해제":
+    #         query = (target.guild.id, target.id)
+    #         if query in self.trans_reply:
+    #             del self.trans_reply[query]
+    #             await ctx.tick(True)
+    #         else:
+    #             await ctx.tick(False)
+    #         return
+
+    #     if t := resolve_translator(lang):
+    #         await ctx.send(
+    #             f"{target.display_name}님의 채팅을 {lang}로 통역합니다\n"
+    #             f"`{ctx.prefix}통역 @유저 해제`으로 해제할 수 있습니다"
+    #         )
+    #         await asyncio.sleep(1) # prevents translating command itself
+    #         self.trans_reply[(target.guild.id, target.id)] = t
+    #     else:
+    #         await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
+
+    @commands.command(name="사칭", usage="닉네임/@멘션 <선동&날조>")
+    @commands.bot_has_permissions(manage_webhooks=True, manage_messages=True)
+    async def impersonate(self, ctx: MacLak, user: discord.Member, *, txt):
+        """
+        다른 사람이 보낸 듯한 가짜 메세지를 보낸다
+        옆에 '봇' 표시를 제외하면 닉네임/프사가 같아 꽤나 혼란스럽다.
+        제작자가 자주 치던 장난을 공식 기능으로 만든 것으로,
+        재밌긴 하지만 당하면 화내는 사람들도 있고 악용의 우려가 있어
+        명령어가 적힌 메세지를 삭제하면 가짜 메세지도 자동 삭제된다.
+        """
+        mimic_msg = await ctx.mimic(user, txt, wait=True)
+        check = lambda msg: msg==ctx.message
+        try:
+            # TODO: this accumulates coros and slows down bot
+            await self.bot.wait_for('message_delete', check=check, timeout=90)
+        except asyncio.TimeoutError:
+            pass
         else:
-            await ctx.send("사용법: !바벨탑 건설/철거")
+            await mimic_msg.delete()
 
-    async def add_tower(self, ctx):
-        if ctx.guild.id in towers:
-            channel_id = towers[ctx.guild.id]["channel"]
-            channel = self.bot.get_channel(channel_id)
-            if channel!=None:
-                msg = f"이미 {channel.mention}에 바벨탑이 건설되고 있습니다\n"
-                msg += "(바벨탑은 서버당 하나만 존재할 수 있습니다)"
-                await ctx.send(msg)
+    @commands.command(name="_필터", aliases=list(SPECIAL_LANGS), usage="닉네임/@멘션")
+    @commands.guild_only()
+    async def _filter(self, ctx: MacLak, target: discord.Member):
+        """
+        해당 유저의 채팅에 필터(번역기, 말투변환기)를 적용한다
+        관리자가 적용한 필터는 관리자만 해제할 수 있으며,
+        이는 뮤트를 먹이는 창의적인 방법이 될 수 있다.
+        아까부터 개소리(비유적)를 해대는 친구에게 개소리 필터를 걸어
+        개소리(말 그대로)를 울부짖는 모습을 구경해보자.
+        """
+        assert isinstance(ctx.author, discord.Member)
+        assert isinstance(ctx.invoked_with, str)
+        by_admin = await self.bot.owner_or_admin(ctx.author)
+
+        query = (target.guild.id, target.id)
+        if t := self.filters.get(query):
+            if t[1] and not by_admin:
+                await ctx.code(
+                    "에러: 관리자에 의해 다른 필터가 걸려있습니다\n"
+                    "(팁: 평소에 처신을 잘하세요)"
+                )
                 return
-            else:
-                del towers[ctx.guild.id]
-        perm = ctx.channel.permissions_for(ctx.guild.me)
-        if not (perm.manage_messages and perm.manage_channels and perm.manage_webhooks):
-            await ctx.send("에러: 봇에게 해당 채널의 채널/메세지/웹훅 관리 권한이 필요합니다")
+
+        if ctx.author!=target and not by_admin:
+            await ctx.code("에러: 타인에게 필터를 적용하려면 관리자 권한이 필요합니다")
             return
-        channel_hooks = await ctx.channel.webhooks()
-        my_hook = None
-        for hook in channel_hooks:
-            if hook.user==self.bot.user:
-                my_hook = hook
-                break
-        if my_hook==None:
-            hook = await ctx.channel.create_webhook(name='ClockBot')
-        else:
-            hook = my_hook
-        url = hook.url
-        towers[ctx.guild.id] = {"channel": ctx.channel.id, "name": ctx.guild.name, "webhook": url}
-        await ctx.channel.edit(name="바벨탑-건설현장", topic="열심히 탑을 올려서 신들에게 업보스택을 쌓아보자!")
-        msg = await ctx.send(f"바벨탑 건설을 시작합니다!\n"
-                              "堆疊到天空！\n"
-                              "Was hast du gesagt?")
-        await msg.pin()
 
-    async def rm_tower(self, ctx):
-        if (ctx.guild.id in towers) and (towers[ctx.guild.id]["channel"]==ctx.channel.id):
-            del towers[ctx.guild.id]
-            await ctx.send("바벨탑을 철거했습니다")
-            for old_pin in await ctx.channel.pins():
-                if old_pin.author==self.bot.user:
-                    await old_pin.unpin()
-        else:
-            await ctx.send("바벨탑을 건설중인 채널이 아닙니다")
+        lang = ctx.invoked_with
+        t = SPECIAL_LANGS[lang]
+        await ctx.send( # TODO: custom message for each filter
+            f"{target.display_name}님에게 '{lang}' 필터를 적용합니다\n"
+            f"`{ctx.prefix}필터해제 @유저`으로 해제할 수 있습니다"
+        )
+        await asyncio.sleep(1) # prevents translating command itself
+        self.filters[(target.guild.id, target.id)] = (t, by_admin)
 
-    @commands.Cog.listener(name="on_message")
-    async def replace_msg(self, msg):
-        if ((not isinstance(msg.channel, discord.DMChannel)) and
-            (not msg.author.bot) and
-            (msg.guild.id in towers) and
-            (msg.channel.id==towers[msg.guild.id]["channel"]) ):
-            txt = msg.content
-            ref = msg.reference
-            name = msg.author.display_name
-            avatar = msg.author.avatar_url
+    @commands.command(name="필터해제", usage="닉네임/@멘션")
+    @commands.guild_only()
+    async def disable_filter(self, ctx: MacLak, target: discord.Member):
+        """
+        해당 유저에게 적용된 필터를 제거한다
+        """
+        assert isinstance(ctx.author, discord.Member)
+        by_admin = await self.bot.owner_or_admin(ctx.author)
+
+        query = (target.guild.id, target.id)
+        if t := self.filters.get(query):
+            if t[1] and not by_admin:
+                await ctx.code(
+                    "에러: 관리자가 적용한 필터는 관리자만 해제할 수 있습니다\n"
+                    "(팁: 평소에 처신을 잘하세요)"
+                )
+            else:
+                del self.filters[query]
+                await ctx.tick(True)
+        else:
+            await ctx.code("에러: 적용되어 있는 필터가 없습니다")
+
+    @commands.Cog.listener()
+    async def on_message(self, msg: discord.Message):
+        if msg.guild is None:
+            return
+        if not msg.content:
+            return
+
+        # if t := self.trans_reply.get((msg.guild.id, msg.author.id)):
+        #     await msg.reply(t(msg.content), mention_author=False)
+
+        if t := self.filters.get((msg.guild.id, msg.author.id)):
+            ctx = await self.bot.get_context(msg)
             await msg.delete()
-            async with aiohttp.ClientSession() as session:
-                webhook_url = towers[msg.guild.id]["webhook"]
-                webhook = Webhook.from_url(webhook_url, adapter=AsyncWebhookAdapter(session))
-                await webhook.send(content=babelslate(txt), username=name, avatar_url=avatar)
+            await ctx.mimic(msg.author, t[0](msg.content))
 
-    @commands.Cog.listener(name='on_ready')
-    async def invalid_fixer(self):
-        for guild_id in towers:
-            guild = self.bot.get_guild(guild_id)
-            if guild!=None:
-                towers[guild_id]['name'] = guild.name
-
-def setup(bot):
+def setup(bot: ClockBot):
     bot.add_cog(Babel(bot))
 
 def teardown(bot):
-    save_change()
+    pass

@@ -1,6 +1,12 @@
 import discord
-from discord.ext import commands
 import asyncio
+import inspect
+import io
+
+from clockbot import ClockBot, MacLak, ExitOpt
+from discord.ext import commands
+from typing import List, Tuple, Union
+
 import os, sys
 import subprocess
 
@@ -17,68 +23,81 @@ def run_cmd(cmd, timeout=None):
         proc.kill()
         return None
 
-# Owner only commands
-class Owner(commands.Cog):
-    def __init__(self, bot):
+EXIT_REPLY: List[Tuple[str, str]] = [
+    ("퇴근", "퇴근이다 퇴근!"),
+    ("칼퇴근", "뭔가 잘못됬는데...?"),
+    ("재시작", "I'll be back :thumbsup:"),
+    ("업데이트", "https://raw.githubusercontent.com/WieeRd/ClockBot/master/assets/memes/update.png"),
+    ("장비를 정지", "장비를 정지합니다"),
+    ("재부팅", "껐다 켜면 정말로 고쳐질까?"),
+    ("에러", "뭔가 큰일이 난것 같은데 잘은 모르겠다..."),
+]
+
+# TODO: bot status / avatar
+
+class Owner(commands.Cog, name="제작자"):
+    def __init__(self, bot: ClockBot):
         self.bot = bot
-        self.flags = bot.get_cog('Flags')
 
-    @commands.Cog.listener(name='on_command_error')
-    async def PermissionDenied(self, ctx, error):
-        if isinstance(error, commands.NotOwner):
-            await ctx.send("당신에겐 그럴 권한이 없습니다 휴먼")
-
-    @commands.command()
+    # TODO: reduce amount of options
+    @commands.command(aliases=[e.name.lower() for e in tuple(ExitOpt)])
     @commands.is_owner()
-    async def ext(self, ctx, cmd, *extensions):
-        for ext in extensions:
-            try:
-                getattr(self.bot, cmd+'_extension')('cogs.'+ext)
-                await ctx.send(f"```Extension '{ext}' has been {cmd}ed```")
-            except AttributeError:
-                await ctx.send(f"```Ext: unknown command '{cmd}'```")
-            except Exception as e:
-                await ctx.send(f"```Failed {cmd}ing {ext}\n{type(e).__name__}: {e}```")
+    async def _terminate_bot(self, ctx: MacLak):
+        assert ctx.invoked_with!=None
+        exitopt = getattr(ExitOpt, ctx.invoked_with.upper())
+        self.bot.exitopt = exitopt
+        reply = EXIT_REPLY[exitopt]
 
-    @commands.command()
+        await self.bot.change_presence(activity=discord.Game(reply[0]))
+        await ctx.send(reply[1])
+
+        await self.bot.close()
+
+    @commands.group()
     @commands.is_owner()
-    async def bot(self, ctx, cmd=None, *, args=""):
-        actions = {
-            'quit'   : ["퇴근", "퇴근이다 퇴근!"],
-            'restart': ["재시작", "I'll be back"],
-            'update' : ["업데이트", "더 많아진 버그와 함께 돌아오겠습니다"],
-        }
-        if cmd in actions:
-            print(f"{cmd} command has been called")
-            self.flags.exit_opt = cmd
-            await self.bot.change_presence(activity=discord.Game(name=actions[cmd][0]))
-            await ctx.send(actions[cmd][1])
-            await self.bot.logout()
-        elif cmd=="status":
-            await self.bot.change_presence(activity=discord.Game(name=args))
+    async def server(self, ctx: MacLak):
+        if ctx.invoked_subcommand==None:
+            await ctx.send_help(self.server)
+
+    @server.command()
+    async def list(self, ctx: MacLak):
+        server_c = len(self.bot.guilds)
+        user_c = len(self.bot.users)
+        info = '\n'.join(f"{s.name} : {s.member_count}" for s in list(self.bot.guilds))
+        content = f"Connected to {server_c} servers and {user_c} users```\n{info}```"
+        await ctx.send(content)
+
+    @server.command()
+    async def network(self, ctx: MacLak):
+        await ctx.send("Coming soon!") # TODO: pyvis network generator
+
+    @commands.command(name="코드", usage="<명령어/카테고리>")
+    async def getsource(self, ctx: MacLak, entity: str):
+        """
+        해당 명령어/카테고리의 소스코드를 출력한다
+        시계봇은 오픈소스 프로젝트라는 사실
+        그러나 아무도 개발을 도와주지 않았다는 사실
+        전체 코드: https://github.com/WieeRd/ClockBot
+        """
+        if cmd := self.bot.get_command(entity):
+            target = cmd.callback
+            code = inspect.getsource(target)
+            # TODO: needs proper indentation remover
+            # code = inspect.cleandoc(code)
+        elif cog := self.bot.get_cog(entity):
+            target = cog.__class__
+            code = inspect.getsource(target)
         else:
-            await ctx.send(f"```Bot: unknown command '{cmd}'```")
+            await ctx.tick(False)
+            return
 
-    @commands.command()
-    @commands.is_owner()
-    async def server(self, ctx, cmd):
-        actions = {
-            'shutdown' : ["장비를 정지", "장비를 정지합니다"],
-            'reboot'   : ["재부팅", "껐다 켜면 진짜 고쳐질까?"]
-        }
-        if cmd in actions:
-            print(f"{cmd} command has been called")
-            self.flags.exit_opt = cmd
-            await self.bot.change_presence(activity=discord.Game(name=actions[cmd][0]))
-            await ctx.send(actions[cmd][1])
-            await self.bot.logout()
-        elif cmd=='list':
-            info = f"Connected to {len(self.bot.guilds)} servers and {len(self.bot.users)} users"
-            servers = '\n'.join([f"{s.name} : {s.member_count}" for s in list(self.bot.guilds)])
-            await ctx.send(info)
-            await ctx.send(f"```{servers}```")
+        if len(code)<2000:
+            await ctx.code(code, lang='python')
         else:
-            await ctx.send(f"```Server: unknown command '{cmd}'```")
+            raw = code.encode(encoding='utf8')
+            fname = target.__name__ + '.py'
+            await ctx.send(file=discord.File(io.BytesIO(raw), filename=fname))
+        return
 
     @commands.Cog.listener(name='on_message')
     async def terminal(self, msg):
@@ -104,7 +123,24 @@ class Owner(commands.Cog):
                 await msg.channel.send(f"```'{cmd}' timed out: {timeout}s```")
                 print(f"{cmd} timed out: {timeout}s")
 
-def setup(bot):
+    @commands.command(name="핑")
+    async def ping(self, ctx):
+        await ctx.send(f"{int(self.bot.latency*1000)}ms")
+
+    # TODO
+    # @commands.command(name="업타임")
+    # async def uptime(self, ctx):
+    #     uptime = time.time() - self.flags.start_time
+    #     dd, rem = divmod(uptime, 24*60*60)
+    #     hh, rem = divmod(rem, 60*60)
+    #     mm, ss = divmod(rem, 60)
+    #     dd, hh, mm, ss = int(dd), int(hh), int(mm), int(ss)
+    #     tm = f"{hh:02d}:{mm:02d}:{ss:02d}"
+    #     if(dd>0): tm = f"{dd}일 " + tm
+    #     await ctx.send(tm)
+
+
+def setup(bot: ClockBot):
     bot.add_cog(Owner(bot))
 
 def teardown(bot):

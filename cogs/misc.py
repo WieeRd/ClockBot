@@ -1,21 +1,24 @@
 import discord
 import asyncio
+from discord.ext import commands
+
 import time
 import random
-from discord.ext import commands
-from lib.KoreanNumber import num2kr, kr2num
+import re
 
-#02 Miscellaneous features
+from clockbot import ClockBot, MacLak
+# from utils.KoreanNumber import num2kr, kr2num
 
-def txt2emoji(txt):
-    num_names = ["zero","one","two","three","four","five","six","seven","eight","nine"]
+NUM_NAMES = ["zero","one","two","three","four","five","six","seven","eight","nine"]
+
+def txt2emoji(txt: str) -> str:
     txt = txt.lower()
     ret = ""
     for c in txt:
-        if c.isalpha():
+        if c.upper() != c.lower(): # isalpha() returns True for Korean str
             ret += f":regional_indicator_{c}:"
         elif c.isdigit():
-            ret += f":{num_names[int(c)]}:"
+            ret += f":{NUM_NAMES[int(c)]}:"
         elif c == ' ':
             ret += " "*13
         elif c == '\n':
@@ -26,9 +29,121 @@ def txt2emoji(txt):
             ret += ":grey_exclamation:"
     return ret
 
-class Misc(commands.Cog):
-    def __init__(self, bot):
+class Misc(commands.Cog, name="기타"):
+    """
+    봇들에게 흔히 있는 기능들
+    """
+
+    def __init__(self, bot: ClockBot):
         self.bot = bot
+        self.help_menu = [
+            self.user_pic,
+            self.server_pic,
+            self.get_emoji,
+            self.coin,
+            self.dice,
+            self.choose,
+            self.yell,
+        ]
+
+    @commands.command(name="프사", usage="닉네임/@멘션")
+    async def user_pic(self, ctx: MacLak, user: discord.User):
+        """
+        해당 유저의 프로필 사진을 띄운다
+        멘션에 발작하는 친구가 있다면 닉네임으로도 가능하다
+        참고로 영어는 대소문자 구별이며,
+        공백이 들어간 이름은 ""로 감싸주자
+        """
+        await ctx.send(user.avatar_url)
+
+    @commands.command(name="서버프사")
+    @commands.guild_only()
+    async def server_pic(self, ctx: MacLak):
+        """
+        현재 서버의 프로필 사진을 띄운다
+        """
+        # TODO: when used in DM
+        await ctx.send(ctx.guild.icon_url)
+
+    @commands.command(name="이모지", aliases=["이모티콘"], usage=":thonk:")
+    async def get_emoji(self, ctx: MacLak, emoji: discord.PartialEmoji):
+        """
+        커스텀 이모티콘의 원본 이미지를 띄운다
+        서버 주인장에 따라 자작 이모티콘을 맘대로
+        가져가는 건 싫어할지도 모르니 주의하자
+        """
+        await ctx.send(emoji.url)
+
+    @commands.command(name="동전")
+    async def coin(self, ctx: MacLak):
+        """
+        50:50:1 (?)
+        옆면 나오면 인증샷 부탁드립니다
+        """
+        result = random.randint(0, 100)
+        if not result: # 0
+            await ctx.send("***옆면***")
+            return
+        if result%2:
+            await ctx.send("앞면")
+        else:
+            await ctx.send("뒷면")
+
+    @commands.command(name="주사위", usage="<N>")
+    async def dice(self, ctx: MacLak, arg: str):
+        """
+        N면체 주사위를 굴린다
+        가끔 3면체는 존재할 수 없다는 사람들이 있는데
+        제발 이런것까지 태클을 거는건 그만두기 바란다
+        """
+        try:
+            rng = int(arg)
+            if rng<2:
+                raise ValueError
+        except ValueError:
+            await ctx.send(f"{arg}면체 주사위 제작에 실패했습니다")
+            return
+        if rng==2:
+            await ctx.send(f"{ctx.prefix}동전")
+            await self.coin()
+        else:
+            roll = random.randint(1, rng)
+            txt = txt2emoji(str(roll))
+            if set(arg)=={'2'}:
+                msg = await ctx.send(txt + '\n' + txt)
+                await msg.add_reaction("2️⃣")
+            else:
+                await ctx.send(txt)
+
+    @commands.command(name="추첨", usage="A B C")
+    async def choose(self, ctx, *, arg: str):
+        """
+        결정장애 해결사
+        하지만 예상컨데 당신은 이 명령어의 결과를 보고도
+        그것을 따를 것인가에 대해 계속해서 고민할 것이다
+        그럴꺼면 애초에 나한테 물어본 이유가 뭔데?
+        """
+        argv = arg.split()
+        argc = len(set(argv))
+
+        if argc<2:
+            await ctx.send("대체 뭘 기대하는 겁니까")
+        else:
+            await ctx.send(f"{random.choice(argv)} 당첨")
+
+    @commands.command(name="빼액", usage="<텍스트>")
+    async def yell(self, ctx: MacLak, *, txt: str):
+        """
+        대충 MUYAHO를 넣어보자
+        지원되는 문자: 영어/숫자/?!
+        봇 계정은 커스텀 이모지 사용이 가능하니
+        한글도 변환 가능하겠지만 대단히 귀찮다
+        """
+        if converted := txt2emoji(txt):
+            await ctx.send(converted)
+        else:
+            await ctx.code("에러: 지원되는 문자: 영어/숫자/?!")
+            # await ctx.send_help(self.yell)
 
     # @commands.command(name="시계", aliases=["닉값"])
     # async def time(self, ctx):
@@ -36,98 +151,36 @@ class Misc(commands.Cog):
     #     now_str = time.strftime('%Y-%m-%d %a, %I:%M:%S %p', now)
     #     await ctx.send(f"현재시각 {now_str}")
 
-    @commands.command(name="여긴어디")
-    async def where(self, ctx):
-        if isinstance(ctx.channel, discord.channel.DMChannel):
-            await ctx.send("후훗... 여긴... 너와 나 단 둘뿐이야")
-            return
-        server = ctx.guild.name
-        channel = ctx.channel.name
-        await ctx.send(f"여긴 [{server}]의 #{channel} 이라는 곳이라네")
+    # @commands.command(name="여긴어디")
+    # async def where(self, ctx):
+    #     if isinstance(ctx.channel, discord.channel.DMChannel):
+    #         await ctx.send("후훗... 여긴... 너와 나 단 둘뿐이야")
+    #         return
+    #     server = ctx.guild.name
+    #     channel = ctx.channel.name
+    #     await ctx.send(f"여긴 [{server}]의 #{channel} 이라는 곳이라네")
 
-    @commands.command(name="동전")
-    async def coin(self, ctx):
-        if(random.randint(0,1)):
-            await ctx.send("앞면")
-        else:
-            await ctx.send("뒷면")
+    # @commands.command(name="한글로")
+    # async def n2kr(self, ctx, val=None, mode='0'):
+    #     try:
+    #         num = int(val)
+    #         mode = int(mode)
+    #     except (ValueError, TypeError):
+    #         await ctx.send("사용법: !한글로 <정수> <모드(0/1)>")
+    #         return
+    #     try:
+    #         kr_str = num2kr.num2kr(num, mode)
+    #     except ValueError:
+    #         await ctx.send("아 몰라 때려쳐") # change to gif
+    #         return
+    #     await ctx.send(kr_str)
 
-    @commands.command(name="주사위")
-    async def dice(self, ctx, *, arg=None):
-        if(arg == None):
-            await ctx.send("사용법: !주사위 <숫자>")
-            return
-        if len(ctx.message.content) == 2000:
-            await ctx.send("디스코드 글자수 제한값이군요. 그렇게 할일이 없습니까 휴먼")
-            return
-        try:
-            val = int(arg)
-            if(val<1): raise ValueError
-        except ValueError:
-            await ctx.send(f"\"{arg}\"면체 주사위를 본 적이 있습니까 휴먼")
-            return
-        if(val == 1):
-            await ctx.send("그게 의미가 있긴 합니까 휴먼")
-        elif(val == 2):
-            await ctx.send("!동전")
-            await self.coin(ctx)
-        else:
-            msg = f">> {random.randint(1,val)}"
-            if set(arg)=={'2'}:
-                msg = msg + '\n' + msg
-            await ctx.send(msg)
-    
-    @commands.command(name="추첨")
-    async def choose(self, ctx, *, argv=""):
-        argv = argv.split() # not using *argv due to unclosed quote bug
-        argc = len(argv)    # Side effect: "a b" is 2 different args now
-        choice_lst = list() # Can be solved with regex but I'm scared of regex
-        choice_set = set()  # I think I'll just leave it this way
-
-        if argc==0:
-            await ctx.send("사용법: !추첨 abc or !추첨 a b c")
-            return
-        elif argc==1:
-            choice_lst = list(argv[0])
-        else:
-            choice_lst = list(argv)
-
-        choice_set = set(choice_lst)
-        if len(choice_set)>1:
-            await ctx.send(f"{random.choice(choice_lst)} 당첨")
-        else:
-            await ctx.send("대체 뭘 기대하는 겁니까 휴먼")
-    
-    @commands.command(name="빼액")
-    async def yell(self, ctx, *, arg=None):
-        if(arg == None):
-            await ctx.send("사용법: !빼액 \"ABC123!?\"")
-        else:
-            await ctx.send(txt2emoji(arg))
-
-    @commands.command(name='한글로')
-    async def n2kr(self, ctx, val=None, mode='0'):
-        try:
-            num = int(val)
-            mode = int(mode)
-        except (ValueError, TypeError):
-            await ctx.send("사용법: !한글로 <정수> <모드(0/1)>")
-            return
-        try:
-            kr_str = num2kr.num2kr(num, mode)
-        except ValueError:
-            await ctx.send("아 몰라 때려쳐") # change to gif
-            return
-        await ctx.send(kr_str)
-
-
-    @commands.command(name='숫자로')
-    async def kr2n(self, ctx, kr_str=None):
-        if(kr_str==None):
-            await ctx.send("사용법: !숫자로 <한글 숫자>")
-            return
-        await ctx.send(f"{kr2num.kr2num(kr_str)}")
-
+    # @commands.command(name="숫자로")
+    # async def kr2n(self, ctx, kr_str=None):
+    #     if(kr_str==None):
+    #         await ctx.send("사용법: !숫자로 <한글 숫자>")
+    #         return
+    #     await ctx.send(f"{kr2num.kr2num(kr_str)}")
 
 def setup(bot):
     bot.add_cog(Misc(bot))

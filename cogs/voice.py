@@ -5,40 +5,52 @@ import os
 from discord.ext import commands
 from discord import Member, VoiceState, FFmpegPCMAudio
 
-# TODO maybe I don't need async version
-# It's already pretty fast
+from clockbot import ClockBot, MacLak
+
 from aiogtts import aiogTTS
 from typing import Dict
 
 TTS = aiogTTS()
 TTS_PREFIX = ';'
 
-class Voice(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+class Voice(commands.Cog, name="TTS"):
+    """
+    마이크가 없다면 봇이 채팅을 읽어드립니다
+    """
+    def __init__(self, bot: ClockBot):
         self.bot = bot
+        self.help_menu = [
+            self.join,
+            self.leave,
+        ]
+
         self.tts_link: Dict[int, int] = dict() # guild.id : channel.id
         self.count = 0
 
-    @commands.group(name="음성")
-    @commands.guild_only()
-    async def voice(self, ctx: commands.Context):
-        if ctx.invoked_subcommand==None:
-            await ctx.send(f"사용법: !음성 [들어와/나가]")
+    # migration
+    @commands.command(name="음성")
+    async def voice(self, ctx: MacLak):
+        await ctx.send_help('TTS')
 
-    @voice.command(name="들어와")
-    async def join(self, ctx: commands.Context):
+    @commands.command(name="들어와")
+    async def join(self, ctx: MacLak):
+        """
+        봇을 음성채널에 초대한다
+        이후 메세지 앞에 ;를 붙혀
+        TTS 메세지를 보낼 수 있다
+        """
         connected = ctx.voice_client
         requested = ctx.author.voice
         if requested==None:
-            await ctx.send(f"에러: 사용자가 음성 채널에 접속해있지 않습니다")
+            await ctx.code(f"에러: 사용자가 음성 채널에 접속해있지 않습니다")
         elif connected!=None: # already connected to somewhere
             if connected.channel==requested.channel:
-                await ctx.send("이미 봇이 음성채널에 접속해있습니다")
+                await ctx.code("에러: 이미 봇이 음성채널에 접속해있습니다")
             else:
                 await ctx.send("다른 채널에서 일하는 중이에요!")
         else:
             if not isinstance(requested.channel, discord.VoiceChannel):
-                await ctx.send("스테이지 채널은 지원하지 않습니다")
+                await ctx.code("에러: 스테이지 채널은 지원하지 않습니다")
                 return
             try:
                 await requested.channel.connect(timeout=3, reconnect=False)
@@ -53,13 +65,18 @@ class Voice(commands.Cog):
                 f"메세지 앞에 `{TTS_PREFIX}`을 붙혀 TTS를 이용하실 수 있습니다"
             )
 
-    @voice.command(name="나가")
-    async def leave(self, ctx: commands.Context):
+    @commands.command(name="나가")
+    async def leave(self, ctx: MacLak):
+        """
+        봇을 음성채널에서 내보낸다
+        아무도 없으면 자동으로 나가지만
+        굳이 그러고 싶다면?
+        """
         connected = ctx.voice_client
         requested = ctx.author.voice
         if (connected==None or requested==None or
             connected.channel!=requested.channel ):
-            await ctx.send("에러: 봇과 같은 음성 채널에 접속해있지 않습니다")
+            await ctx.code("에러: 봇과 같은 음성 채널에 접속해있지 않습니다")
         else:
             await connected.disconnect(force=False)
             await ctx.send("바이바이")

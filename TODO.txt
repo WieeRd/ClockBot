@@ -11,3 +11,5 @@ cogs.babel - NyanChat, BlackCow filter
 chess - pvp / Stockfish
 network visualization
 voice recognition
+
+Add GMacLak to shut up pyright without useless asserts

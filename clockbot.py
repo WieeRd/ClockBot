@@ -2,10 +2,12 @@ import discord
 import asyncio
 import aiohttp
 import time
-import enum
 
 from discord import Webhook
 from discord.ext import commands
+from motor.motor_asyncio import AsyncIOMotorClient
+
+from enum import IntEnum
 from typing import Dict, List, Optional, Union
 
 PERM_KR_NAME: Dict[str, str] = {
@@ -49,7 +51,9 @@ PERM_KR_NAME: Dict[str, str] = {
 
 # TODO: move these to utils/
 def owner_or_permissions(**perms):
-    """bot owner or has_permissions"""
+    """
+    bot owner or has_permissions
+    """
     original = commands.has_permissions(**perms).predicate
     async def extended_check(ctx):
         if ctx.guild is None:
@@ -60,7 +64,7 @@ def owner_or_permissions(**perms):
 def owner_or_admin():
     return owner_or_permissions(administrator=True)
 
-class ExitOpt(enum.IntEnum):
+class ExitOpt(IntEnum):
     ERROR = -1
     QUIT = 0
     UNSET = 1
@@ -128,14 +132,14 @@ class MacLak(commands.Context):
         return await self.wsend(content=content, username=name, avatar_url=avatar, *args, **kwargs)
 
 class ClockBot(commands.Bot):
-    def __init__(self, pool, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, db: AsyncIOMotorClient, **options):
+        super().__init__(**options)
         self.started = None
         self.exitopt = ExitOpt.UNSET
         self.session = aiohttp.ClientSession(loop=self.loop)
 
-        # database connection pool
-        self.pool = pool
+        # mongodb connection
+        self.db = db
         # cached webhook
         self.webhooks: Dict[int, Webhook] = {}
         # special channels (ex: bamboo forest) { channel_id : "reason" }
@@ -144,12 +148,12 @@ class ClockBot(commands.Bot):
         self.dumped: List[MacLak] = []
 
     async def close(self):
-        await super().close()
         await self.session.close()
         for vc in self.voice_clients:
             await vc.disconnect(force=False)
-        if self.pool!=None: # TODO: planning to switching to MongoDB
-            self.pool.terminate(); await self.pool.wait_closed()
+        if self.db!=None:
+            pass # TODO close db
+        await super().close()
 
     async def get_context(self, msg: discord.Message) -> MacLak:
         return await super().get_context(msg, cls=MacLak)
@@ -177,6 +181,7 @@ class ClockBot(commands.Bot):
     async def owner_or_admin(self, user: discord.Member) -> bool:
         return await self.is_owner(user) or user.guild_permissions.administrator
 
+    # TODO: move to Owner or Info Cog
     async def on_ready(self):
         if not self.started: # initial launch
             self.started = time.time()

@@ -4,12 +4,11 @@ import asyncio
 import os.path
 import shutil
 import yaml
-import aiomysql
 
 from discord.ext import commands
 from clockbot import ClockBot, ExitOpt
 from utils.help import TextHelp
-from typing import Dict
+from motor.motor_asyncio import AsyncIOMotorClient
 
 if not os.path.exists("config.yml"):
     print("config.yml is missing; copied default.yml")
@@ -18,22 +17,9 @@ if not os.path.exists("config.yml"):
 
 print("Loading config.yml")
 with open("config.yml", 'r') as f:
-    config: Dict = yaml.load(f, Loader=yaml.FullLoader)
+    config: dict = yaml.load(f, Loader=yaml.FullLoader)
 
 loop = asyncio.get_event_loop()
-
-print("Creating DB connection pool")
-try:
-    minsize = 1
-    maxsize = 10 # should be enough?
-    kwargs = config["database"]
-    pool = loop.run_until_complete(aiomysql.create_pool(minsize, maxsize, **kwargs))
-except Exception as e:
-    print(f"{type(e).__name__}: {e}")
-    print("Warning: Continuing without database")
-    pool = None
-else:
-    print(f"Connected to DB '{config['database']['db']}'")
 
 intents = discord.Intents(
     guilds=True,
@@ -46,7 +32,7 @@ intents = discord.Intents(
 )
 
 help_command = TextHelp(
-    **config['help_options'],
+    **config['help'],
     command_attrs = {
         "name": "도움",
         "aliases": ["help", "설명"],
@@ -61,17 +47,17 @@ help_command = TextHelp(
     }
 )
 
-prefix = config["prefix"]
-activity = discord.Game(config["status"] or "Hello World")
+db = AsyncIOMotorClient(**config['mongodb']),
+prefix = config['prefix']
+activity = discord.Game(config['status'] or "Hello World")
 
 bot = ClockBot(
-    pool = pool,
+    db = db,
     command_prefix = prefix,
-    intents = intents,
-    help_command = help_command, # TODO (seriously)
-    pm_help = False,
-    heartbeat_timeout = 60,
     activity = activity,
+    intents = intents,
+    help_command = help_command,
+    heartbeat_timeout = 60,
 )
 
 @bot.command(name="초대코드")

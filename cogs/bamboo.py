@@ -287,8 +287,6 @@ class Bamboo(commands.Cog, name="대나무숲"):
             self.log[(sent.channel.id, sent.id)] = msg.author.id
 
 def setup(bot: ClockBot):
-    if bot.pool==None: # which exception is appropriate?
-        raise Exception(f"{__name__} requires database")
     bot.add_cog(Bamboo(bot))
 
 def teardown(bot):

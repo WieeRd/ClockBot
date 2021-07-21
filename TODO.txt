@@ -11,3 +11,5 @@ cogs.babel - NyanChat, BlackCow filter
 chess - pvp / Stockfish
 network visualization
 voice recognition
+
+Utils inside GMacLak should be usable without context

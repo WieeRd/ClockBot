@@ -4,7 +4,7 @@ from discord.ext import commands
 
 import utils.MemberFilter as MemberFilter
 
-from clockbot import ClockBot, MacLak
+from clockbot import ClockBot, GMacLak, MacLak
 
 class Mention(commands.Cog, name="고급멘션"):
     """
@@ -21,7 +21,7 @@ class Mention(commands.Cog, name="고급멘션"):
 
     @commands.command(name="멤버", usage="<조건식>")
     @commands.guild_only()
-    async def member(self, ctx: MacLak, *, expression: str):
+    async def member(self, ctx: GMacLak, *, expression: str):
         """
         조건식에 맞는 멤버 목록을 출력한다
         멘션 알림이 가지 않으니 안심하자.
@@ -29,7 +29,6 @@ class Mention(commands.Cog, name="고급멘션"):
         @invalid-user로 표시되는 버그가 있다.
         ***시계봇이 아니라 디스코드 버그다***
         """
-        assert ctx.guild is not None
         try:
             target = MemberFilter.parse(expression, ctx.guild)
         except Exception as e:
@@ -43,7 +42,7 @@ class Mention(commands.Cog, name="고급멘션"):
             await ctx.code("에러: 조건에 일치하는 유저가 없습니다")
 
     @commands.command(name="멘션", usage="<조건식>")
-    async def mention(self, ctx: MacLak, *, expression: str):
+    async def mention(self, ctx: GMacLak, *, expression: str):
         """
         조건식에 맞는 멤버들을 멘션한다
         실수로 몇십명씩 멘션해서 매도당하지 말고
@@ -51,7 +50,6 @@ class Mention(commands.Cog, name="고급멘션"):
         제작자가 아는 누군가는 everyone을 해명하느라
         시계봇에 트라우마가 생겼다 카더라
         """
-        assert ctx.guild is not None
         try:
             target = MemberFilter.parse(expression, ctx.guild)
         except Exception as e:
@@ -65,14 +63,13 @@ class Mention(commands.Cog, name="고급멘션"):
             await ctx.code("에러: 조건에 일치하는 유저가 없습니다")
 
     @commands.command(name="DM", usage="<조건식>")
-    async def DMention(self, ctx: MacLak, *, expression: str):
+    async def DMention(self, ctx: GMacLak, *, expression: str):
         """
         조건식에 맞는 멤버들에게 DM으로 알림을 보낸다
         현재 채널과 메세지로 바로가기 링크를 보내주며,
         멘션할 유저들이 많아서 '멘션' 명령어로는
         의도치 않은 도배가 될 가능성이 있을 때 유용하다.
         """
-        assert ctx.guild is not None
         try:
             target = MemberFilter.parse(expression, ctx.guild)
         except Exception as e:

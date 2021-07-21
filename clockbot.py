@@ -97,6 +97,19 @@ class MacLak(commands.Context):
         except discord.HTTPException:
             pass
 
+class GMacLak(MacLak):
+    """
+    MacLak but with guild-only features
+    and fixed type hints for attributes
+    """
+
+    guild: discord.Guild
+    channel: discord.TextChannel
+    author: discord.Member
+    me: discord.Member
+
+    # TODO: these utils should be usable without context
+
     async def wsend(self, content: str = None, *, err_msg: bool = True, **kwargs) -> Optional[discord.WebhookMessage]:
         """
         Send webhook message to the channel
@@ -107,8 +120,6 @@ class MacLak(commands.Context):
         raises discord.Forbidden by default.
         If err_msg != None, sends err_msg instead
         """
-        assert isinstance(self.channel, discord.TextChannel)
-
         try:
             hook = await self.bot.get_webhook(self.channel)
             msg = await hook.send(content, **kwargs)
@@ -155,8 +166,20 @@ class ClockBot(commands.Bot):
             pass # TODO close db
         await super().close()
 
-    async def get_context(self, msg: discord.Message) -> MacLak:
-        return await super().get_context(msg, cls=MacLak)
+    # # TODO: somehow pyright is certain that return type will be MacLak
+    # async def get_context(self, msg, cls = None):
+    #     if not cls:
+    #         cls = GMacLak if msg.guild else MacLak
+    #     return super().get_context(msg, cls=cls)
+
+    # overriding process_commands instead
+    async def process_commands(self, msg: discord.Message):
+        if msg.author.bot:
+            return
+
+        cls = GMacLak if msg.guild else MacLak
+        ctx = await self.get_context(msg, cls=cls)
+        await self.invoke(ctx)
 
     async def get_webhook(self, channel: discord.TextChannel) -> discord.Webhook:
         """

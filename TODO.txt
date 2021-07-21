@@ -12,4 +12,4 @@ chess - pvp / Stockfish
 network visualization
 voice recognition
 
-Add GMacLak to shut up pyright without useless asserts
+Utils inside GMacLak should be usable without context

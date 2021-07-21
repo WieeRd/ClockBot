@@ -5,13 +5,17 @@ import os
 from discord.ext import commands
 from discord import Member, VoiceState, FFmpegPCMAudio
 
-from clockbot import ClockBot, MacLak
+from clockbot import ClockBot, GMacLak, MacLak
 
 from aiogtts import aiogTTS
 from typing import Dict
 
 TTS = aiogTTS()
 TTS_PREFIX = ';'
+
+# TODO: can't read multiple chats at once
+# TODO: use other TTS engine
+# TODO: choose voice option
 
 class Voice(commands.Cog, name="TTS"):
     """
@@ -33,7 +37,8 @@ class Voice(commands.Cog, name="TTS"):
         await ctx.send_help('TTS')
 
     @commands.command(name="들어와")
-    async def join(self, ctx: MacLak):
+    @commands.guild_only()
+    async def join(self, ctx: GMacLak):
         """
         봇을 음성채널에 초대한다
         이후 메세지 앞에 ;를 붙혀
@@ -66,7 +71,8 @@ class Voice(commands.Cog, name="TTS"):
             )
 
     @commands.command(name="나가")
-    async def leave(self, ctx: MacLak):
+    @commands.guild_only()
+    async def leave(self, ctx: GMacLak):
         """
         봇을 음성채널에서 내보낸다
         아무도 없으면 자동으로 나가지만
@@ -110,6 +116,7 @@ class Voice(commands.Cog, name="TTS"):
              self.tts_link.get(msg.guild.id)==msg.channel.id ):
 
             try:
+                # TODO: these tmp files doesn't get deleted sometimes
                 filename = f"tts{self.count}.tmp"
                 self.count = (self.count+1)%4096
                 await TTS.save(msg.content[1:], filename, lang='ko')
@@ -122,7 +129,7 @@ class Voice(commands.Cog, name="TTS"):
             audio = FFmpegPCMAudio(filename, options="-loglevel panic")
             vc.play(audio, after=lambda e: os.remove(filename))
 
-def setup(bot: commands.Bot):
+def setup(bot: ClockBot):
     voice = Voice(bot)
     bot.add_cog(voice)
 

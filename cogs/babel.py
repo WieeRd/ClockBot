@@ -7,7 +7,7 @@ from discord.ext import commands
 from jamo import h2j, j2h, j2hcj
 from typing import Callable, Dict, Optional, Tuple
 
-from clockbot import ClockBot, MacLak
+from clockbot import ClockBot, GMacLak, MacLak
 
 # TODO: google_trans_new is broken, find alternative
 
@@ -166,7 +166,7 @@ class Babel(commands.Cog, name="바벨탑"):
 
     @commands.command(name="사칭", usage="닉네임/@멘션 <선동&날조>")
     @commands.bot_has_permissions(manage_webhooks=True, manage_messages=True)
-    async def impersonate(self, ctx: MacLak, user: discord.Member, *, txt):
+    async def impersonate(self, ctx: GMacLak, user: discord.Member, *, txt):
         """
         다른 사람이 보낸 듯한 가짜 메세지를 보낸다
         옆에 '봇' 표시를 제외하면 닉네임/프사가 같아 꽤나 혼란스럽다.
@@ -186,7 +186,7 @@ class Babel(commands.Cog, name="바벨탑"):
 
     @commands.command(name="_필터", aliases=list(SPECIAL_LANGS), usage="닉네임/@멘션")
     @commands.guild_only()
-    async def _filter(self, ctx: MacLak, target: discord.Member):
+    async def _filter(self, ctx: GMacLak, target: discord.Member):
         """
         해당 유저의 채팅에 필터(번역기, 말투변환기)를 적용한다
         관리자가 적용한 필터는 관리자만 해제할 수 있으며,
@@ -194,7 +194,6 @@ class Babel(commands.Cog, name="바벨탑"):
         아까부터 개소리(비유적)를 해대는 친구에게 개소리 필터를 걸어
         개소리(말 그대로)를 울부짖는 모습을 구경해보자.
         """
-        assert isinstance(ctx.author, discord.Member)
         assert isinstance(ctx.invoked_with, str)
         by_admin = await self.bot.owner_or_admin(ctx.author)
 
@@ -222,11 +221,10 @@ class Babel(commands.Cog, name="바벨탑"):
 
     @commands.command(name="필터해제", usage="닉네임/@멘션")
     @commands.guild_only()
-    async def disable_filter(self, ctx: MacLak, target: discord.Member):
+    async def disable_filter(self, ctx: GMacLak, target: discord.Member):
         """
         해당 유저에게 적용된 필터를 제거한다
         """
-        assert isinstance(ctx.author, discord.Member)
         by_admin = await self.bot.owner_or_admin(ctx.author)
 
         query = (target.guild.id, target.id)
@@ -253,7 +251,7 @@ class Babel(commands.Cog, name="바벨탑"):
         #     await msg.reply(t(msg.content), mention_author=False)
 
         if t := self.filters.get((msg.guild.id, msg.author.id)):
-            ctx = await self.bot.get_context(msg)
+            ctx = await self.bot.get_context(msg, cls=GMacLak)
             await msg.delete()
             await ctx.mimic(msg.author, t[0](msg.content))
 

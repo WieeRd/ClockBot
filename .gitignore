@@ -3,3 +3,4 @@ token.txt
 settings/
 config.yml
 *.tmp
+test.*

@@ -13,7 +13,7 @@ extensions:
 help: # kwargs for utils.help.TextHelp
     prefix: ''
     suffix: "봇 초대코드: http://add.clockbot.kro.kr"
-    cogs:
+    cogs: # cogs to be shown in bot help menu
         - "대나무숲"
         - "바벨탑"
         - "고급멘션"
@@ -24,4 +24,4 @@ mongodb: # kwargs for AsyncIOMotorClient
     port:
     username:
     password:
-    serverSelectionTimeoutMS: 10
+database: "clockbot" # mongodb database name

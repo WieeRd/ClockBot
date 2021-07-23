@@ -11,7 +11,7 @@ from utils.help import TextHelp
 from motor.motor_asyncio import AsyncIOMotorClient
 
 if not os.path.exists("config.yml"):
-    print("config.yml is missing; copied default.yml")
+    print("Error: config.yml is missing, copying default.yml")
     shutil.copy("default.yml", "config.yml")
     exit(ExitOpt.ERROR)
 
@@ -19,20 +19,20 @@ print("Loading config.yml")
 with open("config.yml", 'r') as f:
     config: dict = yaml.load(f, Loader=yaml.FullLoader)
 
-loop = asyncio.get_event_loop()
-
-intents = discord.Intents(
-    guilds=True,
-    members=True,
-    bans=True,
-    emojis=True,
-    voice_states=True,
-    messages=True,
-    reactions=True,
-)
+try:
+    TOKEN = config['token']
+    PREFIX = config['prefix']
+    STATUS = config['status']
+    INIT_EXTS = config['extensions']
+    HELP_OPT = config['help']
+    DB_INFO = config['mongodb']
+    DB_NAME = config['database']
+except KeyError as e:
+    print(f"Error: config option '{e}' is missing")
+    exit(ExitOpt.ERROR)
 
 help_command = TextHelp(
-    **config['help'],
+    **HELP_OPT,
     command_attrs = {
         "name": "도움",
         "aliases": ["help", "설명"],
@@ -47,15 +47,27 @@ help_command = TextHelp(
     }
 )
 
-db = AsyncIOMotorClient(**config['mongodb']),
-prefix = config['prefix']
-activity = discord.Game(config['status'] or "Hello World")
+"""
+A single comma at the end of the line nearly killed my sanity,
+by assigning a tuple instead of AsyncIOMotorClient to 'client'.
+One of the most confusing bug I have ever encountered,
+may this never happen again.
+
+ - WieeRd dev note, 2021-07-23
+"""
+
+# TODO: check if server is available with server_info
+client = AsyncIOMotorClient(serverSelectionTimeoutMS=10, **DB_INFO) # ','
+db = client[DB_NAME]
+
+intents = discord.Intents.all()
+activity = discord.Game(STATUS or "Hello World")
 
 bot = ClockBot(
     db = db,
-    command_prefix = prefix,
-    activity = activity,
+    command_prefix = PREFIX,
     intents = intents,
+    activity = activity,
     help_command = help_command,
     heartbeat_timeout = 60,
 )
@@ -69,9 +81,8 @@ async def invitecode(ctx: commands.Context):
     await ctx.send(f"다른 서버에 봇 추가하기:\n{link}")
 
 print("Loading initial extensions")
-init_exts = config['extensions']
 success = 0
-for i, ext in enumerate(init_exts):
+for i, ext in enumerate(INIT_EXTS):
     try:
         print(f"[{i}] Loading '{ext}' ", end='', flush=True)
         bot.load_extension(ext)
@@ -81,10 +92,10 @@ for i, ext in enumerate(init_exts):
     else:
         print("[success]")
         success += 1
-print(f"Loaded [{success}/{len(init_exts)}] extensions")
+print(f"Loaded [{success}/{len(INIT_EXTS)}] extensions")
 
 print("Launching client")
-bot.run(config['token'], reconnect=True)
+bot.run(TOKEN, reconnect=True)
 print("Client terminated")
 
 print(f"Exitcode: {bot.exitopt.name}({bot.exitopt.value})")

@@ -5,7 +5,7 @@ import time
 
 from discord import Webhook
 from discord.ext import commands
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from enum import IntEnum
 from typing import Dict, List, Optional, Union
@@ -143,7 +143,7 @@ class GMacLak(MacLak):
         return await self.wsend(content=content, username=name, avatar_url=avatar, *args, **kwargs)
 
 class ClockBot(commands.Bot):
-    def __init__(self, db: AsyncIOMotorClient, **options):
+    def __init__(self, db: AsyncIOMotorDatabase, **options):
         super().__init__(**options)
         self.started = None
         self.exitopt = ExitOpt.UNSET

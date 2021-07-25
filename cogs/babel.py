@@ -1,53 +1,20 @@
 import discord
 import asyncio
 import random
+import emojis
 import re
 
 from discord.ext import commands
 from jamo import h2j, j2h, j2hcj
 from typing import Callable, Dict, Optional, Tuple
 
-from clockbot import ClockBot, GMacLak, MacLak
+from clockbot import ClockBot, GMacLak
 
 # TODO: google_trans_new is broken, find alternative
 
-# from google_trans_new import google_translator
-# from google_trans_new.constant import LANGUAGES
-
-# LANG_LIST = list(LANGUAGES)
-# LANG_DICT = dict((value, key) for key, value in LANGUAGES.items())
-
-# translator = google_translator()
-
-# def translate(txt: str, lang: str = 'auto') -> str:
-#     ret = translator.translate(txt, lang)
-#     if isinstance(ret, str):
-#         return ret.strip()
-#     if isinstance(ret, list):
-#         return ret[0].strip()
-#     else: # when does this even happen?
-#         return '?'
-
-# def randslate(txt, lang_lst=LANG_LIST) -> str:
-#     """translate to random language"""
-#     lang = random.choice(lang_lst)
-#     return translate(txt, lang)
-
-# def waldoslate(txt: str, craziness=1) -> str:
-#     """
-#     traslate to random language multiple times
-#     and translate back to original language
-#     the result probably doesn't make any sense
-#     """
-#     detect = translator.detect(txt)
-#     if isinstance(detect, list):
-#         origin = detect[0]
-#     else:
-#         origin = 'ko'
-#     for _ in range(craziness):
-#         txt = randslate(txt)
-#     txt = translate(txt, origin)
-#     return txt
+MENTION = r"(<[\w@!&#:]+\d+>)"
+EMOJI = r"(:\w+:)"
+strObject = re.compile(f"(({MENTION}|{EMOJI})\s*)+$")
 
 def doggoslate(txt: str) -> str:
     """
@@ -83,7 +50,6 @@ def kittyslate(txt: str) -> str:
     return ''.join(ret)
 
 FULL_HANGUL = re.compile(r"[가-힣]")
-
 def mumslate(txt: str) -> str:
     """멈뭄미의 저주"""
     ret = []
@@ -99,7 +65,7 @@ def mumslate(txt: str) -> str:
     return ''.join(ret)
 
 Translator = Callable[[str], str]
-SPECIAL_LANGS = {
+SPECIAL_LANGS: Dict[str, Translator] = {
     # '랜덤': randslate,
     '개소리': doggoslate,
     '냥소리': kittyslate,
@@ -134,36 +100,6 @@ class Babel(commands.Cog, name="바벨탑"):
         # self.trans_reply: Dict[Tuple[int, int], Translator] = {}
         self.filters: Dict[Tuple[int, int], Tuple[Translator, bool]] = {}
 
-    # # TODO: translate message using reply
-    # @commands.command(name="번역", usage="<언어> <번역할 내용>")
-    # async def translate_chat(self, ctx: MacLak, lang: str, *, txt: str):
-    #     if t := resolve_translator(lang):
-    #         await ctx.message.reply(t(txt), mention_author=False)
-    #     else:
-    #         await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
-
-    # @commands.command(name="통역", usage="@유저 <언어>")
-    # @commands.guild_only()
-    # async def translate_user(self, ctx: MacLak, target: discord.Member, lang: str):
-    #     if lang=="해제":
-    #         query = (target.guild.id, target.id)
-    #         if query in self.trans_reply:
-    #             del self.trans_reply[query]
-    #             await ctx.tick(True)
-    #         else:
-    #             await ctx.tick(False)
-    #         return
-
-    #     if t := resolve_translator(lang):
-    #         await ctx.send(
-    #             f"{target.display_name}님의 채팅을 {lang}로 통역합니다\n"
-    #             f"`{ctx.prefix}통역 @유저 해제`으로 해제할 수 있습니다"
-    #         )
-    #         await asyncio.sleep(1) # prevents translating command itself
-    #         self.trans_reply[(target.guild.id, target.id)] = t
-    #     else:
-    #         await ctx.code(f"에러: 언어 '{lang}'를 찾을 수 없습니다")
-
     @commands.command(name="사칭", usage="닉네임/@멘션 <선동&날조>")
     @commands.bot_has_permissions(manage_webhooks=True, manage_messages=True)
     async def impersonate(self, ctx: GMacLak, user: discord.Member, *, txt):
@@ -182,6 +118,7 @@ class Babel(commands.Cog, name="바벨탑"):
         except asyncio.TimeoutError:
             pass
         else:
+            assert mimic_msg is not None
             await mimic_msg.delete()
 
     @commands.command(name="_필터", aliases=list(SPECIAL_LANGS), usage="닉네임/@멘션")
@@ -253,7 +190,10 @@ class Babel(commands.Cog, name="바벨탑"):
         if t := self.filters.get((msg.guild.id, msg.author.id)):
             ctx = await self.bot.get_context(msg, cls=GMacLak)
             await msg.delete()
-            await ctx.mimic(msg.author, t[0](msg.content))
+            content = emojis.decode(msg.content)
+            if not strObject.match(content):
+                content = t[0](content)
+            await ctx.mimic(msg.author, content)
 
 def setup(bot: ClockBot):
     bot.add_cog(Babel(bot))

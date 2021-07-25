@@ -88,6 +88,7 @@ class TextHelp(commands.HelpCommand):
             **options
         ):
         super().__init__(**options)
+        self.name = options['command_attrs']['name']
         self.page = TextPage()
         self.prefix = prefix
         self.suffix = suffix
@@ -134,10 +135,15 @@ class TextHelp(commands.HelpCommand):
         more_info = lines[1:]
 
         if cmd.name.startswith('_'):
-            self.page.line(f"사용법: {p}<{cmd.name[1:]}> {usage}")
-            self.page.line(f"{cmd.name[1:]}: [{', '.join(cmd.aliases)}]")
+            if cmd.parent:
+                parent = cmd.parent.name
+                subcmds = '/'.join(cmd.aliases)
+                self.page.line(f"사용법: {p}{parent} [{subcmds}] {usage}")
+            else:
+                self.page.line(f"사용법: {p}<{cmd.name[1:]}> {usage}")
+                self.page.line(f"{cmd.name[1:]}: [{', '.join(cmd.aliases)}]")
         else:
-            self.page.line(f"사용법: {p}{cmd.name} {usage}")
+            self.page.line(f"사용법: {p}{cmd.qualified_name} {usage}")
 
         self.page.line(' -> ' + short_doc)
         with self.page.indented(4):
@@ -168,7 +174,7 @@ class TextHelp(commands.HelpCommand):
                 self._add_cmd_info(cmd)
 
         with self.page.codeblock():
-            helpcmd = self.clean_prefix + self.context.command.name
+            helpcmd = self.clean_prefix + self.name
             self.page.line(f"자세한 정보: {helpcmd} {grp.name} <명령어>")
 
         await self.send_page()
@@ -182,7 +188,7 @@ class TextHelp(commands.HelpCommand):
                 self._add_cmd_info(cmd)
 
         with self.page.codeblock():
-            helpcmd = self.clean_prefix + self.context.command.name
+            helpcmd = self.clean_prefix + self.name
             self.page.line(f"자세한 정보: {helpcmd} <명령어>")
 
         await self.send_page()
@@ -199,6 +205,8 @@ class TextHelp(commands.HelpCommand):
 
         self.page.line(self.prefix)
         for cog in cog_lst:
+            if not cog:
+                continue
             name = cog.qualified_name
             with self.page.codeblock():
                 cmd_lst = []
@@ -211,7 +219,7 @@ class TextHelp(commands.HelpCommand):
                 self.page.line(' > ' + ' '.join(p+c for c in cmd_lst))
 
         with self.page.codeblock():
-            helpcmd = self.clean_prefix + self.context.command.name
+            helpcmd = self.clean_prefix + self.name
             self.page.line(f"자세한 정보: {helpcmd} <카테고리/명령어>")
             self.page.line(self.suffix)
 
@@ -219,7 +227,7 @@ class TextHelp(commands.HelpCommand):
 
     async def command_not_found(self, cmd: str):
         p = self.clean_prefix
-        _help = self.context.command.name
+        _help = self.name
         where = self.get_destination()
         return (
             "```\n"
@@ -230,7 +238,7 @@ class TextHelp(commands.HelpCommand):
 
     async def subcommand_not_found(self, cmd: commands.Command, sub: str):
         p = self.clean_prefix
-        _help = self.context.command.name
+        _help = self.name
         where = self.get_destination()
         return (
             "```\n"

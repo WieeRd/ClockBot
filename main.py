@@ -53,12 +53,12 @@ by assigning a tuple instead of AsyncIOMotorClient to 'client'.
 One of the most confusing bug I have ever encountered,
 may this never happen again.
 
- - WieeRd dev note, 2021-07-23
+ - WieeRd's dev note, 2021-07-23
 """
 
 # TODO: check if server is available with server_info
 client = AsyncIOMotorClient(serverSelectionTimeoutMS=10, **DB_INFO) # ','
-db = client[DB_NAME]
+db = client.get_database(name=DB_NAME)
 
 intents = discord.Intents.all()
 activity = discord.Game(STATUS or "Hello World")

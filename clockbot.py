@@ -142,6 +142,16 @@ class GMacLak(MacLak):
         avatar = target.avatar_url
         return await self.wsend(content=content, username=name, avatar_url=avatar, *args, **kwargs)
 
+class DMacLak(MacLak):
+    """
+    MacLak but with type hints for DM
+    """ 
+
+    guild: None
+    channel: discord.DMChannel
+    author: discord.User
+    me: discord.ClientUser
+
 class ClockBot(commands.Bot):
     def __init__(self, db: AsyncIOMotorDatabase, **options):
         super().__init__(**options)
@@ -162,11 +172,11 @@ class ClockBot(commands.Bot):
         await self.session.close()
         for vc in self.voice_clients:
             await vc.disconnect(force=False)
-        if self.db!=None:
-            pass # TODO close db
+        if self.db != None:
+            self.db.client.close()
         await super().close()
 
-    # # TODO: somehow pyright is certain that return type will be MacLak
+    # # somehow pyright is certain that return type will be MacLak
     # async def get_context(self, msg, cls = None):
     #     if not cls:
     #         cls = GMacLak if msg.guild else MacLak

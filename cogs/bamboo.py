@@ -25,7 +25,7 @@ def is_media(msg: discord.Message) -> bool:
 class Forest:
     channel: discord.TextChannel
     links: List[discord.User]
-    banned: Set[discord.abc.User]
+    banned: Set[discord.Member]
     prefix: str
     allow_media: bool
     __slots__ = __annotations__.keys()
@@ -55,7 +55,7 @@ class DMlink:
 
 class Bamboo(commands.Cog, name="대나무숲"):
     """
-    익명 채팅 채널 '대나무숲'
+    익명 채팅 채널 '대나무숲' 생성 & 관리
     """
 
     def __init__(self, bot: ClockBot):
@@ -63,12 +63,11 @@ class Bamboo(commands.Cog, name="대나무숲"):
         self.db = bot.db
         self.forests: Dict[discord.Guild, Forest]
         self.dm_links: Dict[discord.User, DMlink]
-        self.help_menu = [
+        self.help_menu: List[commands.Command] = [
             self._forest,
-            self.link,
-            self.unlink,
-            self.ban,
-            self.unban,
+            self._ban,
+            self.add_link,
+            # self.remove_link,
             self.inspect,
         ]
 
@@ -136,14 +135,14 @@ class Bamboo(commands.Cog, name="대나무숲"):
             if pin.author==self.bot.user:
                 await pin.unpin()
 
-    @bamboo.command(name="연결", usage="<서버이름>")
+    @bamboo.command(name="연결", usage="<연결할 서버>")
     @commands.dm_only()
-    async def link(self, ctx: DMacLak, *, server: str = ''):
+    async def add_link(self, ctx: DMacLak, *, server: str = ''):
         """
-        DM 채널을 연결해 완전한 익명 메세지를 보낸다
-        연결하면 봇에게 보낸 메세지는 서버 대나무숲 채널로,
-        대나무숲 채널에서 보낸 메세지는 DM으로 전송되어
-        관리자 전용 '대숲 열람' 명령어를 제외하면 추적이 불가능하다.
+        봇의 DM채널을 통해 익명 메세지를 보낸다
+        연결하면 DM과 서버 대나무숲의 채팅이 동기화되며,
+        모바일 알림으로 작성자를 알 수 있는 약점이 없어진다.
+        해제 명령어는 '대숲 연결해제'
         """
         if link := self.dm_links.get(ctx.author):
             await ctx.send(
@@ -208,9 +207,9 @@ class Bamboo(commands.Cog, name="대나무숲"):
 
     @bamboo.command(name="연결해제")
     @commands.dm_only()
-    async def unlink(self, ctx: DMacLak):
+    async def remove_link(self, ctx: DMacLak):
         """
-        대나무숲 연결을 해제한다
+        대나무숲과의 연결을 해제한다
         """
         if not self.dm_links.get(ctx.author):
             await ctx.send("활성화된 대나무숲 연결이 없습니다")
@@ -222,15 +221,21 @@ class Bamboo(commands.Cog, name="대나무숲"):
 
         await ctx.send("대나무숲 연결이 종료되었습니다")
 
-    @bamboo.command(name="밴", usage="@유저")
+    @bamboo.command(aliases=["밴", "사면"], usage="@유저")
     @owner_or_admin()
-    async def ban(self, ctx: GMacLak, user: discord.User):
+    async def _ban(self, ctx: GMacLak, user: discord.Member):
         """
         자꾸 선을 넘는 반동분자의 익명성을 박탈한다
         적용된 유저의 메세지는 익명 처리되지 않는다.
         혼자 익명이 아닌 것에 좋아하는 이상한 사람이라면
         추가적으로 '개소리' 명령어 사용을 고려해보자.
         """
+        if ctx.invoked_with=="밴":
+            await self.ban(ctx, user)
+        elif ctx.invoked_with=="사면":
+            await self.unban(ctx, user)
+
+    async def ban(self, ctx: GMacLak, user: discord.Member):
         forest = self.forests.get(ctx.guild)
         if not forest:
             await ctx.send("서버에 대나무숲이 존재하지 않습니다")
@@ -244,12 +249,10 @@ class Bamboo(commands.Cog, name="대나무숲"):
         # DB
         await ctx.send(
             f"{user.mention}를 대나무숲에서 차단했습니다\n"
-            "차단 해제는 `대숲 사면` 명령어로 가능합니다"
+            "차단 해제 명령어: `대숲 사면`"
         )
 
-    @bamboo.command(name="사면", usage="@유저")
-    @owner_or_admin()
-    async def unban(self, ctx: GMacLak, user: discord.User):
+    async def unban(self, ctx: GMacLak, user: discord.Member):
         if forest := self.forests.get(ctx.guild):
             if user in forest.banned:
                 forest.banned.remove(user)
@@ -259,9 +262,15 @@ class Bamboo(commands.Cog, name="대나무숲"):
         else:
             await ctx.send("서버에 대나무숲이 존재하지 않습니다")
 
-    @bamboo.command(name="열람")
+    @bamboo.command(name="열람", usage="(익명 메세지에 답장하며)")
     @owner_or_admin()
     async def inspect(self, ctx: MacLak):
+        """
+        익명 메세지의 작성자를 확인한다
+        당연히 관리자 전용이며,
+        공개적으로 열람 사실이 드러난다.
+        꼭 필요할 때만 사용하자!
+        """
         target = ctx.message.reference
         if target==None:
             await ctx.send("열람하고자 하는 메세지에 답장하며 사용하세요")
@@ -270,19 +279,19 @@ class Bamboo(commands.Cog, name="대나무숲"):
         original = target.resolved
         assert isinstance(original, discord.Message)
 
-        author_id = self.log.get((original.channel.id, original.id))
+        # author_id = self.log.get((original.channel.id, original.id))
 
-        if author_id==None:
-            await ctx.send("로그가 삭제되었거나 익명 메세지가 아닙니다")
-            return
+        # if author_id==None:
+        #     await ctx.send("로그가 삭제되었거나 익명 메세지가 아닙니다")
+        #     return
 
-        datestr = original.created_at.strftime("%Y/%m/%d %I:%M %p")
-        await ctx.send( # TODO: should this be forest.send()?
-             "**[대나무숲 로그 열람]**\n"
-            f"관리자 {ctx.author.mention}님이 익명 메세지를 열람했습니다.\n"
-            f"메세지 작성자: <@!{author_id}>, {datestr}\n",
-            reference=original
-        )
+        # datestr = original.created_at.strftime("%Y/%m/%d %I:%M %p")
+        # await ctx.send( # TODO: should this be forest.send()?
+        #      "**[대나무숲 로그 열람]**\n"
+        #     f"관리자 {ctx.author.mention}님이 익명 메세지를 열람했습니다.\n"
+        #     f"메세지 작성자: <@!{author_id}>, {datestr}\n",
+        #     reference=original
+        # )
 
     # @commands.Cog.listener()
     # async def on_message(self, msg: discord.Message):

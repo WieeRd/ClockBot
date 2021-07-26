@@ -35,7 +35,7 @@ help_command = TextHelp(
     **HELP_OPT,
     command_attrs = {
         "name": "도움",
-        "aliases": ["help", "설명"],
+        "aliases": ["help", "?"],
         "usage": "<카테고리/명령어>",
         "help": '\n'.join([
             "해당 항목의 도움말을 띄운다",

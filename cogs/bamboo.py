@@ -61,8 +61,8 @@ class Bamboo(commands.Cog, name="대나무숲"):
     def __init__(self, bot: ClockBot):
         self.bot = bot
         self.db = bot.db
-        self.forests: Dict[discord.Guild, Forest]
-        self.dm_links: Dict[discord.User, DMlink]
+        self.forests: Dict[discord.Guild, Forest] = {}
+        self.dm_links: Dict[discord.User, DMlink] = {}
         self.help_menu: List[commands.Command] = [
             self._forest,
             self._ban,
@@ -71,13 +71,17 @@ class Bamboo(commands.Cog, name="대나무숲"):
             self.inspect,
         ]
 
+    @commands.command(name="대나무숲")
+    async def migration(self, ctx: MacLak):
+        await ctx.send_help(self)
+
     @commands.group(name="대숲")
     async def bamboo(self, ctx: MacLak):
         """
         익명 채팅 채널 '대나무숲' 생성 & 관리
         """
         if not ctx.invoked_subcommand:
-            await ctx.send_help("대나무숲")
+            await ctx.send_help(self)
 
     @bamboo.command(aliases=["설치", "제거"])
     @owner_or_admin()
@@ -106,6 +110,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
             return
 
         await ctx.channel.edit(name="대나무숲", topic="대체 누가 한 말이야?")
+        # TODO: replace this with text in BetaBot DM
         msg = await ctx.send(
             "채널이 익명 채널 '대나무숲'으로 설정됬습니다\n"
             "모바일 알림 등으로 인해 작성자가 드러날 수 있습니다\n"
@@ -273,11 +278,8 @@ class Bamboo(commands.Cog, name="대나무숲"):
         """
         target = ctx.message.reference
         if target==None:
-            await ctx.send("열람하고자 하는 메세지에 답장하며 사용하세요")
+            await ctx.send_help(self.inspect)
             return
-
-        original = target.resolved
-        assert isinstance(original, discord.Message)
 
         # author_id = self.log.get((original.channel.id, original.id))
 
@@ -293,38 +295,40 @@ class Bamboo(commands.Cog, name="대나무숲"):
         #     reference=original
         # )
 
-    # @commands.Cog.listener()
-    # async def on_message(self, msg: discord.Message):
-    #     send = False
-    #     forest = None
+    @commands.Cog.listener()
+    async def on_message(self, msg: discord.Message):
+        if msg.author.bot:
+            return
 
-    #     if isinstance(msg.channel, discord.TextChannel):
-    #         forest = self.forests.get(msg.channel.guild)
-    #         if forest and forest.channel==msg.channel and not msg.author.bot:
-    #             try:
-    #                 await msg.delete()
-    #             except discord.Forbidden:
-    #                 await msg.channel.send("에러: 봇에게 메세지 관리 권한이 필요합니다")
-    #                 return
+        channel = msg.channel
+        sent = None
 
-    #             if reason := forest.banned.get(msg.author.id):
-    #                 await msg.author.send(f"대나무숲에서 차단되셨습니다\n이유: {reason}")
-    #                 return
+        if isinstance(channel, discord.TextChannel):
+            forest = self.forests.get(channel.guild)
+            if forest and forest.channel==channel:
 
-    #             send = True
+                if msg.author in forest.banned:
+                    await msg.author.send(
+                        "**대나무숲에서 차단되셨습니다!**\n"
+                        "서버 관리자에게 문의하세요"
+                    )
+                    return
 
-    #     elif isinstance(msg.channel, discord.DMChannel):
-    #         if msg.author.bot:
-    #             return
-    #         if link := self.dm_links.get(msg.channel.recipient):
-    #             link.recent = time.time()
-    #             forest = link.forest
+                try:
+                    await msg.delete()
+                except discord.Forbidden:
+                    await msg.channel.send("```에러: 봇에게 메세지 관리 권한이 필요합니다```")
+                    return
 
-    #             send = True
+                sent = await forest.send(msg)
 
-    #     if send:
-    #         sent = await forest.deliever(msg)
-    #         self.log[(sent.channel.id, sent.id)] = msg.author.id
+        elif isinstance(channel, discord.DMChannel):
+            if link := self.dm_links.get(channel.recipient):
+                link.recent = time.time()
+                sent = await link.forest.send(msg)
+
+        if sent:
+            pass # DB
 
 def setup(bot: ClockBot):
     bot.add_cog(Bamboo(bot))

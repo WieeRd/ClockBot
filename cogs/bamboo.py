@@ -2,12 +2,13 @@ import discord
 import asyncio
 import time
 import re
+import io
 
 from discord.ext import commands, tasks
 from clockbot import ClockBot, DMacLak, GMacLak, MacLak, owner_or_admin
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, TypedDict
 
 CONTAIN_URL = re.compile(r"http[s]?://")
 def is_media(msg: discord.Message) -> bool:
@@ -21,14 +22,22 @@ def is_media(msg: discord.Message) -> bool:
         return True
     return False
 
-@dataclass
-class Forest:
-    channel: discord.TextChannel
-    links: List[discord.User]
-    banned: Set[discord.Member]
+class ForestDoc(TypedDict):
+    _id: int
+    channel: int
+    links: List[int]
+    banned: List[int]
     prefix: str
     allow_media: bool
-    __slots__ = __annotations__.keys()
+
+@dataclass
+class Forest:
+    __slots__ = ('channel', 'links', 'banned', 'prefix', 'allow_media')
+    channel: discord.TextChannel
+    links: List[discord.User] # discord.abc.Messageable
+    banned: Set[int] # to skip unnecessary get_user()
+    prefix: str
+    allow_media: bool
 
     async def send(self, msg: discord.Message) -> Optional[discord.Message]:
         if not self.allow_media and is_media(msg):
@@ -39,12 +48,22 @@ class Forest:
             return
 
         content = f"{self.prefix} {msg.content}"
-        ret = await self.channel.send(content)
+        files = []
+        for att in msg.attachments:
+            data = io.BytesIO()
+            await att.save(fp=data, use_cached=True, seek_begin=True)
+            file = discord.File(data, att.filename, spoiler=att.is_spoiler())
+            files.append(file)
+
+        # TODO: requires fp.seek(0) for sending media multiple times
+        ret = await self.channel.send(content, files=files)
+        links = self.links
         if isinstance(msg.channel, discord.DMChannel): # exclude original author
             links = filter(lambda u: u!=msg.author, self.links)
-        else:
-            links = self.links
-        await asyncio.gather(*map(lambda u: u.send(content), links))
+        await asyncio.gather(*map(lambda u: u.send(content, files=files), links))
+
+        for user in links:
+            ...
         return ret
 
 @dataclass
@@ -60,9 +79,12 @@ class Bamboo(commands.Cog, name="대나무숲"):
 
     def __init__(self, bot: ClockBot):
         self.bot = bot
-        self.db = bot.db
+
         self.forests: Dict[discord.Guild, Forest] = {}
+        self.forests_db = bot.db['forests']
         self.dm_links: Dict[discord.User, DMlink] = {}
+        self.logs_db = bot.db['f_logs']
+
         self.help_menu: List[commands.Command] = [
             self._forest,
             self._ban,
@@ -70,6 +92,26 @@ class Bamboo(commands.Cog, name="대나무숲"):
             # self.remove_link,
             self.inspect,
         ]
+
+    def init_forest(self, doc: ForestDoc) -> Optional[Forest]:
+        guild = self.bot.get_guild(doc['_id'])
+        channel = self.bot.get_channel(doc['channel'])
+
+        if guild and isinstance(channel, discord.TextChannel):
+            links = list()
+            for uid in doc['links']:
+                user = self.bot.get_user(uid)
+                if user: links.append(user)
+
+            banned = set(doc['banned'])
+            prefix = doc['prefix']
+            allow_media = doc['allow_media']
+
+            return Forest(channel, links, banned, prefix, allow_media)
+
+    @tasks.loop(count=1)
+    async def load_forest(self):
+        ...
 
     @commands.command(name="대나무숲")
     async def migration(self, ctx: MacLak):
@@ -120,7 +162,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         )
         await msg.pin()
 
-        self.forests[ctx.guild] = Forest(ctx.channel, list(), set(), '??:', False)
+        self.forests[ctx.guild] = Forest(ctx.channel, list(), set(), '??:', True)
         self.bot.specials[ctx.channel.id] = "대나무숲"
         # DB
 
@@ -191,7 +233,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
 
         # len(candidates)==1
         target = candidates[0]
-        if ctx.author in self.forests[target].banned:
+        if ctx.author.id in self.forests[target].banned:
             await ctx.send(
                 "해당 서버의 대나무숲에서 차단되셨습니다\n"
                 "서버 관리자에게 문의하세요"
@@ -228,7 +270,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
 
     @bamboo.command(aliases=["밴", "사면"], usage="@유저")
     @owner_or_admin()
-    async def _ban(self, ctx: GMacLak, user: discord.Member):
+    async def _ban(self, ctx: GMacLak, user: discord.User):
         """
         자꾸 선을 넘는 반동분자의 익명성을 박탈한다
         적용된 유저의 메세지는 익명 처리되지 않는다.
@@ -240,27 +282,27 @@ class Bamboo(commands.Cog, name="대나무숲"):
         elif ctx.invoked_with=="사면":
             await self.unban(ctx, user)
 
-    async def ban(self, ctx: GMacLak, user: discord.Member):
+    async def ban(self, ctx: GMacLak, user: discord.User):
         forest = self.forests.get(ctx.guild)
         if not forest:
             await ctx.send("서버에 대나무숲이 존재하지 않습니다")
             return
 
-        if user in forest.banned:
+        if user.id in forest.banned:
             await ctx.send(f"이미 차단된 유저입니다")
             return
 
-        forest.banned.add(user)
+        forest.banned.add(user.id)
         # DB
         await ctx.send(
             f"{user.mention}를 대나무숲에서 차단했습니다\n"
             "차단 해제 명령어: `대숲 사면`"
         )
 
-    async def unban(self, ctx: GMacLak, user: discord.Member):
+    async def unban(self, ctx: GMacLak, user: discord.User):
         if forest := self.forests.get(ctx.guild):
-            if user in forest.banned:
-                forest.banned.remove(user)
+            if user.id in forest.banned:
+                forest.banned.remove(user.id)
                 await ctx.send(f"{user.mention}을 사면했습니다. 처신 잘하라고 ;)")
             else:
                 await ctx.send("차단된 유저가 아닙니다")
@@ -307,7 +349,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
             forest = self.forests.get(channel.guild)
             if forest and forest.channel==channel:
 
-                if msg.author in forest.banned:
+                if msg.author.id in forest.banned:
                     await msg.author.send(
                         "**대나무숲에서 차단되셨습니다!**\n"
                         "서버 관리자에게 문의하세요"

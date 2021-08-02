@@ -11,6 +11,7 @@ from typing import Callable, Dict, Optional, Tuple
 from clockbot import ClockBot, GMacLak
 
 # TODO: google_trans_new is broken, find alternative
+# TODO: move meme translators to utils
 
 MENTION = r"(<[\w@!&#:]+\d+>)"
 EMOJI = r"(:\w+:)"
@@ -34,7 +35,7 @@ def doggoslate(txt: str) -> str:
 def kittyslate(txt: str) -> str:
     punc = ['~', '!', '?', '...', '?!']
     nya_variants = ["냐아아", "야오옹", "캬오오", "샤아악", "그르르", "먀아아"]
-    exclaim = ["야오옹...?", "끼아아옹!"]
+    exclaim = ["애옹", "끼아아옹!"]
     if len(txt)>40:
         return random.choice(exclaim)
     ret = []
@@ -47,6 +48,20 @@ def kittyslate(txt: str) -> str:
             mid = len(word) - 2
             ret.append(nya[0] + nya[1]*mid + nya[2])
             ret.append(random.choice(punc) + ' ')
+    return ''.join(ret)
+
+def cowslate(txt: str) -> str:
+    punc = ['~', '~~~', 'ㅡ', 'ㅡㅡ', '...', '?', '!!!']
+    moo_variants = ["음머어", "음머ㅓ", "음메에", "움머어"]
+    exclaim = ["메이플 개꿀잼인듯", "메이플은 갓겜임", "아 메이플하고싶다"]
+    if len(txt)>15:
+        return random.choice(exclaim)
+    ret = []
+    moo = random.choice(moo_variants)
+    for word in txt.split():
+        ret.append(moo[:2])
+        ret.append(moo[2]*(len(word)-2))
+        ret.append(random.choice(punc) + ' ')
     return ''.join(ret)
 
 FULL_HANGUL = re.compile(r"[가-힣]")
@@ -70,6 +85,7 @@ SPECIAL_LANGS: Dict[str, Translator] = {
     '개소리': doggoslate,
     '냥소리': kittyslate,
     '멈뭄미': mumslate,
+    '흑우'  : cowslate,
 }
 
 def resolve_translator(lang: str) -> Optional[Translator]:

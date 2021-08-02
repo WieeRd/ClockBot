@@ -48,22 +48,28 @@ class Forest:
             return
 
         content = f"{self.prefix} {msg.content}"
-        files = []
+        files: List[discord.File] = []
         for att in msg.attachments:
-            data = io.BytesIO()
-            await att.save(fp=data, use_cached=True, seek_begin=True)
-            file = discord.File(data, att.filename, spoiler=att.is_spoiler())
+            buf = io.BytesIO()
+            await att.save(fp=buf, use_cached=True, seek_begin=True)
+            file = discord.File(buf, att.filename)
             files.append(file)
 
-        # TODO: requires fp.seek(0) for sending media multiple times
+        # message sent to guild forest channel
         ret = await self.channel.send(content, files=files)
+
+        # for dm links, attachments are sent as url
+        if len(files)==1 and (not msg.content):
+            content += ret.attachments[0].url
+        elif len(files)>0:
+            att_urls = '\n'.join(att.url for att in ret.attachments)
+            content += '\n' + att_urls
+
         links = self.links
         if isinstance(msg.channel, discord.DMChannel): # exclude original author
-            links = filter(lambda u: u!=msg.author, self.links)
-        await asyncio.gather(*map(lambda u: u.send(content, files=files), links))
+            links = filter(lambda user: user!=msg.author, links)
+        await asyncio.gather(*(user.send(content) for user in links))
 
-        for user in links:
-            ...
         return ret
 
 @dataclass
@@ -152,13 +158,15 @@ class Bamboo(commands.Cog, name="대나무숲"):
             return
 
         await ctx.channel.edit(name="대나무숲", topic="대체 누가 한 말이야?")
-        # TODO: replace this with text in BetaBot DM
+        p = ctx.prefix
+        mark = "<:greenarrow:871681034289295440>"
         msg = await ctx.send(
-            "채널이 익명 채널 '대나무숲'으로 설정됬습니다\n"
-            "모바일 알림 등으로 인해 작성자가 드러날 수 있습니다\n"
-            "`대숲 연결` 명령어로 DM을 통해 완전한 익명이 가능합니다\n"
-            "관리자는 꼭 필요한 경우 `대숲 열람` 명령어를 통해\n"
-            "익명 메세지 작성자를 공개적으로 확인 가능합니다"
+            f"**[채널이 익명 채널 '대나무숲'으로 설정됬습니다]**\n"
+            f"{mark} 모든 채팅이 익명으로 전환됩니다!\n"
+            f"{mark} 모바일 알림 버그로 작성자가 드러날 수 있습니다.\n"
+            f"{mark} 완전한 익명을 위해 `{p}대숲 연결` 명령어를 사용하세요.\n"
+            f"{mark} 관리자는 꼭 필요할 경우 `{p}대숲 열람`\n"
+            f"       명령어로 작성자를 공개할 수 있습니다.\n"
         )
         await msg.pin()
 
@@ -191,18 +199,19 @@ class Bamboo(commands.Cog, name="대나무숲"):
         모바일 알림으로 작성자를 알 수 있는 약점이 없어진다.
         해제 명령어는 '대숲 연결해제'
         """
+        p = ctx.prefix
         if link := self.dm_links.get(ctx.author):
             await ctx.send(
                 f"이미 [{link.forest.channel.guild.name}]의 대나무숲과 연결되어 있습니다\n"
-                f"다른 서버에 연결하려면 `대숲 연결해제`로 연결을 해제하세요"
+                f"다른 서버에 연결하려면 `{p}대숲 연결해제`로 연결을 해제하세요"
             )
             return
 
         joined = tuple(filter(lambda g: self.forests.get(g), ctx.author.mutual_guilds))
         if len(joined)==0: # no mutual guild with forest
             await ctx.send(
-                "연결 가능한 대나무숲이 없습니다.\n"
-                "('`대숲 설치`'로 새로운 대나무숲을 만들어보세요!)"
+                f"연결 가능한 대나무숲이 없습니다.\n"
+                f"('`{p}대숲 설치`'로 새로운 대나무숲을 만들어보세요!)"
             )
             return
 
@@ -211,7 +220,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         #     await ctx.send(
         #          "연결 가능한 서버 목록:\n"
         #         f"```{names}```\n"
-        #          "`대숲 연결 <서버이름>`으로 접속하세요\n"
+        #         f"`{p}대숲 연결 <서버이름>`으로 접속하세요\n"
         #          "(이름 일부만 입력해도 인식됩니다)"
         #     )
         #     return
@@ -222,8 +231,8 @@ class Bamboo(commands.Cog, name="대나무숲"):
             await ctx.send(
                 f"\"{server}\"에 대한 검색 결과:\n"
                 f"```{names}```\n"
-                 "`대숲 연결 <서버이름>`으로 접속하세요\n"
-                 "(이름 일부만 입력해도 인식됩니다)"
+                f"`{p}대숲 연결 <서버이름>`으로 접속하세요\n"
+                f"(이름 일부만 입력해도 인식됩니다)"
             )
             return
 
@@ -241,9 +250,10 @@ class Bamboo(commands.Cog, name="대나무숲"):
             return
 
         await ctx.send(
-            f"[{target.name}]의 대나무숲과 연결합니다.\n"
-             "익명이지만 매너를 지켜주세요!\n"
-             "접속 종료: '`대숲 연결해제`'"
+            f"**[{target.name}]** 서버와 연결합니다.\n"
+            f"채팅을 입력하면 대나무숲으로 전송되며,\n"
+            f"대나무숲의 채팅은 이곳으로 전송됩니다.\n"
+            f"접속 종료 명령어는 `{p}대숲 연결해제`"
         )
 
         forest = self.forests[target]
@@ -296,7 +306,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         # DB
         await ctx.send(
             f"{user.mention}를 대나무숲에서 차단했습니다\n"
-            "차단 해제 명령어: `대숲 사면`"
+            f"차단 해제 명령어: `{ctx.prefix}대숲 사면`"
         )
 
     async def unban(self, ctx: GMacLak, user: discord.User):
@@ -313,10 +323,8 @@ class Bamboo(commands.Cog, name="대나무숲"):
     @owner_or_admin()
     async def inspect(self, ctx: MacLak):
         """
-        익명 메세지의 작성자를 확인한다
-        당연히 관리자 전용이며,
-        공개적으로 열람 사실이 드러난다.
-        꼭 필요할 때만 사용하자!
+        익명 메세지의 작성자를 공개한다
+        관리자 전용이며, 꼭 필요할 때만 사용하자!
         """
         target = ctx.message.reference
         if target==None:

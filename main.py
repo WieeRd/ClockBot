@@ -56,7 +56,7 @@ may this never happen again.
  - WieeRd's dev note, 2021-07-23
 """
 
-# TODO: check if server is available with server_info
+# TODO: check if server is available
 client = AsyncIOMotorClient(serverSelectionTimeoutMS=10, **DB_INFO) # ','
 db = client.get_database(name=DB_NAME)
 

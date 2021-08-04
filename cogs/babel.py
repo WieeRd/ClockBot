@@ -12,6 +12,7 @@ from clockbot import ClockBot, GMacLak
 
 # TODO: google_trans_new is broken, find alternative
 # TODO: move meme translators to utils
+# TODO: custom emojis from other servers aren't available to bot
 
 MENTION = r"(<[\w@!&#:]+\d+>)"
 EMOJI = r"(:\w+:)"

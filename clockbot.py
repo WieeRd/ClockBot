@@ -83,6 +83,8 @@ class MacLak(commands.Context):
 
     bot: 'ClockBot'
 
+    # TODO: ctx.error - ctx.code + ctx.tick(False)
+
     async def code(self, content: str, lang: str = ''):
         await self.send(f"```{lang}\n{content}\n```")
 

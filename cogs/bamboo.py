@@ -24,7 +24,7 @@ def is_media(msg: discord.Message) -> bool:
         return True
     return False
 
-PREFIX = '??:' # default anonymous name
+PREFIX = "[익명]" # default anonymous name
 TIMEOUT = 300 # TODO: is timeout needed?
 
 class ForestDoc(TypedDict):
@@ -48,7 +48,7 @@ class Forest:
     async def send(self, msg: discord.Message) -> Optional[discord.Message]:
         if not self.allow_media and is_media(msg):
             await msg.channel.send(
-                "[대나무숲] 파일/링크 업로드가 제한되어 있습니다\n"
+                "**[대나무숲]** 파일/링크 업로드가 제한되어 있습니다\n"
                 "미디어 제한을 풀려면 `대숲 설정` 명령어를 이용하세요"
             )
             return
@@ -105,6 +105,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
             self._forest,
             self._ban,
             self.add_link,
+            self.config,
             self.inspect,
         ]
 
@@ -325,7 +326,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
     async def ban(self, ctx: GMacLak, user: discord.User):
         forest = self.forests.get(ctx.guild)
         if not forest:
-            await ctx.send("서버에 대나무숲이 존재하지 않습니다")
+            await ctx.code("에러: 서버에 대나무숲이 존재하지 않습니다")
             return
 
         if user.id in forest.banned:
@@ -346,9 +347,9 @@ class Bamboo(commands.Cog, name="대나무숲"):
                 await self.db.pull(ctx.guild.id, 'banned', user.id) # DB
                 await ctx.send(f"{user.mention}을 사면했습니다. 처신 잘하라고 ;)")
             else:
-                await ctx.send("차단된 유저가 아닙니다")
+                await ctx.code("에러: 차단된 유저가 아닙니다")
         else:
-            await ctx.send("서버에 대나무숲이 존재하지 않습니다")
+            await ctx.code("에러: 서버에 대나무숲이 존재하지 않습니다")
 
     @bamboo.command(name="열람", usage="(익명 메세지에 답장하며)")
     @owner_or_admin()
@@ -386,11 +387,62 @@ class Bamboo(commands.Cog, name="대나무숲"):
             f"메세지 작성자: <@!{author}>, {datestr}\n",
         )
 
-    @bamboo.group(name="설정")
-    @owner_or_admin()
+    @bamboo.group(name="설정", usage="<옵션> <설정값>")
     @commands.guild_only()
     async def config(self, ctx: GMacLak):
-        ... # TODO
+        """
+        서버별 대나무숲 커스터마이징
+        """
+        if not ctx.invoked_subcommand:
+            await ctx.send_help(self.config)
+
+    @config.command(name="닉네임", usage="<닉네임>")
+    @owner_or_admin()
+    async def prefix(self, ctx: GMacLak, *, value: str):
+        """
+        익명 닉네임을 변경한다 (기본값 "[익명]")
+        """ # not {PREFIX} cause docstring doesn't support f-string
+        forest = self.forests.get(ctx.guild)
+        if not forest:
+            await ctx.code("에러: 서버에 대나무숲이 존재하지 않습니다")
+            return
+
+        await ctx.send(f'익명 닉네임을 "{forest.prefix}"에서 "{value}"로 변경합니다')
+        forest.prefix = value
+        await self.db.set(ctx.guild.id, prefix=value)
+
+    @config.command(name="미디어", usage="허용/금지")
+    @owner_or_admin()
+    async def media(self, ctx: GMacLak, value: str):
+        """
+        링크/이미지 업로드의 허용 여부 (기본값 금지)
+        익명채널이니 이상한(?) 것들이 올라올지도 모르겠다
+        """
+        forest = self.forests.get(ctx.guild)
+        if not forest:
+            await ctx.code("에러: 서버에 대나무숲이 존재하지 않습니다")
+            return
+
+        if value=="허용":
+            allow = True
+        elif value=="금지":
+            allow = False
+        else:
+            await ctx.send_help(self.media)
+            return
+
+        await ctx.send(f"대나무숲에 링크/이미지 업로드를 {value}합니다")
+        forest.allow_media = allow
+        await self.db.set(ctx.guild.id, allow_media=allow)
+
+    # # TODO
+    # @config.command(name="기록")
+    # async def record(self, ctx: GMacLak, value: str):
+    #     """
+    #     익명메세지 작성자 기록을 사용/해제한다
+    #     해제할 경우 '대숲 열람'이 불가하다
+    #     """
+    #     ...
 
     @commands.Cog.listener()
     async def on_message(self, msg: discord.Message):

@@ -6,7 +6,7 @@ import time
 import random
 import re
 
-from clockbot import ClockBot, MacLak
+from clockbot import ClockBot, MacLak, GMacLak, owner_or_admin
 # from utils.KoreanNumber import num2kr, kr2num
 
 NUM_NAMES = ["zero","one","two","three","four","five","six","seven","eight","nine"]
@@ -38,15 +38,16 @@ class Misc(commands.Cog, name="기타"):
         self.bot = bot
         self.help_menu = [
             self.user_pic,
-            self.server_pic,
+            # self.server_pic,
             self.get_emoji,
-            self.coin,
+            # self.coin,
             self.dice,
             self.choose,
+            self.purge,
             self.yell,
         ]
 
-    @commands.command(name="프사", usage="닉네임/@멘션")
+    @commands.command(name="프사", usage="\"닉네임\"/@멘션")
     async def user_pic(self, ctx: MacLak, user: discord.User):
         """
         해당 유저의 프로필 사진을 띄운다
@@ -58,7 +59,7 @@ class Misc(commands.Cog, name="기타"):
 
     @commands.command(name="서버프사")
     @commands.guild_only()
-    async def server_pic(self, ctx: MacLak):
+    async def server_pic(self, ctx: GMacLak):
         """
         현재 서버의 프로필 사진을 띄운다
         """
@@ -144,6 +145,15 @@ class Misc(commands.Cog, name="기타"):
         else:
             await ctx.code("에러: 지원되는 문자: 영어/숫자/?!")
             # await ctx.send_help(self.yell)
+
+    @commands.command(name="청소", usage="<N>")
+    @owner_or_admin()
+    @commands.bot_has_permissions(manage_messages=True, read_message_history=True)
+    async def purge(self, ctx: GMacLak, amount: int):
+        """
+        채팅창 청소. 가장 최근의 챗 N개를 지운다
+        """
+        await ctx.channel.purge(limit=amount)
 
     # @commands.command(name="시계", aliases=["닉값"])
     # async def time(self, ctx):

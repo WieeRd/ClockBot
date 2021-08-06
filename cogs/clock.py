@@ -64,6 +64,7 @@ class Clock(commands.Cog):
                 # print(f"{type(e).__name__}: {e}")
                 await self.bot.wait_until_ready()
 
+        # TODO: "TIME | SUFFIX"
         activity=discord.Game(name=time.strftime("%p %I:%M KST", tm))
         await self.bot.change_presence(activity=activity)
 

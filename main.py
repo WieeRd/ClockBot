@@ -9,6 +9,7 @@ from discord.ext import commands
 from clockbot import ClockBot, ExitOpt
 from utils.help import TextHelp
 from motor.motor_asyncio import AsyncIOMotorClient
+from pprint import pprint
 
 if not os.path.exists("config.yml"):
     print("Error: config.yml is missing, copying default.yml")
@@ -58,7 +59,15 @@ may this never happen again.
 
 # TODO: check if server is available
 client = AsyncIOMotorClient(serverSelectionTimeoutMS=10, **DB_INFO) # ','
-db = client.get_database(name=DB_NAME)
+try:
+    loop = asyncio.get_event_loop()
+    server_info = loop.run_until_complete(client.server_info())
+except Exception as e:
+    print(f"DB connection failed ({type(e).__name__})")
+    db = None
+else:
+    print(f"Connected to DB [{client.HOST}:{client.PORT}]")
+    db = client.get_database(name=DB_NAME)
 
 intents = discord.Intents.all()
 activity = discord.Game(STATUS or "Hello World")

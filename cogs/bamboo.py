@@ -5,7 +5,7 @@ import re
 import io
 
 from discord.ext import commands, tasks
-from clockbot import ClockBot, DMacLak, GMacLak, MacLak, owner_or_admin
+from clockbot import ClockBot, DMacLak, GMacLak, MacLak, owner_or_admin, ExtRequireDB
 from utils.db import MongoDict
 
 from datetime import datetime, timezone
@@ -24,8 +24,8 @@ def is_media(msg: discord.Message) -> bool:
         return True
     return False
 
-PREFIX = "[익명]" # default anonymous name
-TIMEOUT = 300 # TODO: is timeout needed?
+PREFIX = "[익명]" # default prefix for anonymous chat
+TIMEOUT = 5 # DM link timeout (minute)
 
 class ForestDoc(TypedDict):
     _id: int
@@ -116,6 +116,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         self.logs = MongoDict(bot.db.forest_log)
 
         self.load_forest.start()
+        self.timeout.start() # TODO: is timeout necessary?
 
     def init_forest(self, doc: ForestDoc) -> Optional[Forest]:
         channel = self.bot.get_channel(doc['channel'])
@@ -147,6 +148,25 @@ class Bamboo(commands.Cog, name="대나무숲"):
                     # but meh, not a big issue
                     link = DMlink(forest, now)
                     self.dm_links[user] = link
+
+    @tasks.loop(minutes=1)
+    async def timeout(self):
+        now = time.time()
+        dead: List[discord.User] = []
+        for user, link in self.dm_links.items():
+            if (now - link.recent)>TIMEOUT*60:
+                dead.append(user)
+
+        for user in dead:
+            await user.send(
+                f"**[대나무숲]** {TIMEOUT}분동안 활동이 없어 연결을 종료합니다"
+            )
+
+            link = self.dm_links.pop(user)
+            link.forest.links.remove(user)
+
+            guild = link.forest.channel.guild
+            await self.db.pull(guild.id, 'links', user.id) # DB
 
     @commands.command(name="대나무숲")
     async def migration(self, ctx: MacLak):
@@ -283,7 +303,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
             f"**[{target.name}]** 서버와 연결합니다.\n"
             f"채팅을 입력하면 대나무숲으로 전송되며,\n"
             f"대나무숲의 채팅은 이곳으로 전송됩니다.\n"
-            f"접속 종료 명령어는 `{p}대숲 연결해제`"
+            f"연결 해제 명령어: `{p}대숲 연결해제`"
         )
 
         forest = self.forests[target]
@@ -299,7 +319,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         대나무숲과의 연결을 해제한다
         """
         if not self.dm_links.get(ctx.author):
-            await ctx.send("활성화된 대나무숲 연결이 없습니다")
+            await ctx.code("에러: 활성화된 대나무숲 연결이 없습니다")
             return
 
         forest = self.dm_links[ctx.author].forest
@@ -307,7 +327,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         del self.dm_links[ctx.author]
         await self.db.pull(forest.channel.guild.id, 'links', ctx.author.id) # DB
 
-        await ctx.send("대나무숲 연결이 종료되었습니다")
+        await ctx.tick(True)
 
     @bamboo.command(aliases=["밴", "사면"], usage="@유저")
     @owner_or_admin()
@@ -487,6 +507,8 @@ class Bamboo(commands.Cog, name="대나무숲"):
             })
 
 def setup(bot: ClockBot):
+    if not bot.db:
+        raise ExtRequireDB(__name__)
     bot.add_cog(Bamboo(bot))
 
 def teardown(bot):

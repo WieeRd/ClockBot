@@ -2,10 +2,12 @@ import discord
 import asyncio
 import aiohttp
 import time
-import enum
 
 from discord import Webhook
 from discord.ext import commands
+from motor.motor_asyncio import AsyncIOMotorDatabase
+
+from enum import IntEnum
 from typing import Dict, List, Optional, Union
 
 PERM_KR_NAME: Dict[str, str] = {
@@ -49,7 +51,9 @@ PERM_KR_NAME: Dict[str, str] = {
 
 # TODO: move these to utils/
 def owner_or_permissions(**perms):
-    """bot owner or has_permissions"""
+    """
+    bot owner or has_permissions
+    """
     original = commands.has_permissions(**perms).predicate
     async def extended_check(ctx: commands.Context):
         if not ctx.guild:
@@ -60,7 +64,7 @@ def owner_or_permissions(**perms):
 def owner_or_admin():
     return owner_or_permissions(administrator=True)
 
-class ExitOpt(enum.IntEnum):
+class ExitOpt(IntEnum):
     ERROR = -1
     QUIT = 0
     UNSET = 1
@@ -78,6 +82,8 @@ class MacLak(commands.Context):
     """
 
     bot: 'ClockBot'
+
+    # TODO: ctx.error - ctx.code + ctx.tick(False)
 
     async def code(self, content: str, lang: str = ''):
         await self.send(f"```{lang}\n{content}\n```")
@@ -138,15 +144,40 @@ class GMacLak(MacLak):
         avatar = target.avatar_url
         return await self.wsend(content=content, username=name, avatar_url=avatar, *args, **kwargs)
 
+class DMacLak(MacLak):
+    """
+    MacLak but with type hints for DM
+    """ 
+
+    guild: None
+    channel: discord.DMChannel
+    author: discord.User
+    me: discord.ClientUser
+
+class ExtRequireDB(Exception):
+    """
+    raised in setup() if bot.db is None
+    if extension requires DB connection
+    """
+    def __init__(self, extname: str):
+        """
+        use __name__ for extname parameter
+        """
+        super().__init__()
+        self.extname = extname
+
+    def __str__(self) -> str:
+        return f"{self.extname} requires DB connection"
+
 class ClockBot(commands.Bot):
-    def __init__(self, pool, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, db: AsyncIOMotorDatabase, **options):
+        super().__init__(**options)
         self.started = None
         self.exitopt = ExitOpt.UNSET
         self.session = aiohttp.ClientSession(loop=self.loop)
 
-        # database connection pool
-        self.pool = pool
+        # mongodb connection
+        self.db = db
         # cached webhook
         self.webhooks: Dict[int, Webhook] = {}
         # special channels (ex: bamboo forest) { channel_id : "reason" }
@@ -155,14 +186,14 @@ class ClockBot(commands.Bot):
         self.dumped: List[MacLak] = []
 
     async def close(self):
-        await super().close()
         await self.session.close()
         for vc in self.voice_clients:
             await vc.disconnect(force=False)
-        if self.pool!=None: # TODO: planning to switching to MongoDB
-            self.pool.terminate(); await self.pool.wait_closed()
+        if self.db != None:
+            self.db.client.close()
+        await super().close()
 
-    # # TODO: somehow pyright is certain that return type will be MacLak
+    # # somehow pyright is certain that return type will be MacLak
     # async def get_context(self, msg, cls = None):
     #     if not cls:
     #         cls = GMacLak if msg.guild else MacLak
@@ -200,6 +231,7 @@ class ClockBot(commands.Bot):
     async def owner_or_admin(self, user: discord.Member) -> bool:
         return await self.is_owner(user) or user.guild_permissions.administrator
 
+    # TODO: move to Owner or Info Cog
     async def on_ready(self):
         if not self.started: # initial launch
             self.started = time.time()

@@ -10,18 +10,18 @@ extensions:
     # - cogs.voice
     # - cogs.clock
     - cogs.misc
-help_options:
+help: # kwargs for utils.help.TextHelp
     prefix: ''
     suffix: "봇 초대코드: http://add.clockbot.kro.kr"
-    category:
+    cogs: # cogs to be shown in bot help menu
         - "대나무숲"
         - "바벨탑"
         - "고급멘션"
         - "TTS"
         - "기타"
-database:
-    host: localhost
-    port: 3306
-    user:
+mongodb: # kwargs for AsyncIOMotorClient
+    host:
+    port:
+    username:
     password:
-    db: clockbot
+database: "clockbot" # mongodb database name

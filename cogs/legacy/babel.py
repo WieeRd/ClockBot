@@ -3,10 +3,25 @@ import random
 from google_trans_new import google_translator
 from google_trans_new.constant import LANGUAGES
 
+from typing import Optional
+
 LANG_LIST = list(LANGUAGES)
 LANG_DICT = dict((value, key) for key, value in LANGUAGES.items())
 
 translator = google_translator()
+
+# def resolve_translator(lang: str) -> Optional[Translator]:
+#     """
+#     receives Korean language name and returns appropriate translator
+#     """
+#     if special := SPECIAL_LANGS.get(lang):
+#         return special
+
+#     lang_name = translate(lang, 'en').lower()
+#     if lang_code := LANG_DICT.get(lang_name, ''):
+#         return lambda t: translate(t, lang_code)
+
+#     return None
 
 def translate(txt: str, lang: str = 'auto') -> str:
     ret = translator.translate(txt, lang)

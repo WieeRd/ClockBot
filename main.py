@@ -95,7 +95,8 @@ for i, ext in enumerate(INIT_EXTS):
     try:
         print(f"[{i}] Loading '{ext}' ", end='', flush=True)
         bot.load_extension(ext)
-    except Exception as e:
+    except commands.ExtensionFailed as e:
+        e = e.original
         print("[failed]")
         print(f"{type(e).__name__}: {e}")
     else:

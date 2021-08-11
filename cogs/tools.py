@@ -118,6 +118,18 @@ class Tools(commands.Cog, name="도구"):
         """
         await ctx.channel.purge(limit=amount)
 
+    @commands.command(name="여긴어디")
+    async def where(self, ctx: MacLak):
+        if isinstance(ctx.channel, discord.DMChannel):
+            # legacy code left just for this lol
+            await ctx.send("후훗... 여긴... 너와 나 단 둘뿐이야")
+        elif isinstance(ctx.channel, discord.TextChannel):
+            server = ctx.channel.guild.name
+            channel = ctx.channel.name
+            await ctx.send(f"여긴 [{server}]의 #{channel} 이라는 곳이라네")
+        else:
+            await ctx.send(":thinking:")
+
 def setup(bot):
     bot.add_cog(Tools(bot))
 

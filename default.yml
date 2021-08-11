@@ -3,22 +3,23 @@ prefix: '!'
 status: "Hello World"
 extensions:
     - jishaku
-    # - cogs.owner
-    # - cogs.bamboo
-    # - cogs.babel
-    # - cogs.mention
-    # - cogs.voice
-    # - cogs.clock
-    - cogs.misc
+    - cogs.owner
+    - cogs.clock
+    # - cogs.test
+    - cogs.bamboo
+    - cogs.mention
+    - cogs.voice
+    - cogs.pranks
+    - cogs.tools
 help: # kwargs for utils.help.TextHelp
     prefix: ''
     suffix: "봇 초대코드: http://add.clockbot.kro.kr"
     cogs: # cogs to be shown in bot help menu
         - "대나무숲"
-        - "바벨탑"
-        - "고급멘션"
+        # - "고급멘션"
         - "TTS"
-        - "기타"
+        - "트롤링"
+        - "도구"
 mongodb: # kwargs for AsyncIOMotorClient
     host:
     port:

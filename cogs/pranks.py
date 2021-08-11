@@ -6,11 +6,10 @@ import re
 from discord.ext import commands
 from typing import Callable, Dict, Tuple
 
-from clockbot import ClockBot, GMacLak
-from utils.chatfilter import doggoslate, kittyslate, mumslate, cowslate
+from clockbot import ClockBot, GMacLak, MacLak
+from utils.chatfilter import *
 
 # TODO: google_trans_new is broken, find alternative
-# TODO: move meme translators to utils
 # TODO: custom emojis from other servers aren't available to bot
 
 MENTION = r"(<[\w@!&#:]+\d+>)"
@@ -26,14 +25,15 @@ SPECIAL_LANGS: Dict[str, Translator] = {
     '흑우'  : cowslate,
 }
 
-class Babel(commands.Cog, name="바벨탑"):
+class Pranks(commands.Cog, name="트롤링"):
     """
-    번역기와 말투변환기를 이용한 흥미로운 장난들
+    참신하고 장난치기 좋은 기능들
     """
     def __init__(self, bot: ClockBot):
         self.bot = bot
         self.help_menu = [
             self.impersonate,
+            self.yell,
             self._filter,
             self.disable_filter,
         ]
@@ -61,6 +61,18 @@ class Babel(commands.Cog, name="바벨탑"):
         else:
             assert mimic_msg is not None
             await mimic_msg.delete()
+
+    @commands.command(name="빼액", usage="<텍스트>")
+    async def yell(self, ctx: MacLak, *, txt: str):
+        """
+        영문/숫자 텍스트를 이모지로 변환한다
+        큼지막한 글자로 강력한 자기주장을 해보자
+        """
+        if converted := txt2emoji(txt):
+            await ctx.send(converted)
+        else:
+            await ctx.code("에러: 지원되는 문자: 영어/숫자/?!")
+            # await ctx.send_help(self.yell)
 
     @commands.command(name="_필터", aliases=list(SPECIAL_LANGS), usage="닉네임/@멘션")
     @commands.guild_only()
@@ -134,7 +146,7 @@ class Babel(commands.Cog, name="바벨탑"):
             await ctx.mimic(msg.author, content)
 
 def setup(bot: ClockBot):
-    bot.add_cog(Babel(bot))
+    bot.add_cog(Pranks(bot))
 
 def teardown(bot):
     pass

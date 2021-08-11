@@ -2,36 +2,14 @@ import discord
 import asyncio
 from discord.ext import commands
 
-import time
 import random
-import re
 
 from clockbot import ClockBot, MacLak, GMacLak, owner_or_admin
-# from utils.KoreanNumber import num2kr, kr2num
+from utils.chatfilter import txt2emoji
 
-NUM_NAMES = ["zero","one","two","three","four","five","six","seven","eight","nine"]
-
-def txt2emoji(txt: str) -> str:
-    txt = txt.lower()
-    ret = ""
-    for c in txt:
-        if c.upper() != c.lower(): # isalpha() returns True for Korean str
-            ret += f":regional_indicator_{c}:"
-        elif c.isdigit():
-            ret += f":{NUM_NAMES[int(c)]}:"
-        elif c == ' ':
-            ret += " "*13
-        elif c == '\n':
-            ret += '\n'
-        elif c == '?':
-            ret += ":grey_question:"
-        elif c == '!':
-            ret += ":grey_exclamation:"
-    return ret
-
-class Misc(commands.Cog, name="기타"):
+class Tools(commands.Cog, name="도구"):
     """
-    봇들에게 흔히 있는 기능들
+    단순하지만 대단히 편리한 명령어들
     """
 
     def __init__(self, bot: ClockBot):
@@ -40,11 +18,10 @@ class Misc(commands.Cog, name="기타"):
             self.user_pic,
             # self.server_pic,
             self.get_emoji,
-            # self.coin,
+            self.coin,
             self.dice,
             self.choose,
             self.purge,
-            self.yell,
         ]
 
     @commands.command(name="프사", usage="\"닉네임\"/@멘션")
@@ -109,7 +86,7 @@ class Misc(commands.Cog, name="기타"):
             await self.coin()
         else:
             roll = random.randint(1, rng)
-            txt = txt2emoji(str(roll))
+            txt = txt2emoji(str(roll)) # TODO: utils.chatfilter
             if set(arg)=={'2'}:
                 msg = await ctx.send(txt + '\n' + txt)
                 await msg.add_reaction("2️⃣")
@@ -132,20 +109,6 @@ class Misc(commands.Cog, name="기타"):
         else:
             await ctx.send(f"{random.choice(argv)} 당첨")
 
-    @commands.command(name="빼액", usage="<텍스트>")
-    async def yell(self, ctx: MacLak, *, txt: str):
-        """
-        대충 MUYAHO를 넣어보자
-        지원되는 문자: 영어/숫자/?!
-        봇 계정은 커스텀 이모지 사용이 가능하니
-        한글도 변환 가능하겠지만 대단히 귀찮다
-        """
-        if converted := txt2emoji(txt):
-            await ctx.send(converted)
-        else:
-            await ctx.code("에러: 지원되는 문자: 영어/숫자/?!")
-            # await ctx.send_help(self.yell)
-
     @commands.command(name="청소", usage="<N>")
     @owner_or_admin()
     @commands.bot_has_permissions(manage_messages=True, read_message_history=True)
@@ -155,45 +118,8 @@ class Misc(commands.Cog, name="기타"):
         """
         await ctx.channel.purge(limit=amount)
 
-    # @commands.command(name="시계", aliases=["닉값"])
-    # async def time(self, ctx):
-    #     now = time.localtime()
-    #     now_str = time.strftime('%Y-%m-%d %a, %I:%M:%S %p', now)
-    #     await ctx.send(f"현재시각 {now_str}")
-
-    # @commands.command(name="여긴어디")
-    # async def where(self, ctx):
-    #     if isinstance(ctx.channel, discord.channel.DMChannel):
-    #         await ctx.send("후훗... 여긴... 너와 나 단 둘뿐이야")
-    #         return
-    #     server = ctx.guild.name
-    #     channel = ctx.channel.name
-    #     await ctx.send(f"여긴 [{server}]의 #{channel} 이라는 곳이라네")
-
-    # @commands.command(name="한글로")
-    # async def n2kr(self, ctx, val=None, mode='0'):
-    #     try:
-    #         num = int(val)
-    #         mode = int(mode)
-    #     except (ValueError, TypeError):
-    #         await ctx.send("사용법: !한글로 <정수> <모드(0/1)>")
-    #         return
-    #     try:
-    #         kr_str = num2kr.num2kr(num, mode)
-    #     except ValueError:
-    #         await ctx.send("아 몰라 때려쳐") # change to gif
-    #         return
-    #     await ctx.send(kr_str)
-
-    # @commands.command(name="숫자로")
-    # async def kr2n(self, ctx, kr_str=None):
-    #     if(kr_str==None):
-    #         await ctx.send("사용법: !숫자로 <한글 숫자>")
-    #         return
-    #     await ctx.send(f"{kr2num.kr2num(kr_str)}")
-
 def setup(bot):
-    bot.add_cog(Misc(bot))
+    bot.add_cog(Tools(bot))
 
 def teardown(bot):
     pass

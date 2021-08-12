@@ -86,7 +86,7 @@ class Tools(commands.Cog, name="도구"):
             await self.coin()
         else:
             roll = random.randint(1, rng)
-            txt = txt2emoji(str(roll)) # TODO: utils.chatfilter
+            txt = txt2emoji(str(roll))
             if set(arg)=={'2'}:
                 msg = await ctx.send(txt + '\n' + txt)
                 await msg.add_reaction("2️⃣")

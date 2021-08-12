@@ -83,21 +83,25 @@ class MacLak(commands.Context):
 
     bot: 'ClockBot'
 
-    # TODO: ctx.error - ctx.code + ctx.tick(False)
-
-    async def code(self, content: str, lang: str = ''):
-        await self.send(f"```{lang}\n{content}\n```")
+    async def code(self, content: str, lang: str = '') -> discord.Message:
+        """
+        wrap content with codeblock markdown
+        """
+        return await self.send(f"```{lang}\n{content}\n```")
 
     async def tick(self, value: bool):
         """
-        Adds emoji check / cross mark as reaction
-        from discord.py/example/custom_context.py
+        add reaction (True: check, False: cross)
         """
         emoji = '\N{WHITE HEAVY CHECK MARK}' if value else '\N{CROSS MARK}'
-        try:
-            await self.message.add_reaction(emoji)
-        except discord.HTTPException:
-            pass
+        await self.message.add_reaction(emoji)
+
+    async def error(self, content: str) -> discord.Message:
+        """
+        ctx.tick(False) + ctx.code(content)
+        """
+        await self.tick(False)
+        return await self.code(content)
 
 class GMacLak(MacLak):
     """
@@ -172,7 +176,7 @@ class ExtRequireDB(Exception):
 class ClockBot(commands.Bot):
     def __init__(self, db: AsyncIOMotorDatabase, **options):
         super().__init__(**options)
-        self.started = None
+        self.started: float = 0
         self.exitopt = ExitOpt.UNSET
         self.session = aiohttp.ClientSession(loop=self.loop)
 
@@ -240,7 +244,7 @@ class ClockBot(commands.Bot):
 
     async def on_command_error(self, ctx: MacLak, error: commands.CommandError):
         if isinstance(error, commands.CommandNotFound):
-            pass # TODO maybe this can be used to send help when mentioned
+            pass # TODO: maybe this can be used to send help when mentioned
         elif isinstance(error, commands.UserInputError):
             await ctx.send_help(ctx.command)
 

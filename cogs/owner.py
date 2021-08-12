@@ -1,14 +1,13 @@
 import discord
-import asyncio
 import inspect
+import textwrap
+import subprocess
+import time
 import io
 
 from clockbot import ClockBot, MacLak, ExitOpt
 from discord.ext import commands
-from typing import List, Tuple, Union
-
-import os, sys
-import subprocess
+from typing import List, Tuple
 
 def run_cmd(cmd, timeout=None):
     proc = subprocess.Popen(cmd,
@@ -67,10 +66,6 @@ class Owner(commands.Cog, name="제작자"):
         content = f"Connected to {server_c} servers and {user_c} users```\n{info}```"
         await ctx.send(content)
 
-    @server.command()
-    async def network(self, ctx: MacLak):
-        await ctx.send("Coming soon!") # TODO: pyvis network generator
-
     @commands.command(name="코드", usage="<명령어/카테고리>")
     async def getsource(self, ctx: MacLak, entity: str):
         """
@@ -82,8 +77,7 @@ class Owner(commands.Cog, name="제작자"):
         if cmd := self.bot.get_command(entity):
             target = cmd.callback
             code = inspect.getsource(target)
-            # TODO: needs proper indentation remover
-            # code = inspect.cleandoc(code)
+            code = textwrap.dedent(code)
         elif cog := self.bot.get_cog(entity):
             target = cog.__class__
             code = inspect.getsource(target)
@@ -127,17 +121,16 @@ class Owner(commands.Cog, name="제작자"):
     async def ping(self, ctx):
         await ctx.send(f"{int(self.bot.latency*1000)}ms")
 
-    # TODO
-    # @commands.command(name="업타임")
-    # async def uptime(self, ctx):
-    #     uptime = time.time() - self.flags.start_time
-    #     dd, rem = divmod(uptime, 24*60*60)
-    #     hh, rem = divmod(rem, 60*60)
-    #     mm, ss = divmod(rem, 60)
-    #     dd, hh, mm, ss = int(dd), int(hh), int(mm), int(ss)
-    #     tm = f"{hh:02d}:{mm:02d}:{ss:02d}"
-    #     if(dd>0): tm = f"{dd}일 " + tm
-    #     await ctx.send(tm)
+    @commands.command(name="업타임")
+    async def uptime(self, ctx):
+        uptime = time.time() - self.bot.started
+        dd, rem = divmod(uptime, 24*60*60)
+        hh, rem = divmod(rem, 60*60)
+        mm, ss = divmod(rem, 60)
+        dd, hh, mm, ss = int(dd), int(hh), int(mm), int(ss)
+        tm = f"{hh:02d}:{mm:02d}:{ss:02d}"
+        if(dd>0): tm = f"{dd}일 " + tm
+        await ctx.send(tm)
 
 
 def setup(bot: ClockBot):

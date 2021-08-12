@@ -1,15 +1,11 @@
-DB - reddis | mongo
-cogs.bamboo - apply DB
 cogs.mention - easier expr
  + member converter using MemberFilter
 cogs.portal - new
 cogs.voice - improve
-cogs.misc - cogs.common / cogs.uncommon
 cogs.custom - custom command for each server
-cogs.babel - NyanChat, BlackCow filter
+cogs.babel - work on NyanChat goddammit
 
 chess - pvp / Stockfish
-network visualization
 voice recognition
 
 Utils inside GMacLak should be usable without context

@@ -374,7 +374,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
     @bamboo.command(name="열람", usage="(익명 메세지에 답장하며)")
     @owner_or_admin()
     @commands.guild_only()
-    async def inspect(self, ctx: GMacLak):
+    async def inspect(self, ctx: GMacLak): # TODO: use discord timestamp feature
         """
         익명 메세지의 작성자를 공개한다
         관리자 전용이며, 꼭 필요할 때만 사용하자!

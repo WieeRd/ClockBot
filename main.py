@@ -8,7 +8,7 @@ import time
 
 from discord.ext import commands
 from clockbot import ClockBot, ExitOpt
-from utils.help import TextHelp
+from utils.help import TextHelp, EmbedHelp
 from motor.motor_asyncio import AsyncIOMotorClient
 
 if not os.path.exists("config.yml"):
@@ -32,8 +32,9 @@ except KeyError as e:
     print(f"Error: config option '{e}' is missing")
     exit(ExitOpt.ERROR)
 
-help_command = TextHelp(
+help_command = EmbedHelp(
     **HELP_OPT,
+    color = 0x00FFFF,
     command_attrs = {
         "name": "도움",
         "aliases": ["help", "?"],

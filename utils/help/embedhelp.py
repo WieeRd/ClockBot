@@ -31,15 +31,10 @@ class EmbedHelp(commands.HelpCommand):
     def name(self) -> str:
         return f"{self.clean_prefix}{self._name}"
 
-    def get_bot_mapping(self) -> Dict[Cog, List[Command]]:
-        mapping = {}
-        for name in self.cogs:
-            if cog := self.bot.get_cog(name):
-                cmds: List[Command] = getattr(cog, 'help_menu', cog.get_commands())
-                mapping[cog] = cmds
-        return mapping
+    def get_bot_mapping(self):
+        pass
 
-    def bot_page(self, mapping: Dict[Cog, List[Command]]) -> discord.Embed:
+    def bot_page(self, mapping) -> discord.Embed:
         embed = discord.Embed(
             color = self.color,
             title = "**시계봇 도움말**",
@@ -47,23 +42,15 @@ class EmbedHelp(commands.HelpCommand):
             url = "http://add.clockbot.kro.kr",
         )
         embed.set_thumbnail(url="https://raw.githubusercontent.com/WieeRd/ClockBot/master/assets/avatar.png")
-        embed.set_footer(text = "팁: 무야호")
+        embed.set_footer(text = "랜덤 팁: 디스코드 그만보고 현생을 사세요")
 
-        for cog, cmds in mapping.items():
-            cmd_lst = [cmd.name for cmd in cmds]
-            cmd_names = ' '.join(self.clean_prefix + cname for cname in cmd_lst)
-            embed.add_field(
-                name = cog.qualified_name,
-                value = cmd_names,
-                inline = False
-            )
-
-        # for cog, cmds in mapping.items():
-        #     embed.add_field(
-        #         name = cog.qualified_name,
-        #         value = cog.description,
-        #         inline = False
-        #     )
+        for name in self.cogs:
+            if cog := self.bot.get_cog(name):
+                embed.add_field(
+                    name = f"**{cog.qualified_name}**",
+                    value = cog.description,
+                    inline = False
+                )
 
         return embed
 
@@ -71,14 +58,14 @@ class EmbedHelp(commands.HelpCommand):
         embed = discord.Embed(
             color = self.color,
             title = f"**카테고리: {cog.qualified_name}**",
-            description = cog.description,
+            description = f"**{cog.description}**",
             url = "https://add.clockbot.kro.kr"
         )
-        embed.set_footer(text=f"자세한 정보: `{self.name} <명령어>`")
+        embed.set_footer(text=f"자세한 정보: {self.name} <명령어>")
 
         cmd_lst: List[Command] = getattr(cog, 'help_menu', cog.get_commands())
         for cmd in cmd_lst:
-            usage = f"{self.clean_prefix}{cmd.qualified_name} {cmd.usage}"
+            usage = f"`{self.clean_prefix}{cmd.qualified_name} {cmd.usage}`"
             embed.add_field(
                 name = usage,
                 value = cmd.short_doc,
@@ -104,4 +91,3 @@ class EmbedHelp(commands.HelpCommand):
         embed = self.cog_page(cog)
         destin = self.get_destination()
         await destin.send(embed=embed)
-        

@@ -1,5 +1,4 @@
 import discord
-import asyncio
 import aiohttp
 import time
 
@@ -8,45 +7,45 @@ from discord.ext import commands
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from enum import IntEnum
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 PERM_KR_NAME: Dict[str, str] = {
-    "add_reactions": "반응 추가",
-    "administrator": "관리자",
-    "attach_files": "파일 첨부",
-    "ban_members": "멤버 차단",
-    "change_nickname": "별명 변경",
-    "connect": "음성채널 참가",
-    "create_instant_invite": "초대코드 생성",
-    "deafen_members": "멤버 헤드셋 음소거",
-    "embed_links": "링크 첨부",
-    "external_emojis": "외부 이모티콘 사용",
-    "kick_members": "멤버 추방",
-    "manage_channels": "채널 관리",
-    "manage_emojis": "이모티콘 관리",
-    "manage_guild": "서버 관리",
-    "manage_messages": "메세지 관리",
-    "manage_nicknames": "별명 관리",
-    "manage_permissions": "역할 관리",
-    "manage_roles": "역할 관리",
-    "manage_webhooks": "웹후크 관리",
-    "mention_everyone": "@\u200beveryone 멘션",
-    "move_members": "음성채널 멤버 이동",
-    "mute_members": "멤버 마이크 음소거",
-    "priority_speaker": "우선 발언권",
-    "read_message_history": "메세지 기록 보기",
-    "read_messages": "메세지 보기",
-    "request_to_speak": "스테이지 채널 발언권 요청",
-    "send_messages": "메세지 보내기",
-    "send_tts_messages": "TTS 메세지 전송",
-    "speak": "말하기",
-    "stream": "방송하기",
-    "use_external_emojis": "외부 이모티콘 사용",
-    "use_slash_commands": "빗금 명령어 사요",
-    "use_voice_activation": "음성 감지 사용",
-    "view_audit_log": "감사 로그 보기",
-    "view_channel": "채널 보기",
-    "view_guild_insights": "서버 인사이트 보기",
+    'add_reactions': "반응 추가",
+    'administrator': "관리자",
+    'attach_files': "파일 첨부",
+    'ban_members': "멤버 차단",
+    'change_nickname': "별명 변경",
+    'connect': "음성채널 참가",
+    'create_instant_invite': "초대코드 생성",
+    'deafen_members': "멤버 헤드셋 음소거",
+    'embed_links': "링크 첨부",
+    'external_emojis': "외부 이모티콘 사용",
+    'kick_members': "멤버 추방",
+    'manage_channels': "채널 관리",
+    'manage_emojis': "이모티콘 관리",
+    'manage_guild': "서버 관리",
+    'manage_messages': "메세지 관리",
+    'manage_nicknames': "별명 관리",
+    'manage_permissions': "역할 관리",
+    'manage_roles': "역할 관리",
+    'manage_webhooks': "웹후크 관리",
+    'mention_everyone': "@\u200beveryone 멘션",
+    'move_members': "음성채널 멤버 이동",
+    'mute_members': "멤버 마이크 음소거",
+    'priority_speaker': "우선 발언권",
+    'read_message_history': "메세지 기록 보기",
+    'read_messages': "메세지 보기",
+    'request_to_speak': "스테이지 채널 발언권 요청",
+    'send_messages': "메세지 보내기",
+    'send_tts_messages': "TTS 메세지 전송",
+    'speak': "말하기",
+    'stream': "방송하기",
+    'use_external_emojis': "외부 이모티콘 사용",
+    'use_slash_commands': "빗금 명령어 사요",
+    'use_voice_activation': "음성 감지 사용",
+    'view_audit_log': "감사 로그 보기",
+    'view_channel': "채널 보기",
+    'view_guild_insights': "서버 인사이트 보기",
 }
 
 # TODO: move these to utils/
@@ -114,39 +113,14 @@ class GMacLak(MacLak):
     author: discord.Member
     me: discord.Member
 
-    # TODO: these utils should be usable without context
+    async def webhook(self) -> discord.Webhook:
+        return await self.bot.get_webhook(self.channel)
 
-    async def wsend(self, content: str = None, *, err_msg: bool = True, **kwargs) -> Optional[discord.WebhookMessage]:
-        """
-        Send webhook message to the channel
-        ctx.channel has to be TextChannel
-        Returns the message that was sent
+    async def wsend(self, content: str = None, **options) -> Optional[discord.WebhookMessage]:
+        return await self.bot.wsend(self.channel, content, **options)
 
-        If missing permission 'manage_webhooks',
-        raises discord.Forbidden by default.
-        If err_msg != None, sends err_msg instead
-        """
-        try:
-            hook = await self.bot.get_webhook(self.channel)
-            msg = await hook.send(content, **kwargs)
-        except discord.NotFound: # cached webhooks got deleted
-            del self.bot.webhooks[self.channel.id]
-            msg = await self.wsend(content, err_msg=err_msg, **kwargs)
-        except discord.Forbidden: # missing permission
-            if err_msg:
-                await self.code("에러: 봇에게 웹훅 관리 권한이 필요합니다")
-                msg = None
-            else: raise
-
-        return msg
-
-    async def mimic(self, target: Union[discord.User, discord.Member], content: str = None, *args, **kwargs) -> Optional[discord.WebhookMessage]:
-        """
-        Send webhook message with name & avatar of target
-        """
-        name = target.display_name
-        avatar = target.avatar_url
-        return await self.wsend(content=content, username=name, avatar_url=avatar, *args, **kwargs)
+    async def mimic(self, target: discord.abc.User, content: str = None, **options) -> Optional[discord.WebhookMessage]:
+        return await self.bot.mimic(self.channel, target, content, **options)
 
 class DMacLak(MacLak):
     """
@@ -180,7 +154,7 @@ class ClockBot(commands.Bot):
         self.exitopt = ExitOpt.UNSET
         self.session = aiohttp.ClientSession(loop=self.loop)
 
-        # mongodb connection
+        # mongodb database
         self.db = db
         # cached webhook
         self.webhooks: Dict[int, Webhook] = {}
@@ -212,6 +186,9 @@ class ClockBot(commands.Bot):
         ctx = await self.get_context(msg, cls=cls)
         await self.invoke(ctx)
 
+    async def owner_or_admin(self, user: discord.Member) -> bool:
+        return await self.is_owner(user) or user.guild_permissions.administrator
+
     async def get_webhook(self, channel: discord.TextChannel) -> discord.Webhook:
         """
         Returns channel's webhook owned by Bot
@@ -232,15 +209,31 @@ class ClockBot(commands.Bot):
             self.webhooks[channel.id] = hook
         return hook
 
-    async def owner_or_admin(self, user: discord.Member) -> bool:
-        return await self.is_owner(user) or user.guild_permissions.administrator
+    async def wsend(self, channel: discord.TextChannel, content: str = None, **options) -> Optional[discord.WebhookMessage]:
+        """
+        Send webhook message to the channel
+        ctx.channel has to be TextChannel
+        Returns the message that was sent
+        or None if missing permission
+        """
+        try:
+            hook = await self.get_webhook(channel)
+            msg = await hook.send(content, **options)
+        except discord.NotFound: # cached webhooks got deleted
+            del self.webhooks[channel.id]
+            msg = await self.wsend(channel, content, **options)
+        except discord.Forbidden: # missing permission
+            await channel.send("```에러: 봇에게 웹훅 관리 권한이 필요합니다```")
+            msg = None
+        return msg
 
-    # TODO: move to Owner or Info Cog
-    async def on_ready(self):
-        if not self.started: # initial launch
-            self.started = time.time()
-            print(f"{self.user.name}#{self.user.discriminator} is now online")
-            print(f"Connected to {len(self.guilds)} servers and {len(self.users)} users")
+    async def mimic(self, channel: discord.TextChannel, target: discord.abc.User, content: str = None, **options) -> Optional[discord.WebhookMessage]:
+        """
+        Send webhook message with name & avatar of target
+        """
+        name = target.display_name
+        avatar = getattr(target, 'avatar_url')
+        return await self.wsend(channel, content=content, username=name, avatar_url=avatar, **options)
 
     async def on_command_error(self, ctx: MacLak, error: commands.CommandError):
         if isinstance(error, commands.CommandNotFound):

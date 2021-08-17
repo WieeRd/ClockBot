@@ -4,12 +4,12 @@ import asyncio
 import os.path
 import shutil
 import yaml
+import time
 
 from discord.ext import commands
 from clockbot import ClockBot, ExitOpt
 from utils.help import TextHelp
 from motor.motor_asyncio import AsyncIOMotorClient
-from pprint import pprint
 
 if not os.path.exists("config.yml"):
     print("Error: config.yml is missing, copying default.yml")
@@ -80,6 +80,14 @@ bot = ClockBot(
     heartbeat_timeout = 60,
 )
 
+@bot.event
+async def on_ready():
+    if not bot.started: # initial launch
+        bot.started = time.time()
+        print(f"{bot.user} [{bot.user.id}] is now online")
+        print(f"Connected to {len(bot.guilds)} servers and {len(bot.users)} users")
+
+# TODO: move to Info Cog
 @bot.command(name="초대코드")
 async def invitecode(ctx: commands.Context):
     """

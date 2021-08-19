@@ -1,8 +1,6 @@
 import discord
 import aiohttp
-import time
 
-from discord import Webhook
 from discord.ext import commands
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
@@ -53,11 +51,12 @@ def owner_or_permissions(**perms):
     """
     bot owner or has_permissions
     """
-    original = commands.has_permissions(**perms).predicate
+    original = commands.has_permissions(**perms)
+    predicate = getattr(original, 'predicate')
     async def extended_check(ctx: commands.Context):
         if not ctx.guild:
             return False
-        return await ctx.bot.is_owner(ctx.author) or await original(ctx)
+        return await ctx.bot.is_owner(ctx.author) or await predicate(ctx)
     return commands.check(extended_check)
 
 def owner_or_admin():
@@ -157,7 +156,7 @@ class ClockBot(commands.Bot):
         # mongodb database
         self.db = db
         # cached webhook
-        self.webhooks: Dict[int, Webhook] = {}
+        self.webhooks: Dict[int, discord.Webhook] = {}
         # special channels (ex: bamboo forest) { channel_id : "reason" }
         self.specials: Dict[int, str] = {}
         # dumped context objects for debugging

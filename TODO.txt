@@ -5,7 +5,7 @@ cogs.voice - improve
 cogs.custom - custom command for each server
 cogs.babel - work on NyanChat goddammit
 
+async close for bot and cog_unload
+
 chess - pvp / Stockfish
 voice recognition
-
-Utils inside GMacLak should be usable without context

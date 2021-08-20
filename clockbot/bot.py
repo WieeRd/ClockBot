@@ -1,3 +1,7 @@
+"""
+Custom Bot and Context
+"""
+
 import discord
 import aiohttp
 
@@ -45,22 +49,6 @@ PERM_KR_NAME: Dict[str, str] = {
     'view_channel': "채널 보기",
     'view_guild_insights': "서버 인사이트 보기",
 }
-
-# TODO: move these to utils/
-def owner_or_permissions(**perms):
-    """
-    bot owner or has_permissions
-    """
-    original = commands.has_permissions(**perms)
-    predicate = getattr(original, 'predicate')
-    async def extended_check(ctx: commands.Context):
-        if not ctx.guild:
-            return False
-        return await ctx.bot.is_owner(ctx.author) or await predicate(ctx)
-    return commands.check(extended_check)
-
-def owner_or_admin():
-    return owner_or_permissions(administrator=True)
 
 class ExitOpt(IntEnum):
     ERROR = -1
@@ -130,21 +118,6 @@ class DMacLak(MacLak):
     channel: discord.DMChannel
     author: discord.User
     me: discord.ClientUser
-
-class ExtRequireDB(Exception):
-    """
-    raised in setup() if bot.db is None
-    if extension requires DB connection
-    """
-    def __init__(self, extname: str):
-        """
-        use __name__ for extname parameter
-        """
-        super().__init__()
-        self.extname = extname
-
-    def __str__(self) -> str:
-        return f"{self.extname} requires DB connection"
 
 class ClockBot(commands.Bot):
     def __init__(self, db: AsyncIOMotorDatabase, **options):

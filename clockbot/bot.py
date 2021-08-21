@@ -1,5 +1,5 @@
 """
-Custom Bot and Context
+Bot, Context (ClockBot, MacLak)
 """
 
 import discord
@@ -209,7 +209,7 @@ class ClockBot(commands.Bot):
 
     async def on_command_error(self, ctx: MacLak, error: commands.CommandError):
         if isinstance(error, commands.CommandNotFound):
-            pass # TODO: maybe this can be used to send help when mentioned
+            pass # TODO: send Cog help if name matches
         elif isinstance(error, commands.UserInputError):
             await ctx.send_help(ctx.command)
 

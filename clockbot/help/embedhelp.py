@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands import Bot, Cog, Group, Command
-from typing import Any, Dict, List, Optional, Union
+from typing import List, Union
 
 def hoverlink(text: str, url: str, hover: str = '') -> str:
     return f"[{text}]({url} '{hover}')"
@@ -32,7 +32,7 @@ class EmbedHelp(commands.HelpCommand):
         return f"{self.clean_prefix}{self._name}"
 
     def get_bot_mapping(self):
-        pass
+        return
 
     def bot_page(self, mapping) -> discord.Embed:
         embed = discord.Embed(

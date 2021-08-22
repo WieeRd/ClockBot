@@ -42,7 +42,7 @@ class EmbedHelp(commands.HelpCommand):
             url = "http://add.clockbot.kro.kr",
         )
         embed.set_thumbnail(url="https://raw.githubusercontent.com/WieeRd/ClockBot/master/assets/avatar.png")
-        embed.set_footer(text = "랜덤 팁: 디스코드 그만보고 현생을 사세요")
+        embed.set_footer(text = "팁: 디스코드 그만보고 현생을 사세요")
 
         for name in self.cogs:
             if cog := self.bot.get_cog(name):

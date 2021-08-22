@@ -11,6 +11,15 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from enum import IntEnum
 from typing import Dict, List, Optional
 
+__all__ = (
+    'PERM_KR_NAME',
+    'ExitOpt',
+    'MacLak',
+    'GMacLak',
+    'DMacLak',
+    'ClockBot',
+)
+
 PERM_KR_NAME: Dict[str, str] = {
     'add_reactions': "반응 추가",
     'administrator': "관리자",

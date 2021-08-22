@@ -8,7 +8,7 @@ from clockbot import ClockBot, GMacLak, MacLak
 
 class Mention(commands.Cog, name="고급멘션"):
     """
-    '온라인인 관리자', '1명 제외 모두'를 핑하고 싶다면?
+    멘션 대상을 더 '섬세하게' 지정하는 방법
     """
     def __init__(self, bot: ClockBot):
         self.bot = bot

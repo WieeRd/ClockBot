@@ -2,19 +2,14 @@
 Command, Group, Cog
 """
 
-import discord
 from discord.ext import commands
-from functools import cached_property
 from typing import Callable, List, Type, TypeVar
-
-from .bot import ClockBot
 
 __all__ = (
     'Command',
     'AliasAsArg',
     'AliasGroup',
     'Group',
-    'Cog',
     'command',
     'alias_as_arg',
     'alias_group',
@@ -23,8 +18,9 @@ __all__ = (
 
 hooked_wrapped_callback = getattr(commands.core, 'hooked_wrapped_callback')
 
-class Command(commands.Command):
-    ...
+Command = commands.Command
+# class Command(commands.Command):
+# No idea for custom command feature for now
 
 class AliasAsArg(Command):
     """
@@ -80,21 +76,6 @@ class Group(commands.Group):
             self.add_command(result)
             return result
         return decorator
-
-class Cog(commands.Cog):
-    bot: ClockBot
-    emoji_id: int
-    showcase: List[Command]
-
-    @cached_property
-    def icon(self) -> discord.Emoji:
-        """
-        Custom emoji used as icon in help menu
-        """
-        if emoji := self.bot.get_emoji(self.emoji_id):
-            return emoji
-        else:
-            raise ValueError(f"Invalid Emoji ID: {self.emoji_id}")
 
 T = TypeVar('T')
 def command(name: str = None, cls: Type[T] = Command, **attrs) -> Callable[[Callable], T]:

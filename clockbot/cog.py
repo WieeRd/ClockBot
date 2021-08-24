@@ -11,15 +11,15 @@ class ExtensionRequireDB(Exception):
     raised in setup() if bot.db is None
     if extension requires DB connection
     """
-    def __init__(self, extension: str):
+    def __init__(self, name: str):
         """
         Set extension parameter to __name__
         """
         super().__init__()
-        self.extension = extension
+        self.name = name
 
     def __str__(self) -> str:
-        return f"{self.extension} requires DB connection"
+        return f"{self.name} requires DB connection"
 
 class Cog(commands.Cog):
     """
@@ -38,7 +38,7 @@ class Cog(commands.Cog):
         just do 'setup = cog.setup' at the end.
         """
         if cls.require_db and not bot.db:
-            raise ExtensionRequireDB(__name__)
+            raise ExtensionRequireDB(cls.__name__)
         cog = cls()
         cog.bot = bot
         bot.add_cog(cog)

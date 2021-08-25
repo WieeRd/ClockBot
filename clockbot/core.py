@@ -1,5 +1,5 @@
 """
-Command, Group, Cog
+Command, AliasAsArg, AliasGroup, Group
 """
 
 from discord.ext import commands
@@ -16,22 +16,13 @@ __all__ = (
     'group',
 )
 
+# hooked_wrapped_callback = commands.core.hooked_wrapped_callback
 hooked_wrapped_callback = getattr(commands.core, 'hooked_wrapped_callback')
 
 class Command(commands.Command):
-    pass # no idea for now
+    pass # no idea for now (maybe i8n feature)
 
 T = TypeVar('T')
-def command(name: str = None, cls: Type[T] = Command, **attrs) -> Callable[[Callable], T]:
-    """
-    Identical with commands.command but with TypeVar type hints
-    """
-    def decorator(func):
-        if isinstance(func, Command):
-            raise TypeError('Callback is already a command.')
-        return cls(func, name=name, **attrs)
-    return decorator
-
 class AliasAsArg(Command):
     """
     Commands that has multiple aliases,
@@ -50,6 +41,71 @@ class AliasAsArg(Command):
 
         await super().invoke(ctx)
 
+class AliasGroup(Command):
+    """
+    Indicates command that has multiple callbacks invoked by different alias.
+    Merely an indicator for help command, since I failed to implement decorators :(
+    """
+
+    def __init__(self, func, aliases: List[str], **attrs):
+        """
+        Doesn't take name parameter. 1st element of aliases will become name.
+        """
+        super().__init__(func, name=aliases[0], aliases=aliases[1:], **attrs)
+
+    # Don't question these comments down here,
+    # It's a result of my pain and agony
+
+    # callbacks = {} # this is class-wide, this code is fucked up
+    # doesn't work when initialized in __init__ either ahhhhhhh
+
+    # async def invoke(self, ctx: commands.Context):
+    #     await self.prepare(ctx)
+    #     ctx.invoked_subcommand = None
+    #     ctx.subcommand_passed = None
+
+    #     callback = self.callbacks[ctx.invoked_with]
+    #     injected = hooked_wrapped_callback(self, ctx, callback)
+    #     await injected(*ctx.args, **ctx.kwargs)
+
+    # def command(self, invoked_with: str):
+    #     """
+    #     Add a new alias-callback pair
+    #     """
+
+    #     if (invoked_with != self.name) and (invoked_with not in self.aliases):
+    #         raise ValueError(f"No alias named '{invoked_with}'")
+    #     if invoked_with in self.callbacks:
+    #         raise ValueError(f"'{invoked_with}' already have callback")
+
+    #     def decorator(func):
+    #         self.callbacks[invoked_with] = func
+    #         return func
+    #     return decorator
+
+class Group(commands.Group):
+    # TODO: showcase for group
+    def alias_group(self, aliases: List[str], **attrs):
+        """
+        Creates & add AliasGroup command to the group
+        1st element of aliases will automatically become name.
+        """
+        def decorator(func):
+            result = alias_group(aliases=aliases, **attrs)(func)
+            self.add_command(result)
+            return result
+        return decorator
+
+def command(name: str = None, cls: Type[T] = Command, **attrs) -> Callable[[Callable], T]:
+    """
+    Identical with commands.command but with TypeVar type hints
+    """
+    def decorator(func):
+        if isinstance(func, Command):
+            raise TypeError('Callback is already a command.')
+        return cls(func, name=name, **attrs)
+    return decorator
+
 def alias_as_arg(name: str, aliases: List[str], **attrs):
     """
     Transforms function into AliasAsArg Command
@@ -58,55 +114,14 @@ def alias_as_arg(name: str, aliases: List[str], **attrs):
         return AliasAsArg(func, name=name, aliases=aliases, **attrs)
     return decorator
 
-class AliasGroup(Command):
-    """
-    Contains multiple callbacks each invoked by different alias.
-    Usually used to bind 2 different commands with same usage.
-    ex) ban/unban, install/uninstall
-    """
-
-    callbacks = {} # this is class-wide, this code is fucked up
-    # ahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
-
-    async def invoke(self, ctx: commands.Context):
-        await self.prepare(ctx)
-        ctx.invoked_subcommand = None
-        ctx.subcommand_passed = None
-
-        callback = self.callbacks[ctx.invoked_with]
-        injected = hooked_wrapped_callback(self, ctx, callback)
-        await injected(*ctx.args, **ctx.kwargs)
-
-    def command(self, invoked_with: str):
-        """
-        Add a new alias-callback pair
-        """
-
-        if (invoked_with != self.name) and (invoked_with not in self.aliases):
-            raise ValueError(f"No alias named '{invoked_with}'")
-        if invoked_with in self.callbacks:
-            raise ValueError(f"'{invoked_with}' already have callback")
-
-        def decorator(func):
-            self.callbacks[invoked_with] = func
-            return func
-        return decorator
-
 def alias_group(aliases: List[str], **attrs):
     """
     Transforms function into AliasGroup Command
+    1st element of aliases will automatically become name.
     """
     def decorator(func):
-        return AliasGroup(func, name=aliases[0], aliases=aliases[1:], **attrs)
+        return AliasGroup(func, aliases=aliases, **attrs)
     return decorator
-
-class Group(commands.Group):
-    def alias_group(self, aliases: List[str], **attrs):
-        def decorator(func):
-            result = alias_group(aliases=aliases, **attrs)(func)
-            self.add_command(result)
-            return result
-        return decorator
 
 def group(name: str = None, **attrs):
     return command(name=name, cls=Group, **attrs)

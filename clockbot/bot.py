@@ -1,5 +1,5 @@
 """
-Bot, Context (ClockBot, MacLak)
+ClockBot, MacLak (Bot, Context)
 """
 
 import discord
@@ -121,7 +121,7 @@ class GMacLak(MacLak):
 class DMacLak(MacLak):
     """
     MacLak but with type hints for DM
-    """ 
+    """
 
     guild: None
     channel: discord.DMChannel

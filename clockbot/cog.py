@@ -19,26 +19,32 @@ class ExtensionRequireDB(Exception):
         self.name = name
 
     def __str__(self) -> str:
-        return f"{self.name} requires DB connection"
+        return f"Cog '{self.name}' requires DB connection"
 
 class Cog(commands.Cog):
     """
     Standard base class for documented ClockBot Cog
+    icon       : emoji to be used as icon in help menu
+    showcase   : commands to be shown in cog help
+    require_db : if this cog uses bot.db
     """
 
     bot: ClockBot
     icon: Union[int, str]
-    showcase: List[Command]
+    show: List[Command]
     require_db: bool = False
+
+    def __init__(self, bot: ClockBot):
+        self.bot = bot
 
     @classmethod
     def setup(cls, bot: ClockBot):
         """
         Instead of defining setup() for each extension,
-        just do 'setup = cog.setup' at the end.
+        just add 'setup = cog.setup' at the end.
+        __init__ should take single parameter 'bot'
         """
         if cls.require_db and not bot.db:
             raise ExtensionRequireDB(cls.__name__)
-        cog = cls()
-        cog.bot = bot
+        cog = cls(bot)
         bot.add_cog(cog)

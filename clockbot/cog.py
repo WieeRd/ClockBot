@@ -31,7 +31,7 @@ class Cog(commands.Cog):
 
     bot: ClockBot
     icon: Union[int, str]
-    show: List[Command]
+    showcase: List[Command]
     require_db: bool = False
 
     def __init__(self, bot: ClockBot):

@@ -4,6 +4,7 @@ ClockBot, MacLak (Bot, Context)
 
 import discord
 import aiohttp
+import traceback
 
 from discord.ext import commands
 from motor.motor_asyncio import AsyncIOMotorDatabase
@@ -237,13 +238,19 @@ class ClockBot(commands.Bot):
             await ctx.code(f"에러: 다음 권한{many}이 필요합니다: {perm_lst}")
 
         elif isinstance(error, commands.NotOwner):
-            await ctx.code("에러: 봇 관리자 전용인데 후원하면 쓰게 해줄지도?")
+            await ctx.code("에러: 봇 관리자 전용 명령어입니다")
         elif isinstance(error, commands.CommandOnCooldown):
             pass # TODO
 
-        else:
-            print(f"Unknown Error by: {ctx.message.content}")
-            print(err_msg := f"{type(error).__name__}: {error}")
+        elif isinstance(error, commands.CommandInvokeError):
+            e = error.original
+            print(f"Unexpected Error by: {ctx.message.content}")
             print(f"Dumping context #{len(self.dumped)}")
             self.dumped.append(ctx)
-            await ctx.code(f"에러: 알려지지 않은 오류가 발생했습니다\n{err_msg}")
+            try: raise e
+            except: traceback.print_exc()
+            await ctx.code(
+                f"에러: 예상치 못한 오류가 발생했습니다\n"
+                f"{type(e).__name__}: {str(e)}\n"
+                f"버그 맞으니까 제작자에게 멘션 테러를 권장합니다"
+            ) # TODO: send_owner()

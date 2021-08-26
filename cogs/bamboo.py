@@ -5,12 +5,15 @@ import re
 import io
 
 from discord.ext import commands, tasks
-from clockbot import ClockBot, DMacLak, GMacLak, MacLak, owner_or_admin, ExtRequireDB
-from utils.db import MongoDict
-
 from datetime import datetime, timezone
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, TypedDict
+
+import clockbot
+from clockbot import MacLak, GMacLak, DMacLak
+from utils.db import MongoDict
+
+# TODO: replace info messages with Embed
 
 CONTAIN_URL = re.compile(r"http[s]?://")
 def is_media(msg: discord.Message) -> bool:
@@ -94,14 +97,16 @@ class DMlink:
     forest: Forest
     recent: float
 
-class Bamboo(commands.Cog, name="대나무숲"):
+class Bamboo(clockbot.Cog, name="대나무숲"):
     """
     익명 채팅 채널 '대나무숲' 생성 & 관리
     """
+    require_db = True
 
-    def __init__(self, bot: ClockBot):
+    def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
-        self.help_menu: List[commands.Command] = [
+        self.icon = '\U0001f38d'
+        self.showcase = [
             self._forest,
             self._ban,
             self.add_link,
@@ -143,6 +148,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
             forest = self.init_forest(doc)
             if guild and forest:
                 self.forests[guild] = forest
+                self.bot.specials[forest.channel.id] = "대나무숲"
                 for user in forest.links:
                     # timeout gets reset on bot restart,
                     # but meh, not a big issue
@@ -166,8 +172,9 @@ class Bamboo(commands.Cog, name="대나무숲"):
             link.forest.links.remove(user)
 
             guild = link.forest.channel.guild
-            await self.db.pull(guild.id, 'links', user.id) # DB
+            await self.db.pull(guild.id, 'links', user.id)
 
+    # TODO: Sending cog help should be ClockBot feature
     @commands.command(name="대나무숲")
     async def migration(self, ctx: MacLak):
         await ctx.send_help(self)
@@ -181,7 +188,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
             await ctx.send_help(self)
 
     @bamboo.command(aliases=["설치", "제거"])
-    @owner_or_admin()
+    @clockbot.owner_or_admin()
     @commands.bot_has_permissions(manage_messages=True, manage_channels=True)
     async def _forest(self, ctx: GMacLak):
         """
@@ -190,13 +197,13 @@ class Bamboo(commands.Cog, name="대나무숲"):
         if exist := self.forests.get(ctx.guild):
             if not ctx.guild.get_channel(exist.channel.id):
                 del self.forests[ctx.guild]
-                await self.db.remove(ctx.guild.id) # DB
+                await self.db.remove(ctx.guild.id)
                 exist = None
 
         if ctx.invoked_with=="설치":
             await self.add_forest(ctx, exist)
         elif ctx.invoked_with=="제거":
-            await self.remove_forest(ctx, exist)
+            await self.rm_forest(ctx, exist)
 
     async def add_forest(self, ctx: GMacLak, exist: Optional[Forest]):
         if exist:
@@ -222,9 +229,9 @@ class Bamboo(commands.Cog, name="대나무숲"):
         forest = Forest(ctx.channel, [], set(), PREFIX, False)
         self.forests[ctx.guild] = forest
         self.bot.specials[ctx.channel.id] = "대나무숲"
-        await self.db.insert_one(forest.to_dict()) # DB
+        await self.db.insert_one(forest.to_dict())
 
-    async def remove_forest(self, ctx: GMacLak, exist: Optional[Forest]):
+    async def rm_forest(self, ctx: GMacLak, exist: Optional[Forest]):
         if (not exist) or (exist.channel!=ctx.channel):
             await ctx.send("대나무숲으로 설정된 채널이 아닙니다")
             return
@@ -233,9 +240,10 @@ class Bamboo(commands.Cog, name="대나무숲"):
             del self.dm_links[user]
         del self.forests[ctx.guild]
         del self.bot.specials[ctx.channel.id]
-        await self.db.remove(ctx.guild.id) # DB
+        await self.db.remove(ctx.guild.id)
 
-        await ctx.tick(True)
+        try: await ctx.tick(True) # command message got deleted
+        except: await ctx.send("대나무숲을 제거했습니다")
         for pin in await ctx.channel.pins():
             if pin.author==self.bot.user:
                 await pin.unpin()
@@ -309,7 +317,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         forest = self.forests[target]
         forest.links.append(ctx.author)
         self.dm_links[ctx.author] = DMlink(forest, time.time())
-        await self.db.push(target.id, 'links', ctx.author.id) # DB
+        await self.db.push(target.id, 'links', ctx.author.id)
         # timeout
 
     @bamboo.command(name="연결해제")
@@ -325,12 +333,12 @@ class Bamboo(commands.Cog, name="대나무숲"):
         forest = self.dm_links[ctx.author].forest
         forest.links.remove(ctx.author)
         del self.dm_links[ctx.author]
-        await self.db.pull(forest.channel.guild.id, 'links', ctx.author.id) # DB
+        await self.db.pull(forest.channel.guild.id, 'links', ctx.author.id)
 
         await ctx.tick(True)
 
     @bamboo.command(aliases=["밴", "사면"], usage="@유저")
-    @owner_or_admin()
+    @clockbot.owner_or_admin()
     async def _ban(self, ctx: GMacLak, user: discord.User):
         """
         자꾸 선을 넘는 반동분자의 익명성을 박탈한다
@@ -353,9 +361,10 @@ class Bamboo(commands.Cog, name="대나무숲"):
             await ctx.send(f"이미 차단된 유저입니다")
             return
 
+        # TODO: remove link (forest, dm_link, db)
         forest.banned.add(user.id)
-        await self.db.push(ctx.guild.id, 'banned', user.id) # DB
-        await ctx.send(
+        await self.db.push(ctx.guild.id, 'banned', user.id)
+        await ctx.send( # by request of ~
             f"{user.mention}를 대나무숲에서 차단했습니다\n"
             f"차단 해제 명령어: `{ctx.prefix}대숲 사면`"
         )
@@ -364,7 +373,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         if forest := self.forests.get(ctx.guild):
             if user.id in forest.banned:
                 forest.banned.remove(user.id)
-                await self.db.pull(ctx.guild.id, 'banned', user.id) # DB
+                await self.db.pull(ctx.guild.id, 'banned', user.id)
                 await ctx.send(f"{user.mention}을 사면했습니다. 처신 잘하라고 ;)")
             else:
                 await ctx.code("에러: 차단된 유저가 아닙니다")
@@ -372,7 +381,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
             await ctx.code("에러: 서버에 대나무숲이 존재하지 않습니다")
 
     @bamboo.command(name="열람", usage="(익명 메세지에 답장하며)")
-    @owner_or_admin()
+    @clockbot.owner_or_admin()
     @commands.guild_only()
     async def inspect(self, ctx: GMacLak): # TODO: use discord timestamp feature
         """
@@ -417,7 +426,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
             await ctx.send_help(self.config)
 
     @config.command(name="닉네임", usage="<닉네임>")
-    @owner_or_admin()
+    @clockbot.owner_or_admin()
     async def prefix(self, ctx: GMacLak, *, value: str):
         """
         익명 닉네임을 변경한다 (기본값 "[익명]")
@@ -432,7 +441,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
         await self.db.set(ctx.guild.id, prefix=value)
 
     @config.command(name="미디어", usage="허용/금지")
-    @owner_or_admin()
+    @clockbot.owner_or_admin()
     async def media(self, ctx: GMacLak, value: str):
         """
         링크/이미지 업로드의 허용 여부 (기본값 금지)
@@ -496,7 +505,7 @@ class Bamboo(commands.Cog, name="대나무숲"):
                 link.recent = time.time()
                 sent = await link.forest.send(msg)
 
-        if sent: # DB
+        if sent:
             self.logs.insert_one({
                 '_id': {
                     'channel': sent.channel.id,
@@ -506,10 +515,4 @@ class Bamboo(commands.Cog, name="대나무숲"):
                 'when': datetime.utcnow()
             })
 
-def setup(bot: ClockBot):
-    if not bot.db:
-        raise ExtRequireDB(__name__)
-    bot.add_cog(Bamboo(bot))
-
-def teardown(bot):
-    pass
+setup = Bamboo.setup

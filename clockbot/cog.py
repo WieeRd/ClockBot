@@ -2,7 +2,7 @@ from discord.ext import commands
 from typing import List, Union
 
 from .bot import ClockBot
-from .core import Command
+# from .core import Command
 
 __all__ = ('ExtensionRequireDB', 'Cog')
 
@@ -26,13 +26,13 @@ class Cog(commands.Cog):
     Standard base class for documented ClockBot Cog
     icon       : emoji to be used as icon in help menu
     showcase   : commands to be shown in cog help
-    require_db : if this cog uses bot.db
+    require_db : if this cog uses bot.db (False by default)
     """
 
     bot: ClockBot
     icon: Union[int, str]
-    showcase: List[Command]
-    require_db: bool = False
+    showcase: List[commands.Command]
+    require_db: bool = True
 
     def __init__(self, bot: ClockBot):
         self.bot = bot

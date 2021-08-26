@@ -1,11 +1,11 @@
 cogs.mention - easier expr
- + member converter using MemberFilter
+ + Converters, Fuzzy search
 cogs.portal - new
+cogs.game - chess, TicTacTo
 cogs.voice - improve
 cogs.custom - custom command for each server
-cogs.babel - work on NyanChat goddammit
+cogs.babel - NyanChat, Hawawa
+cogs.bamboo - Embed info messages
 
 async close for bot and cog_unload
-
-chess - pvp / Stockfish
-voice recognition
+AliasGroup

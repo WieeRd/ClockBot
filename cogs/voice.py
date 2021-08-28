@@ -1,17 +1,29 @@
-#!/usr/bin/env python3
 import discord
 import asyncio
-import os
 from discord.ext import commands
-from discord import Member, VoiceState, FFmpegPCMAudio
-from aiogtts import aiogTTS
+from discord import VoiceState, FFmpegPCMAudio
+
+import aiohttp
+import aiogtts
+import os
 
 import clockbot
 from clockbot import GMacLak, MacLak
 from typing import Dict
 
+class Text2Speech(aiogtts.aiogTTS):
+    """
+    aiogTTS complained every time unloading a cog
+    for not awaiting aiogTTS.session.close()
+    """
+    def __init__(self, session: aiohttp.ClientSession):
+        super().__init__()
+        super().__del__()
+        self.session = session
 
-TTS = aiogTTS() # TODO: session.close() not awaited
+    def __del__(self):
+        pass
+
 TTS_PREFIX = ';'
 
 # TODO: can't read multiple chats at once
@@ -30,6 +42,7 @@ class Voice(clockbot.Cog, name="TTS"):
             self.leave,
         ]
 
+        self.engine = Text2Speech(bot.session)
         self.tts_link: Dict[int, int] = dict() # guild.id : channel.id
         self.count = 0
 
@@ -98,7 +111,7 @@ class Voice(clockbot.Cog, name="TTS"):
         loop.create_task(self.disconnect_all())
 
     @commands.Cog.listener(name="on_voice_state_update")
-    async def update(self, who: Member, before: VoiceState, after: VoiceState):
+    async def update(self, who: discord.Member, before: VoiceState, after: VoiceState):
         vc = who.guild.voice_client
         if vc==None:
             return
@@ -121,7 +134,7 @@ class Voice(clockbot.Cog, name="TTS"):
                 # TODO: these tmp files doesn't get deleted sometimes
                 filename = f"tts{self.count}.tmp"
                 self.count = (self.count+1)%4096
-                await TTS.save(msg.content[1:], filename, lang='ko')
+                await self.engine.save(msg.content[1:], filename, lang='ko')
             except AssertionError:
                 return
 

@@ -4,26 +4,28 @@ import asyncio
 import os
 from discord.ext import commands
 from discord import Member, VoiceState, FFmpegPCMAudio
-
-from clockbot import ClockBot, GMacLak, MacLak
-
 from aiogtts import aiogTTS
+
+import clockbot
+from clockbot import GMacLak, MacLak
 from typing import Dict
 
-TTS = aiogTTS()
+
+TTS = aiogTTS() # TODO: session.close() not awaited
 TTS_PREFIX = ';'
 
 # TODO: can't read multiple chats at once
 # TODO: use other TTS engine
 # TODO: choose voice option
 
-class Voice(commands.Cog, name="TTS"):
+class Voice(clockbot.Cog, name="TTS"):
     """
     마이크가 없다면 봇이 채팅을 읽어드립니다
     """
-    def __init__(self, bot: ClockBot):
+    def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
-        self.help_menu = [
+        self.icon = "\U0001f50a"
+        self.showcase = [
             self.join,
             self.leave,
         ]
@@ -129,9 +131,4 @@ class Voice(commands.Cog, name="TTS"):
             audio = FFmpegPCMAudio(filename, options="-loglevel panic")
             vc.play(audio, after=lambda e: os.remove(filename))
 
-def setup(bot: ClockBot):
-    voice = Voice(bot)
-    bot.add_cog(voice)
-
-def teardown(bot):
-    pass
+setup = Voice.setup

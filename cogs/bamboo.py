@@ -420,7 +420,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             f"메세지 작성자: <@!{author}>, {datestr}\n",
         )
 
-    @bamboo.group(name="설정", usage="<옵션> <설정값>")
+    @bamboo.group(name="설정", usage="<설정> <설정값>")
     @commands.guild_only()
     async def config(self, ctx: GMacLak):
         """

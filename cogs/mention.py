@@ -2,17 +2,18 @@ import discord
 import asyncio
 from discord.ext import commands
 
+import clockbot
+from clockbot import GMacLak, MacLak
 import utils.MemberFilter as MemberFilter
 
-from clockbot import ClockBot, GMacLak, MacLak
-
-class Mention(commands.Cog, name="고급멘션"):
+class Mention(clockbot.Cog, name="고급멘션"):
     """
     멘션 대상을 더 '섬세하게' 지정하는 방법
     """
-    def __init__(self, bot: ClockBot):
+    def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
-        self.help_menu = [
+        self.icon = "\U0001f4cc" # pushpin
+        self.showcase = [
             self.member,
             self.mention,
             self.DMention,
@@ -103,8 +104,4 @@ class Mention(commands.Cog, name="고급멘션"):
             " - 제작자 - "
         )
 
-def setup(bot):
-    bot.add_cog(Mention(bot))
-
-def teardown(bot):
-    pass
+setup = Mention.setup

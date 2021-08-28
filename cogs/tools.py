@@ -82,7 +82,7 @@ class Tools(clockbot.Cog, name="도구"):
             return
         if rng==2:
             await ctx.send(f"{ctx.prefix}동전")
-            await self.coin()
+            await self.coin(ctx)
         else:
             roll = random.randint(1, rng)
             txt = txt2emoji(str(roll))

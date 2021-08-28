@@ -108,8 +108,9 @@ class Tools(clockbot.Cog, name="도구"):
         else:
             await ctx.send(f"{random.choice(argv)} 당첨")
 
+    # TODO: negative N - print whitespace
     @commands.command(name="청소", usage="<N>")
-    @clockbot.owner_or_admin()
+    @clockbot.owner_or_admin() # change to manage_messages
     @commands.bot_has_permissions(manage_messages=True, read_message_history=True)
     async def purge(self, ctx: GMacLak, amount: int):
         """

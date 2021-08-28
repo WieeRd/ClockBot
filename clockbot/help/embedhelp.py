@@ -4,11 +4,12 @@ from discord.ext import commands
 from typing import List, Union
 
 # TODO: should be __init__ parameter, but for now they are constant
-
 INVITE = "https://add.clockbot.kro.kr"
 # THUMBNAIL = "https://raw.githubusercontent.com/WieeRd/ClockBot/master/assets/avatar.png"
 # TIP = "디스코드 그만 보고 현생을 사세요"
 TIP = "시계봇은 닉값을 합니다 (프사 주목)"
+
+# TODO: command check field (perm, cooldown)
 
 def hoverlink(text: str, url: str, hover: str = '') -> str:
     return f"[{text}]({url} '{hover}')"

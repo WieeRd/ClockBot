@@ -9,6 +9,8 @@ __all__ = (
     'command',
     'AliasAsArg',
     'alias_as_arg',
+    'AliasGroup',
+    'alias_group',
     'Group',
     'group',
 )

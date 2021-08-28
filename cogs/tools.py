@@ -1,22 +1,22 @@
 import discord
-import asyncio
+import random
 from discord.ext import commands
 
-import random
-
-from clockbot import ClockBot, MacLak, GMacLak, owner_or_admin
+import clockbot
+from clockbot import MacLak, GMacLak
 from utils.chatfilter import txt2emoji
 
-class Tools(commands.Cog, name="도구"):
+class Tools(clockbot.Cog, name="도구"):
     """
     단순하지만 대단히 편리한 명령어들
     """
 
-    def __init__(self, bot: ClockBot):
+    def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
-        self.help_menu = [
-            self.user_pic,
-            # self.server_pic,
+        self.icon = "\U0001f527" # Wrench
+        self.showcase = [
+            self.user_avatar,
+            self.server_avatar,
             self.get_emoji,
             self.coin,
             self.dice,
@@ -25,7 +25,7 @@ class Tools(commands.Cog, name="도구"):
         ]
 
     @commands.command(name="프사", usage="\"닉네임\"/@멘션")
-    async def user_pic(self, ctx: MacLak, user: discord.User):
+    async def user_avatar(self, ctx: MacLak, user: discord.User):
         """
         해당 유저의 프로필 사진을 띄운다
         멘션에 발작하는 친구가 있다면 닉네임으로도 가능하다
@@ -36,11 +36,10 @@ class Tools(commands.Cog, name="도구"):
 
     @commands.command(name="서버프사")
     @commands.guild_only()
-    async def server_pic(self, ctx: GMacLak):
+    async def server_avatar(self, ctx: GMacLak):
         """
         현재 서버의 프로필 사진을 띄운다
         """
-        # TODO: when used in DM
         await ctx.send(ctx.guild.icon_url)
 
     @commands.command(name="이모지", aliases=["이모티콘"], usage=":thonk:")
@@ -97,9 +96,9 @@ class Tools(commands.Cog, name="도구"):
     async def choose(self, ctx, *, arg: str):
         """
         결정장애 해결사
-        하지만 예상컨데 당신은 이 명령어의 결과를 보고도
-        그것을 따를 것인가에 대해 계속해서 고민할 것이다
-        그럴꺼면 애초에 나한테 물어본 이유가 뭔데?
+        하지만 보통 사람들은 이걸 돌리고 나서도
+        이게 맞는가에 대해 계속해서 고민하곤 한다.
+        그렇다면 애초에 봇한테 물어본 이유가 뭔가?
         """
         argv = arg.split()
         argc = len(set(argv))
@@ -110,13 +109,14 @@ class Tools(commands.Cog, name="도구"):
             await ctx.send(f"{random.choice(argv)} 당첨")
 
     @commands.command(name="청소", usage="<N>")
-    @owner_or_admin()
+    @clockbot.owner_or_admin()
     @commands.bot_has_permissions(manage_messages=True, read_message_history=True)
     async def purge(self, ctx: GMacLak, amount: int):
         """
         채팅창 청소. 가장 최근의 챗 N개를 지운다
         """
-        await ctx.channel.purge(limit=amount)
+        try: await ctx.channel.purge(limit=amount)
+        except: pass # spamming this causes error by trying to delete deleted message
 
     @commands.command(name="여긴어디")
     async def where(self, ctx: MacLak):
@@ -130,8 +130,4 @@ class Tools(commands.Cog, name="도구"):
         else:
             await ctx.send(":thinking:")
 
-def setup(bot):
-    bot.add_cog(Tools(bot))
-
-def teardown(bot):
-    pass
+setup = Tools.setup

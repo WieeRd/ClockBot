@@ -8,4 +8,4 @@ cogs.babel - NyanChat, Hawawa
 cogs.bamboo - Embed info messages
 
 async close for bot and cog_unload
-AliasGroup
+help cog

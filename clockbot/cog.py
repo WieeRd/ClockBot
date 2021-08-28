@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 from typing import List, Union
 
@@ -24,18 +25,37 @@ class ExtensionRequireDB(Exception):
 class Cog(commands.Cog):
     """
     Standard base class for documented ClockBot Cog
-    icon       : emoji to be used as icon in help menu
-    showcase   : commands to be shown in cog help
-    require_db : if this cog uses bot.db (False by default)
+    icon       : Emoji to be used as icon in help command
+    showcase   : Commands to be shown in cog help
+    require_db : If this cog uses bot.db (False by default)
     """
 
     bot: ClockBot
-    icon: Union[int, str]
     showcase: List[commands.Command]
     require_db: bool = True
 
-    def __init__(self, bot: ClockBot):
-        self.bot = bot
+    @property
+    def icon(self) -> Union[discord.Emoji, str]:
+        return self._icon
+
+    @icon.setter
+    def icon(self, value):
+        if isinstance(value, int):
+            if icon := self.bot.get_emoji(value):
+                self._icon = icon
+            else:
+                raise ValueError(f"Invalid emoji id: {value}")
+        elif isinstance(value, str):
+            self._icon = value
+        else:
+            raise TypeError("Should be type of str or int")
+
+    def get_commands(self) -> List[commands.Command]:
+        """
+        If return 'showcase' if it's available.
+        Otherwise same as original get_commands()
+        """
+        return getattr(self, 'showcase', None) or super().get_commands()
 
     @classmethod
     def setup(cls, bot: ClockBot):

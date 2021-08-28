@@ -29,6 +29,7 @@ def is_media(msg: discord.Message) -> bool:
 
 PREFIX = "[익명]" # default prefix for anonymous chat
 TIMEOUT = 5 # DM link timeout (minute)
+COLOR = 0x40b876
 
 class ForestDoc(TypedDict):
     _id: int
@@ -110,6 +111,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             self._forest,
             self._ban,
             self.add_link,
+            self.rm_link,
             self.config,
             self.inspect,
         ]
@@ -179,7 +181,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
     async def migration(self, ctx: MacLak):
         await ctx.send_help(self)
 
-    @commands.group(name="대숲")
+    @clockbot.group(name="대숲")
     async def bamboo(self, ctx: MacLak):
         """
         익명 채팅 채널 '대나무숲' 생성 & 관리
@@ -187,7 +189,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         if not ctx.invoked_subcommand:
             await ctx.send_help(self)
 
-    @bamboo.command(aliases=["설치", "제거"])
+    @bamboo.alias_group(aliases=["설치", "제거"])
     @clockbot.owner_or_admin()
     @commands.bot_has_permissions(manage_messages=True, manage_channels=True)
     async def _forest(self, ctx: GMacLak):
@@ -252,10 +254,12 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
     @commands.dm_only()
     async def add_link(self, ctx: DMacLak, *, server: str = ''):
         """
-        봇의 DM채널을 통해 익명 메세지를 보낸다
-        연결하면 DM과 서버 대나무숲의 채팅이 동기화되며,
-        모바일 알림으로 작성자를 알 수 있는 약점이 없어진다.
-        해제 명령어는 '대숲 연결해제'
+        봇 DM채널과 서버 대나무숲 채널을 연결한다
+        연결하면 DM에 보낸 채팅은 대나무숲으로,
+        대나무숲에 보낸 채팅은 DM으로 보내진다.
+        디스코드 모바일 알림에 익명 메세지 작성자가
+        보여버리는 버그를 극복하기 위해 만든 기능.
+        취소 명령어는 '대숲 연결해제'
         """
         p = ctx.prefix
         if link := self.dm_links.get(ctx.author):
@@ -322,7 +326,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
 
     @bamboo.command(name="연결해제")
     @commands.dm_only()
-    async def remove_link(self, ctx: DMacLak):
+    async def rm_link(self, ctx: DMacLak):
         """
         대나무숲과의 연결을 해제한다
         """
@@ -337,7 +341,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
 
         await ctx.tick(True)
 
-    @bamboo.command(aliases=["밴", "사면"], usage="@유저")
+    @bamboo.alias_group(aliases=["밴", "사면"], usage="@유저")
     @clockbot.owner_or_admin()
     async def _ban(self, ctx: GMacLak, user: discord.User):
         """

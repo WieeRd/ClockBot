@@ -129,6 +129,8 @@ class DMacLak(MacLak):
     author: discord.User
     me: discord.ClientUser
 
+# TODO: parameter 'required_permissions'
+# TODO: method 'create_invite() -> str'
 class ClockBot(commands.Bot):
     def __init__(self, db: AsyncIOMotorDatabase, **options):
         super().__init__(**options)

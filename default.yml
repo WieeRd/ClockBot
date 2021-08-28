@@ -18,7 +18,7 @@ help: # kwargs for utils.help.TextHelp
         - "대나무숲"
         # - "고급멘션"
         - "TTS"
-        - "트롤링"
+        - "장난"
         - "도구"
 mongodb: # kwargs for AsyncIOMotorClient
     host:

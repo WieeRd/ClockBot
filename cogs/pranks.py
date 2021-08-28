@@ -6,7 +6,8 @@ import re
 from discord.ext import commands
 from typing import Callable, Dict, Tuple
 
-from clockbot import ClockBot, GMacLak, MacLak
+import clockbot
+from clockbot import GMacLak, MacLak
 from utils.chatfilter import *
 
 # TODO: google_trans_new is broken, find alternative
@@ -25,12 +26,14 @@ SPECIAL_LANGS: Dict[str, Translator] = {
     '흑우'  : cowslate,
 }
 
-class Pranks(commands.Cog, name="트롤링"):
+class Pranks(clockbot.Cog, name="장난"):
     """
     참신하고 장난치기 좋은 기능들
     """
-    def __init__(self, bot: ClockBot):
+    def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
+        # self.icon = "\U0001f383" # Jack-o-Lantern
+        self.icon = "\U0001f602" # LMAO
         self.help_menu = [
             self.impersonate,
             self.yell,
@@ -74,14 +77,14 @@ class Pranks(commands.Cog, name="트롤링"):
             await ctx.code("에러: 지원되는 문자: 영어/숫자/?!")
             # await ctx.send_help(self.yell)
 
-    @commands.command(name="_필터", aliases=list(SPECIAL_LANGS), usage="닉네임/@멘션")
+    @clockbot.alias_as_arg(name="필터", aliases=list(SPECIAL_LANGS), usage="닉네임/@멘션")
     @commands.guild_only()
     async def _filter(self, ctx: GMacLak, target: discord.Member):
         """
-        해당 유저의 채팅에 필터(번역기, 말투변환기)를 적용한다
+        해당 유저의 채팅에 필터(말투변환기)를 적용한다
         관리자가 적용한 필터는 관리자만 해제할 수 있으며,
         이는 뮤트를 먹이는 창의적인 방법이 될 수 있다.
-        아까부터 개소리(비유적)를 해대는 친구에게 개소리 필터를 걸어
+        아까부터 개소리(비유적)를 해대는 친구에게 개소리를 걸어
         개소리(말 그대로)를 울부짖는 모습을 구경해보자.
         """
         assert isinstance(ctx.invoked_with, str)
@@ -145,8 +148,4 @@ class Pranks(commands.Cog, name="트롤링"):
                 content = t[0](content)
             await ctx.mimic(msg.author, content)
 
-def setup(bot: ClockBot):
-    bot.add_cog(Pranks(bot))
-
-def teardown(bot):
-    pass
+setup = Pranks.setup

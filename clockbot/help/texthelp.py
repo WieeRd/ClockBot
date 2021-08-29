@@ -2,38 +2,12 @@ import discord
 from discord.ext import commands
 
 from contextlib import contextmanager
-from typing import Any, List, Union
+from typing import List, Union
 
-# TODO: alias_group: send help on !name[1:]
+# this is unused legacy code to be honest
+# maybe I'll update it to fit in new clockbot features
 
-class Page:
-    def line(self, content):
-        """Add single line to the page"""
-        ...
-
-    def lines(self, content):
-        """Add multi line string to the page"""
-        ...
-
-    def indent(self, amount):
-        ...
-
-    def dedent(self):
-        ...
-
-    @contextmanager
-    def indented(self, amount):
-        self.indent(amount)
-        yield
-        self.dedent()
-
-    def generate(self) -> Any:
-        ...
-
-    def clear(self):
-        ...
-
-class TextPage(Page):
+class TextPage:
     def __init__(self):
         self.buffer = []
         self.istack = []
@@ -60,6 +34,12 @@ class TextPage(Page):
         self.istack.pop()
 
     @contextmanager
+    def indented(self, amount):
+        self.indent(amount)
+        yield
+        self.dedent()
+
+    @contextmanager
     def codeblock(self, lang: str = ''):
         # so many bugs on mobile ahhhhh
         self.buffer.append('```' + lang + '\n')
@@ -75,8 +55,8 @@ class TextPage(Page):
 
 class TextHelp(commands.HelpCommand):
     """
-    Text-based help command based on
-    discord's markdown feature
+    ClockBot Help v1 using Markdowns
+    Deprecated after refactoring
     """
 
     context: commands.Context
@@ -89,7 +69,7 @@ class TextHelp(commands.HelpCommand):
         ):
         super().__init__(**options)
         self.name = options['command_attrs']['name']
-        self.page = TextPage()
+        self.page = TextPage() # why not just create new page per sending
         self.prefix = prefix
         self.suffix = suffix
         self.cogs = cogs
@@ -227,22 +207,18 @@ class TextHelp(commands.HelpCommand):
 
     async def command_not_found(self, cmd: str):
         p = self.clean_prefix
-        _help = self.name
-        where = self.get_destination()
         return (
             "```\n"
             f"에러: 카테고리/명령어 '{cmd}'을(를) 찾을 수 없습니다\n"
-            f"전체 목록 확인: {p}{_help}"
+            f"전체 목록 확인: {p}{self.name}"
             "\n```"
         )
 
     async def subcommand_not_found(self, cmd: commands.Command, sub: str):
         p = self.clean_prefix
-        _help = self.name
-        where = self.get_destination()
         return (
             "```\n"
             f"에러: 하위 명령어 '{sub}'을(를) 찾을 수 없습니다\n"
-            f"전체 목록 확인: {p}{_help} {cmd.name}"
+            f"전체 목록 확인: {p}{self.name} {cmd.name}"
             "\n```"
         )

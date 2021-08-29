@@ -15,7 +15,7 @@ class EmbedHelp(commands.HelpCommand):
     context: commands.Context
 
     def __init__(self,
-            command_attrs,
+            command_attrs = {},
             color: int = 0xFFFFFF,
             url: str = "https://youtu.be/dQw4w9WgXcQ",
             thumbnail: str = None,
@@ -74,14 +74,12 @@ class EmbedHelp(commands.HelpCommand):
         return
 
     def bot_page(self) -> discord.Embed:
-        embed = discord.Embed(
-            color = self.color,
-            title = "시계봇 도움말",
-            description = f"자세한 정보: `{self.invoker} <카테고리/명령어>`",
-            url = self.url,
-        )
-        thumbnail = self.thumbnail or str(self.bot.user.avatar_url)
-        embed.set_thumbnail(url=thumbnail)
+        embed = discord.Embed(color=self.color, url=self.url)
+
+        embed.title = "시계봇 도움말"
+        embed.description = f"자세한 정보: `{self.invoker} <카테고리/명령어>`"
+        embed.set_thumbnail(url=self.thumbnail or str(self.bot.user.avatar_url))
+
         if self.tips:
             tip = random.choice(self.tips)
             embed.set_footer(text = f"팁: {tip}")
@@ -98,12 +96,11 @@ class EmbedHelp(commands.HelpCommand):
         return embed
 
     def cog_page(self, cog: commands.Cog) -> discord.Embed:
-        embed = discord.Embed(
-            color = self.color,
-            title = f"{self.get_icon(cog)} {cog.qualified_name} 카테고리",
-            description = f"**{cog.description}**",
-            url = self.url
-        )
+        embed = discord.Embed(color=self.color, url=self.url)
+
+        embed.title = f"{self.get_icon(cog)} {cog.qualified_name} 카테고리"
+        embed.description = f"**{cog.description}**"
+        # embed.set_thumbnail(url=self.thumbnail or str(self.bot.user.avatar_url))
         embed.set_footer(text=f"자세한 정보: {self.invoker} <명령어>")
 
         for cmd in cog.get_commands(): # set 'showcase' attr for custom order
@@ -117,15 +114,11 @@ class EmbedHelp(commands.HelpCommand):
         return embed
 
     def group_page(self, grp: commands.Group) -> discord.Embed:
-        prefix = self.clean_prefix
-        cog = grp.cog_name
-        embed = discord.Embed(
-            color = self.color,
-            title = f"{prefix}{grp.qualified_name}",
-            description = f"**{grp.help or '도움말이 작성되지 않았습니다'}**",
-            url = self.url
-        )
-        embed.set_author(name=f"카테고리: {cog or '없음'}")
+        embed = discord.Embed(color=self.color, url=self.url)
+
+        embed.set_author(name=f"카테고리: {grp.cog_name or '없음'}")
+        embed.title = f"{self.clean_prefix}{grp.qualified_name}"
+        embed.description = f"**{grp.help or '도움말이 작성되지 않았습니다'}**"
         embed.set_footer(text=f"자세한 정보: {self.invoker} {grp.qualified_name} <명령어>")
 
         for cmd in grp.commands:
@@ -140,12 +133,10 @@ class EmbedHelp(commands.HelpCommand):
 
     # TODO: command check field (perm, cooldown)
     def cmd_page(self, cmd: commands.Command) -> discord.Embed:
-        embed = discord.Embed(
-            color = self.color,
-            title = f"{self.cmd_usage(cmd)}",
-            url = self.url
-        )
+        embed = discord.Embed(color=self.color, url=self.url)
+
         embed.set_author(name=f"카테고리: {cmd.cog_name or '없음'}")
+        embed.title = f"{self.cmd_usage(cmd)}"
         embed.set_footer(text=f"카테고리 더보기: {self.invoker} {cmd.cog_name or ''}")
 
         description = f"```{cmd.help or '도움말이 작성되지 않았습니다'}```"
@@ -153,8 +144,8 @@ class EmbedHelp(commands.HelpCommand):
             isinstance(cmd, clockbot.AliasAsArg) or
             isinstance(cmd, clockbot.AliasGroup)
         ):
-            prefix = cmd.full_parent_name + ' ' if cmd.parent else ''
-            aliases = ', '.join(f"`{prefix}{alias}`" for alias in cmd.aliases)
+            parent = cmd.full_parent_name + ' ' if cmd.parent else ''
+            aliases = ', '.join(f"`{parent}{alias}`" for alias in cmd.aliases)
             description = f" = {aliases}\n{description}"
         embed.description = description
 
@@ -181,19 +172,15 @@ class EmbedHelp(commands.HelpCommand):
         await destin.send(embed=embed)
 
     async def command_not_found(self, cmd: str) -> discord.Embed:
-        embed = discord.Embed(
-            color = self.color,
-            title = f"명령어/카테고리 '{cmd}'를 찾을 수 없습니다",
-            description = f"전체 목록 확인: `{self.invoker}`"
-        )
+        embed = discord.Embed(color = self.color)
+        embed.set_author(name=f"명령어/카테고리 '{cmd}'를 찾을 수 없습니다")
+        embed.description = f"전체 목록 확인: `{self.invoker}`"
         return embed
 
     async def subcommand_not_found(self, cmd: commands.Command, sub: str) -> discord.Embed:
-        embed = discord.Embed(
-            color = self.color,
-            title = f"하위 명령어 '{sub}'를 찾을 수 없습니다",
-            description = f"전체 목록 확인: `{self.invoker} {cmd.name}`"
-        )
+        embed = discord.Embed(color = self.color)
+        embed.set_author(name=f"하위 명령어 '{sub}'를 찾을 수 없습니다")
+        embed.description = f"전체 목록 확인: `{self.invoker} {cmd.name}`"
         return embed
 
     # TODO: fuzzy suggestion

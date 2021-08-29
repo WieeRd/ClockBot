@@ -180,3 +180,24 @@ class EmbedHelp(commands.HelpCommand):
         embed = self.cmd_page(cmd)
         destin = self.get_destination()
         await destin.send(embed=embed)
+
+    async def command_not_found(self, cmd: str) -> discord.Embed:
+        embed = discord.Embed(
+            color = self.color,
+            title = f"명령어/카테고리 '{cmd}'를 찾을 수 없습니다",
+            description = f"전체 목록 확인: `{self.invoker}`"
+        )
+        return embed
+
+    async def subcommand_not_found(self, cmd: commands.Command, sub: str) -> discord.Embed:
+        embed = discord.Embed(
+            color = self.color,
+            title = f"하위 명령어 '{sub}'를 찾을 수 없습니다",
+            description = f"전체 목록 확인: `{self.invoker} {cmd.name}`"
+        )
+        return embed
+
+    # TODO: fuzzy suggestion
+    async def send_error_message(self, error: discord.Embed):
+        destin = self.get_destination()
+        await destin.send(embed=error)

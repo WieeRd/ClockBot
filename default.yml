@@ -1,25 +1,27 @@
 token:
-prefix: '!'
-status: "Hello World"
+prefix: '%'
+status: "MUYAHO"
 extensions:
     - jishaku
     - cogs.owner
     - cogs.clock
-    # - cogs.test
     - cogs.bamboo
     - cogs.mention
     - cogs.voice
     - cogs.pranks
     - cogs.tools
-help: # kwargs for utils.help.TextHelp
-    prefix: ''
-    suffix: "봇 초대코드: http://add.clockbot.kro.kr"
-    cogs: # cogs to be shown in bot help menu
+help: # kwargs for clockbot.EmbedHelp
+    color: 0x7289da
+    url: "http://add.clockbot.kro.kr"
+    menu: # cogs shown in main(bot) menu
         - "대나무숲"
-        # - "고급멘션"
+        - "고급멘션"
         - "TTS"
         - "장난"
         - "도구"
+    tips: # random tips shown in embed footer
+        - "디스코드 그만 보고 현생을 사세요"
+        - "버그가 아니라 기능입니다. 그렇다면 그런 줄 알아."
 mongodb: # kwargs for AsyncIOMotorClient
     host:
     port:

@@ -1,6 +1,5 @@
-import discord
 from discord.ext import commands
-from typing import List, Union
+from typing import List
 
 from .bot import ClockBot
 # from .core import Command
@@ -31,28 +30,13 @@ class Cog(commands.Cog):
     """
 
     bot: ClockBot
+    icon: str # unicode emoji
     showcase: List[commands.Command]
     require_db: bool = True
 
-    @property
-    def icon(self) -> Union[discord.Emoji, str]:
-        return self._icon
-
-    @icon.setter
-    def icon(self, value):
-        if isinstance(value, int):
-            if icon := self.bot.get_emoji(value):
-                self._icon = icon
-            else:
-                raise ValueError(f"Invalid emoji id: {value}")
-        elif isinstance(value, str):
-            self._icon = value
-        else:
-            raise TypeError("Should be type of str or int")
-
     def get_commands(self) -> List[commands.Command]:
         """
-        If return 'showcase' if it's available.
+        Return 'showcase' attribute if it's available.
         Otherwise same as original get_commands()
         """
         return getattr(self, 'showcase', None) or super().get_commands()

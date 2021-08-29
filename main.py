@@ -33,7 +33,6 @@ except KeyError as e:
 
 help_command = EmbedHelp(
     **HELP_OPT,
-    color = 0x7289da,
     command_attrs = {
         "name": "도움",
         "aliases": ["help", "?"],

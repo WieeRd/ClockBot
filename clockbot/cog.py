@@ -32,7 +32,7 @@ class Cog(commands.Cog):
     bot: ClockBot
     icon: str # unicode emoji
     showcase: List[commands.Command]
-    require_db: bool = True
+    require_db: bool = False
 
     def get_commands(self) -> List[commands.Command]:
         """

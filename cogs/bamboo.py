@@ -377,9 +377,18 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             await ctx.code("에러: 이미 차단된 유저입니다")
             return
 
-        # TODO: remove link (forest, dm_link, db)
         forest.banned.add(user.id)
         await self.db.push(ctx.guild.id, 'banned', user.id)
+
+        if user in forest.links:
+            forest.links.remove(user)
+            del self.dm_links[user]
+            await self.db.pull(forest.channel.guild.id, 'links', user.id)
+
+            embed = discord.Embed(color=COLOR)
+            embed.set_author(name="연결이 강제 종료되었습니다")
+            embed.description = f"해당 대나무숲에서 차단되셨습니다"
+            await user.send(embed=embed)
 
         p = ctx.prefix
         embed = discord.Embed(color=COLOR)

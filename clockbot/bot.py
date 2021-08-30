@@ -90,7 +90,8 @@ class MacLak(commands.Context):
         add reaction (True: check, False: cross)
         """
         emoji = '\N{WHITE HEAVY CHECK MARK}' if value else '\N{CROSS MARK}'
-        await self.message.add_reaction(emoji)
+        try: await self.message.add_reaction(emoji)
+        except: pass # please just shut up don't stop my entire code
 
     async def error(self, content: str) -> discord.Message:
         """

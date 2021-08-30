@@ -172,10 +172,8 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
 
             embed = discord.Embed(color=COLOR)
             embed.set_author(name=f"{TIMEOUT}분동안 활동이 없어 연결을 종료합니다")
-            embed.description = f"재접속하기: `대숲 연결 {guild.name}`"
+            embed.description = "팁: `대숲 연결유지`로 연결하면 타임아웃이 없습니다"
             await user.send(embed=embed)
-
-            # TODO: 대숲 연결유지: link.recent = float('INF')
 
     # TODO: Sending cog help should be ClockBot feature
     @commands.command(name="대나무숲")
@@ -287,7 +285,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             embed.set_author(name=f"연결 가능한 대나무숲이 없습니다!")
             embed.description = f"`{p}대숲 설치`로 새로운 대나무숲을 만들어보세요"
             await ctx.send(embed=embed)
-            return
+            return False
 
         # TODO: 'smartcase' search
         candidates = tuple(filter(lambda g: server in g.name, joined))
@@ -304,14 +302,14 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
                 f"(이름 일부만 입력해도 인식됩니다)"
             )
             await ctx.send(embed=embed)
-            return
+            return False
 
         if len(candidates)==0: # no search result
             embed = discord.Embed(color=COLOR)
             embed.set_author(name=f"\"{server}\"에 대한 검색 결과가 없습니다")
             embed.description = f"`{p}대숲 연결`로 연결 가능한 서버를 확인하세요"
             await ctx.send(embed=embed)
-            return
+            return False
 
         # len(candidates)==1
         target = candidates[0]
@@ -320,7 +318,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             embed.set_author(name=f"[{target.name}]의 대나무숲에서 차단되셨습니다!")
             embed.description = "서버 관리자에게 문의하세요"
             await ctx.send(embed=embed)
-            return
+            return False
 
         embed = discord.Embed(color=COLOR)
         embed.title = f"[{target.name}] 서버와 연결합니다"
@@ -335,6 +333,18 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         forest.links.append(ctx.author)
         self.dm_links[ctx.author] = DMlink(forest, time.time())
         await self.db.push(target.id, 'links', ctx.author.id)
+        return True
+
+    @bamboo.command(name="연결유지", usage="<서버이름>")
+    @commands.dm_only()
+    async def keep_link(self, ctx: DMacLak, *, server: str = ''):
+        """
+        타임아웃으로 연결이 끊기지 않는 '대숲 연결'.
+        한번 연결하고 DM 알림을 꺼두면 언제나
+        완벽한 익명의 대나무숲을 바로 이용할 수 있다.
+        """
+        if await self.add_link(ctx, server=server):
+            self.dm_links[ctx.author].recent = float('INF')
 
     @bamboo.command(name="연결해제")
     @commands.dm_only()
@@ -566,7 +576,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
 
         elif isinstance(channel, discord.DMChannel):
             if link := self.dm_links.get(channel.recipient):
-                link.recent = time.time()
+                link.recent = max(time.time(), link.recent)
                 sent = await link.forest.send(msg)
 
         if sent:

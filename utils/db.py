@@ -1,9 +1,9 @@
 import motor.motor_asyncio as motor
 from typing import Any, Dict, Optional
 
-class MongoDict:
+class DictDB:
     """
-    Extremely simplified mongodb collection wrapper
+    Simplified MongoDB collection wrapper
     MotorCollection methods also works
     """
 
@@ -43,3 +43,38 @@ class MongoDict:
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.col, name)
+
+class NullDB(DictDB):
+    """
+    Same interface as MongoDict but does nothing
+    """
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    async def get(self, _id: Any) -> Optional[Dict[str, Any]]:
+        return
+
+    async def set(self, _id: Any, **values):
+        pass
+
+    async def inc(self, _id: Any, field: str, amount: float):
+        pass
+
+    async def push(self, _id: Any, field: str, value: Any):
+        pass
+
+    async def pull(self, _id: Any, field: str, value: Any):
+        pass
+
+    async def remove(self, _id: Any):
+        pass
+
+    async def null_coro(self, *args, **kwargs):
+        return
+
+    def __getattr__(self, name: str) -> Any:
+        return self.null_coro
+
+class JsonDB(DictDB):
+    ... # TODO

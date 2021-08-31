@@ -11,7 +11,7 @@ from typing import Dict, List, Optional, Set, TypedDict
 
 import clockbot
 from clockbot import MacLak, GMacLak, DMacLak
-from utils.db import MongoDict
+from utils.db import DictDB
 
 CONTAIN_URL = re.compile(r"http[s]?://")
 def is_media(msg: discord.Message) -> bool:
@@ -117,8 +117,8 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         self.forests: Dict[discord.Guild, Forest] = {}
         self.dm_links: Dict[discord.User, DMlink] = {}
 
-        self.db = MongoDict(bot.db.forests)
-        self.logs = MongoDict(bot.db.forest_log)
+        self.db = DictDB(bot.db.forests)
+        self.logs = DictDB(bot.db.forest_log)
 
         self.load_forest.start()
         self.timeout.start()

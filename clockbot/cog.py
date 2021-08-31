@@ -24,7 +24,7 @@ class ExtensionRequireDB(Exception):
 class Cog(commands.Cog):
     """
     Standard base class for documented ClockBot Cog
-    icon       : Emoji to be used as icon in help command
+    icon       : Emoji used as icon in help command
     showcase   : Commands to be shown in cog help
     require_db : If this cog uses bot.db (False by default)
     """
@@ -32,7 +32,7 @@ class Cog(commands.Cog):
     bot: ClockBot
     icon: str # unicode emoji
     showcase: List[commands.Command]
-    require_db: bool = False
+    require_db: bool = False # TODO: require level (+ 'wanted')
 
     def get_commands(self) -> List[commands.Command]:
         """

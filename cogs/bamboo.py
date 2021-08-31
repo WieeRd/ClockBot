@@ -175,11 +175,6 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             embed.description = "팁: `대숲 연결유지`로 연결하면 타임아웃이 없습니다"
             await user.send(embed=embed)
 
-    # TODO: Sending cog help should be ClockBot feature
-    @commands.command(name="대나무숲")
-    async def migration(self, ctx: MacLak):
-        await ctx.send_help(self)
-
     @clockbot.group(name="대숲")
     async def bamboo(self, ctx: MacLak):
         """
@@ -287,8 +282,8 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             await ctx.send(embed=embed)
             return False
 
-        # TODO: 'smartcase' search
-        candidates = tuple(filter(lambda g: server in g.name, joined))
+        server = server.lower() # 'set ignorecase'
+        candidates = tuple(filter(lambda g: server in g.name.lower(), joined))
         if len(candidates)>1: # multiple search results
             embed = discord.Embed(color=COLOR)
             if server:

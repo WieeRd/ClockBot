@@ -64,7 +64,7 @@ except Exception as e:
     print(f"DB connection failed ({type(e).__name__})")
     db = None
 else:
-    print(f"Connected to DB [{client.HOST}:{client.PORT}]")
+    print(f"Connected to DB '{DB_NAME}' [{client.HOST}:{client.PORT}]")
     db = client.get_database(name=DB_NAME)
 
 intents = discord.Intents.all()
@@ -99,7 +99,7 @@ print("Loading initial extensions")
 success = 0
 for i, ext in enumerate(INIT_EXTS):
     try:
-        print(f"[{i}] Loading '{ext}' ", end='', flush=True)
+        print(f"[{i+1}] Loading '{ext}' ", end='', flush=True)
         bot.load_extension(ext)
     except commands.ExtensionFailed as e:
         e = e.original

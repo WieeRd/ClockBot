@@ -222,7 +222,8 @@ class ClockBot(commands.Bot):
 
     async def on_command_error(self, ctx: MacLak, error: commands.CommandError):
         if isinstance(error, commands.CommandNotFound):
-            pass # TODO: send Cog help if name matches
+            if cog := self.get_cog(ctx.invoked_with or ''):
+                await ctx.send_help(cog)
         elif isinstance(error, commands.UserInputError):
             await ctx.send_help(ctx.command)
 

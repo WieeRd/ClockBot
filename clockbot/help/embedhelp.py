@@ -1,8 +1,10 @@
 import discord
 import random
 import clockbot
+
 from discord.ext import commands
-from typing import List, Union
+from discord.ext.commands import Bot, Cog, Group, Command
+from typing import Dict, List, Union
 
 def hoverlink(text: str, url: str, hover: str = '') -> str:
     return f"[{text}]({url} '{hover}')"
@@ -17,6 +19,7 @@ class EmbedHelp(commands.HelpCommand):
     def __init__(self,
             command_attrs = {},
             color: int = 0xFFFFFF,
+            title: str = "Sample Text",
             url: str = "https://youtu.be/dQw4w9WgXcQ",
             thumbnail: str = None,
             menu: List[str] = [],
@@ -24,20 +27,37 @@ class EmbedHelp(commands.HelpCommand):
             **options):
         super().__init__(command_attrs=command_attrs, **options)
         self.color = color
+        self.title = title
         self.url = url
         self.thumbnail = thumbnail
         self.menu = menu
         self.tips = tips
 
     @property
-    def bot(self) -> commands.Bot:
+    def bot(self) -> Bot:
         return self.context.bot
 
     @property
     def invoker(self) -> str:
         return f"{self.clean_prefix}{self.invoked_with}"
 
-    def get_icon(self, cog: commands.Cog) -> Union[discord.Emoji, str]:
+    def cmd_usage(self, cmd: Command) -> str:
+        prefix = self.clean_prefix
+        if isinstance(cmd, clockbot.AliasAsArg):
+            # %alias1 usage
+            # %alias2 usage
+            variants = [f"{prefix}{name} {cmd.signature}" for name in cmd.aliases]
+            usage = '\n'.join(variants)
+        elif isinstance(cmd, clockbot.AliasGroup):
+            # %parent [A/B] usage
+            options = f"{cmd.name}/{'/'.join(cmd.aliases)}"
+            usage = f"{prefix}{cmd.full_parent_name} [{options}] {cmd.signature}"
+        else:
+            # %parent name usage
+            usage = f"{prefix}{cmd.qualified_name} {cmd.signature}"
+        return usage
+
+    def get_icon(self, cog: Cog) -> str:
         """
         Return Cog.icon if it's clockbot.Cog
         If not, Cog.__class__.__name__'s initial letter
@@ -54,29 +74,21 @@ class EmbedHelp(commands.HelpCommand):
         icon = chr(offset + ord(char))
         return icon
 
-    def cmd_usage(self, cmd: commands.Command) -> str:
-        prefix = self.clean_prefix
-        if isinstance(cmd, clockbot.AliasAsArg):
-            # %alias1 usage
-            # %alias2 usage
-            variants = [f"{prefix}{name} {cmd.signature}" for name in cmd.aliases]
-            usage = '\n'.join(variants)
-        elif isinstance(cmd, clockbot.AliasGroup):
-            # %parent [A/B] usage
-            options = f"{cmd.name}/{'/'.join(cmd.aliases)}"
-            usage = f"{prefix}{cmd.full_parent_name} [{options}] {cmd.signature}"
-        else:
-            # %parent name usage
-            usage = f"{prefix}{cmd.qualified_name} {cmd.signature}"
-        return usage
+    def get_bot_mapping(self) -> Dict[str, Cog]:
+        mapping: Dict[str, Cog] = {}
+        for name in self.menu or self.bot.cogs:
+            if cog := self.bot.get_cog(name):
+                icon = self.get_icon(cog)
+                if dup := mapping.get(icon):
+                    cog1, cog2 = cog.qualified_name, dup.qualified_name
+                    raise ValueError(f"Duplicate icon: {cog1}, {cog2}")
+                mapping[icon] = cog
+        return mapping
 
-    def get_bot_mapping(self):
-        return
-
-    def bot_page(self) -> discord.Embed:
+    def bot_page(self, mapping: Dict[str, Cog]) -> discord.Embed:
         embed = discord.Embed(color=self.color, url=self.url)
 
-        embed.title = "시계봇 도움말"
+        embed.title = self.title
         embed.description = f"자세한 정보: `{self.invoker} <카테고리/명령어>`"
         embed.set_thumbnail(url=self.thumbnail or str(self.bot.user.avatar_url))
 
@@ -84,18 +96,16 @@ class EmbedHelp(commands.HelpCommand):
             tip = random.choice(self.tips)
             embed.set_footer(text = f"팁: {tip}")
 
-        cogs = self.menu or self.bot.cogs
-        for name in cogs:
-            if cog := self.bot.get_cog(name):
-                embed.add_field(
-                    name = f"{self.get_icon(cog)} {cog.qualified_name}",
-                    value = cog.description or "도움말이 작성되지 않았습니다",
-                    inline = False
-                )
+        for icon, cog in mapping.items():
+            embed.add_field(
+                name = f"{icon} {cog.qualified_name}",
+                value = cog.description or "도움말이 작성되지 않았습니다",
+                inline = False
+            )
 
         return embed
 
-    def cog_page(self, cog: commands.Cog) -> discord.Embed:
+    def cog_page(self, cog: Cog) -> discord.Embed:
         embed = discord.Embed(color=self.color, url=self.url)
 
         embed.title = f"{self.get_icon(cog)} {cog.qualified_name} 카테고리"
@@ -113,7 +123,7 @@ class EmbedHelp(commands.HelpCommand):
 
         return embed
 
-    def group_page(self, grp: commands.Group) -> discord.Embed:
+    def group_page(self, grp: Group) -> discord.Embed:
         embed = discord.Embed(color=self.color, url=self.url)
 
         embed.set_author(name=f"카테고리: {grp.cog_name or '없음'}")
@@ -132,7 +142,7 @@ class EmbedHelp(commands.HelpCommand):
         return embed
 
     # TODO: command check field (perm, cooldown)
-    def cmd_page(self, cmd: commands.Command) -> discord.Embed:
+    def cmd_page(self, cmd: Command) -> discord.Embed:
         embed = discord.Embed(color=self.color, url=self.url)
 
         embed.set_author(name=f"카테고리: {cmd.cog_name or '없음'}")
@@ -151,22 +161,22 @@ class EmbedHelp(commands.HelpCommand):
 
         return embed
 
-    async def send_bot_help(self, mapping):
-        embed = self.bot_page()
+    async def send_bot_help(self, mapping: Dict[str, Cog]):
+        embed = self.bot_page(mapping)
         destin = self.get_destination()
         await destin.send(embed=embed)
 
-    async def send_cog_help(self, cog: commands.Cog):
+    async def send_cog_help(self, cog: Cog):
         embed = self.cog_page(cog)
         destin = self.get_destination()
         await destin.send(embed=embed)
 
-    async def send_group_help(self, grp: commands.Group):
+    async def send_group_help(self, grp: Group):
         embed = self.group_page(grp)
         destin = self.get_destination()
         await destin.send(embed=embed)
 
-    async def send_command_help(self, cmd: commands.Command):
+    async def send_command_help(self, cmd: Command):
         embed = self.cmd_page(cmd)
         destin = self.get_destination()
         await destin.send(embed=embed)
@@ -177,7 +187,7 @@ class EmbedHelp(commands.HelpCommand):
         embed.description = f"전체 목록 확인: `{self.invoker}`"
         return embed
 
-    async def subcommand_not_found(self, cmd: commands.Command, sub: str) -> discord.Embed:
+    async def subcommand_not_found(self, cmd: Command, sub: str) -> discord.Embed:
         embed = discord.Embed(color = self.color)
         embed.set_author(name=f"하위 명령어 '{sub}'를 찾을 수 없습니다")
         embed.description = f"전체 목록 확인: `{self.invoker} {cmd.name}`"
@@ -187,3 +197,15 @@ class EmbedHelp(commands.HelpCommand):
     async def send_error_message(self, error: discord.Embed):
         destin = self.get_destination()
         await destin.send(embed=error)
+
+class EmbedMenu(EmbedHelp):
+    """
+    ClockBot Help v3 using reaction menu
+    Written in the back of the exam paper
+    """
+
+    msg: discord.Message
+    cursor: str
+    full: bool
+    mapping: Dict[str, Union[Cog, None]]
+    cached: Dict[str, discord.Embed]

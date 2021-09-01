@@ -12,6 +12,7 @@ extensions:
     - cogs.tools
 help: # kwargs for clockbot.EmbedHelp
     color: 0x7289da
+    title: "시계봇 도움말"
     url: "http://add.clockbot.kro.kr"
     menu: # cogs shown in main(bot) menu
         - "대나무숲"

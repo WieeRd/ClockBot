@@ -171,6 +171,10 @@ class ClockBot(commands.Bot):
         ctx = await self.get_context(msg, cls=cls)
         await self.invoke(ctx)
 
+        # TODO: when mentioned
+        # if self.user.id in msg.raw_mentions and ctx.command==None:
+        #     ...
+
     async def owner_or_admin(self, user: discord.Member) -> bool:
         return await self.is_owner(user) or user.guild_permissions.administrator
 

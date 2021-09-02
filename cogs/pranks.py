@@ -78,6 +78,7 @@ class Pranks(clockbot.Cog, name="장난"):
             # await ctx.send_help(self.yell)
 
     @clockbot.alias_as_arg(name="필터", aliases=list(SPECIAL_LANGS), usage="닉네임/@멘션")
+    @commands.bot_has_permissions(manage_messages=True, manage_webhooks=True)
     @commands.guild_only()
     async def _filter(self, ctx: GMacLak, target: discord.Member):
         """
@@ -140,6 +141,7 @@ class Pranks(clockbot.Cog, name="장난"):
         if not msg.content:
             return
 
+        # TODO: ctx utils are available in bot now
         if t := self.filters.get((msg.guild.id, msg.author.id)):
             ctx = await self.bot.get_context(msg, cls=GMacLak)
             await msg.delete()

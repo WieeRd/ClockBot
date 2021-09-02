@@ -1,10 +1,11 @@
 import discord
+import asyncio
 import random
 import clockbot
 
 from discord.ext import commands
 from discord.ext.commands import Bot, Cog, Group, Command
-from typing import Dict, List, Union
+from typing import Dict, List
 
 def hoverlink(text: str, url: str, hover: str = '') -> str:
     return f"[{text}]({url} '{hover}')"
@@ -16,7 +17,7 @@ class EmbedHelp(commands.HelpCommand):
 
     context: commands.Context
 
-    def __init__(self,
+    def __init__(self, *,
             command_attrs = {},
             color: int = 0xFFFFFF,
             title: str = "Sample Text",
@@ -204,8 +205,79 @@ class EmbedMenu(EmbedHelp):
     Written in the back of the exam paper
     """
 
+    mapping: Dict[str, Cog]
+    cached: Dict[str, discord.Embed]
     msg: discord.Message
     cursor: str
-    full: bool
-    mapping: Dict[str, Union[Cog, None]]
-    cached: Dict[str, discord.Embed]
+
+    def __init__(self, *,
+            main: str = "\N{BOOKMARK}",
+            timeout: float = 60,
+            inactive: int = 0x000000,
+            **kwargs
+        ):
+        super().__init__(**kwargs)
+        self.cached = {}
+        self.main = main
+        self.timeout = timeout
+        self.inactive = inactive
+
+    def get_page(self, icon: str) -> discord.Embed:
+        if cached := self.cached.get(icon):
+            embed = cached
+        elif icon==self.main:
+            # opening bot page for the first time
+            mapping = self.get_bot_mapping()
+            embed = self.bot_page(mapping)
+            self.mapping = mapping
+            self.cached[self.main] = embed
+        elif cog := self.mapping.get(icon):
+            embed = self.cog_page(cog)
+            self.cached[icon] = embed
+        else:
+            raise ValueError("No corresponding page to icon")
+        return embed
+
+    async def button_handler(self, timeout: float):
+        def check(reaction: discord.Reaction, user: discord.User) -> bool:
+            return (
+                reaction.message == self.msg and
+                user == self.context.author and
+                ( reaction.emoji == self.main or
+                  reaction.emoji in self.mapping )
+            )
+
+        while True:
+            reaction, user = await self.bot.wait_for(
+                'reaction_add',
+                check=check,
+                timeout=timeout,
+            )
+            await reaction.remove(user)
+
+            if self.cursor != reaction.emoji:
+                self.cursor = reaction.emoji
+                embed = self.get_page(reaction.emoji)
+                await self.msg.edit(embed=embed)
+
+    async def send_bot_help(self, mapping: Dict[str, Cog]):
+        embed = self.bot_page(mapping)
+        destin = self.get_destination()
+        msg = await destin.send(embed=embed)
+
+        self.mapping = mapping
+        self.cached[self.main] = embed
+        self.msg = msg
+        self.cursor = self.main
+
+        await msg.add_reaction(self.main)
+        for icon in mapping:
+            await msg.add_reaction(icon)
+
+        try:
+            await self.button_handler(timeout=self.timeout)
+        except asyncio.TimeoutError:
+            embed = self.get_page(self.cursor)
+            embed.color = self.inactive
+            await self.msg.clear_reactions()
+            await self.msg.edit(embed=embed)

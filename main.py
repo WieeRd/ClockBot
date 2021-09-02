@@ -7,7 +7,7 @@ import yaml
 import time
 
 from discord.ext import commands
-from clockbot import ClockBot, ExitOpt, EmbedHelp
+from clockbot import ClockBot, ExitOpt, EmbedHelp, EmbedMenu
 from motor.motor_asyncio import AsyncIOMotorClient
 
 if not os.path.exists("config.yml"):
@@ -31,7 +31,7 @@ except KeyError as e:
     print(f"Error: config option '{e}' is missing")
     exit(ExitOpt.ERROR)
 
-help_command = EmbedHelp(
+help_command = EmbedMenu(
     **HELP_OPT,
     command_attrs = {
         "name": "도움",

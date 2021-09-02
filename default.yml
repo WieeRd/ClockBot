@@ -23,6 +23,8 @@ help: # kwargs for clockbot.EmbedHelp
     tips: # random tips shown in embed footer
         - "디스코드 그만 보고 현생을 사세요"
         - "버그가 아니라 기능입니다. 그렇다면 그런 줄 알아."
+    timeout: 60
+    inactive: 0x99aab5
 mongodb: # kwargs for AsyncIOMotorClient
     host:
     port:

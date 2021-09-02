@@ -1,2 +1,2 @@
 from .texthelp import TextHelp
-from .embedhelp import EmbedHelp
+from .embedhelp import EmbedHelp, EmbedMenu

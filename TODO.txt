@@ -4,8 +4,8 @@ cogs.portal - new
 cogs.game - chess, TicTacTo
 cogs.voice - improve
 cogs.custom - custom command for each server
+ -> %tip command
 cogs.babel - NyanChat, Hawawa
 
 help cog - part of cogs.owner - runtime import
 null DB
-bot.color

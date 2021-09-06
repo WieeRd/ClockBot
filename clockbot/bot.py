@@ -1,9 +1,9 @@
 """
 ClockBot, MacLak (Bot, Context)
 """
-
 import discord
 import aiohttp
+import time
 import traceback
 
 from discord.ext import commands
@@ -138,7 +138,7 @@ class DMacLak(MacLak):
 # TODO: parameter 'required_permissions'
 # TODO: method 'create_invite() -> str'
 class ClockBot(commands.Bot):
-    def __init__(self, db: AsyncIOMotorDatabase, **options):
+    def __init__(self, db: AsyncIOMotorDatabase, color: int = 0x000000, **options):
         super().__init__(**options)
         self.started: float = 0
         self.exitopt = ExitOpt.UNSET
@@ -146,12 +146,20 @@ class ClockBot(commands.Bot):
 
         # mongodb database
         self.db = db
+        # default embed color
+        self.color = color
         # cached webhook
         self.webhooks: Dict[int, discord.Webhook] = {}
         # special channels (ex: bamboo forest) { channel_id : "reason" }
         self.specials: Dict[int, str] = {}
         # dumped context objects for debugging
         self.dumped: List[MacLak] = []
+
+    async def on_ready(self):
+        if not self.started: # initial launch
+            self.started = time.time()
+            print(f"{self.user} [{self.user.id}] is now online")
+            print(f"Connected to {len(self.guilds)} servers and {len(self.users)} users")
 
     async def close(self):
         await self.session.close()

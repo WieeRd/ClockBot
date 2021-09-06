@@ -4,10 +4,9 @@ import asyncio
 import os.path
 import shutil
 import yaml
-import time
 
 from discord.ext import commands
-from clockbot import ClockBot, ExitOpt, EmbedHelp, EmbedMenu
+from clockbot import ClockBot, ExitOpt, EmbedMenu
 from motor.motor_asyncio import AsyncIOMotorClient
 
 if not os.path.exists("config.yml"):
@@ -22,6 +21,7 @@ with open("config.yml", 'r') as f:
 try:
     TOKEN = config['token']
     PREFIX = config['prefix']
+    COLOR = config['color']
     STATUS = config['status']
     INIT_EXTS = config['extensions']
     HELP_OPT = config['help']
@@ -72,19 +72,13 @@ activity = discord.Game(STATUS or "Hello World")
 
 bot = ClockBot(
     db = db,
+    color = COLOR,
     command_prefix = PREFIX,
     intents = intents,
     activity = activity,
     help_command = help_command,
     heartbeat_timeout = 60,
 )
-
-@bot.event
-async def on_ready():
-    if not bot.started: # initial launch
-        bot.started = time.time()
-        print(f"{bot.user} [{bot.user.id}] is now online")
-        print(f"Connected to {len(bot.guilds)} servers and {len(bot.users)} users")
 
 # TODO: move to Info Cog
 @bot.command(name="초대코드")

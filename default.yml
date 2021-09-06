@@ -1,5 +1,6 @@
 token:
 prefix: '%'
+color: 0x7289da
 status: "MUYAHO"
 extensions:
     - jishaku
@@ -10,7 +11,7 @@ extensions:
     - cogs.voice
     - cogs.pranks
     - cogs.tools
-help: # kwargs for clockbot.EmbedHelp
+help: # kwargs for HelpCommand
     color: 0x7289da
     title: "시계봇 도움말"
     url: "http://add.clockbot.kro.kr"

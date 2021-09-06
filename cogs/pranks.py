@@ -4,11 +4,13 @@ import emojis
 import re
 
 from discord.ext import commands
+from discord.ext import tasks
 from typing import Callable, Dict, Tuple
 
 import clockbot
 from clockbot import GMacLak, MacLak
 from utils.chatfilter import *
+from utils.db import DictDB
 
 # TODO: google_trans_new is broken, find alternative
 # TODO: custom emojis from other servers aren't available to bot
@@ -30,6 +32,8 @@ class Pranks(clockbot.Cog, name="장난"):
     """
     참신하고 장난치기 좋은 기능들
     """
+    require_db = True
+
     def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
         # self.icon = "\U0001f383" # Jack-o-Lantern
@@ -37,11 +41,25 @@ class Pranks(clockbot.Cog, name="장난"):
         self.help_menu = [
             self.impersonate,
             self.yell,
-            self._filter,
-            self.disable_filter,
+            self.add_filter,
+            self.rm_filter,
         ]
 
         self.filters: Dict[Tuple[int, int], Tuple[Translator, bool]] = {}
+        self.filterDB = DictDB(bot.db.filters)
+
+        self.load_filters.start()
+
+    @tasks.loop(count=1)
+    async def load_filters(self):
+        async for doc in self.filterDB.find():
+            guild_id = doc['_id']['guild']
+            user_id = doc['_id']['user']
+            filter_t = doc['filter_t']
+            by_admin = doc['by_admin']
+
+            if t := SPECIAL_LANGS.get(filter_t):
+                self.filters[(guild_id, user_id)] = (t, by_admin)
 
     @commands.command(name="사칭", usage="닉네임/@멘션 <선동&날조>")
     @commands.bot_has_permissions(manage_webhooks=True, manage_messages=True)
@@ -80,7 +98,7 @@ class Pranks(clockbot.Cog, name="장난"):
     @clockbot.alias_as_arg(name="필터", aliases=list(SPECIAL_LANGS), usage="닉네임/@멘션")
     @commands.bot_has_permissions(manage_messages=True, manage_webhooks=True)
     @commands.guild_only()
-    async def _filter(self, ctx: GMacLak, target: discord.Member):
+    async def add_filter(self, ctx: GMacLak, target: discord.Member):
         """
         해당 유저의 채팅에 필터(말투변환기)를 적용한다
         관리자가 적용한 필터는 관리자만 해제할 수 있으며,
@@ -106,16 +124,22 @@ class Pranks(clockbot.Cog, name="장난"):
 
         lang = ctx.invoked_with
         t = SPECIAL_LANGS[lang]
+
+        await self.filterDB.set(
+            {'guild': target.guild.id, 'user': target.id},
+            filter_t = ctx.invoked_with,
+            by_admin = by_admin
+        )
+        self.filters[(target.guild.id, target.id)] = (t, by_admin)
+
         await ctx.send( # TODO: custom message for each filter
             f"{target.display_name}님에게 '{lang}' 필터를 적용합니다\n"
             f"`{ctx.prefix}필터해제 @유저`으로 해제할 수 있습니다"
         )
-        await asyncio.sleep(1) # prevents translating command itself
-        self.filters[(target.guild.id, target.id)] = (t, by_admin)
 
     @commands.command(name="필터해제", usage="닉네임/@멘션")
     @commands.guild_only()
-    async def disable_filter(self, ctx: GMacLak, target: discord.Member):
+    async def rm_filter(self, ctx: GMacLak, target: discord.Member):
         """
         해당 유저에게 적용된 필터를 제거한다
         """
@@ -130,7 +154,12 @@ class Pranks(clockbot.Cog, name="장난"):
                 )
             else:
                 del self.filters[query]
-                await ctx.tick(True)
+                await self.filterDB.remove({
+                    'guild': target.guild.id,
+                    'user': target.id
+                })
+                if not await ctx.tick(True):
+                    await ctx.send("필터가 해제되었습니다")
         else:
             await ctx.code("에러: 적용되어 있는 필터가 없습니다")
 

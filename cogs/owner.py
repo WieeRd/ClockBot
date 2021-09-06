@@ -81,6 +81,7 @@ class Owner(commands.Cog, name="제작자"):
         elif cog := self.bot.get_cog(entity):
             target = cog.__class__
             code = inspect.getsource(target)
+            # TODO: send the whole file not just class
         else:
             await ctx.tick(False)
             return

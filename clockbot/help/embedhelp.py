@@ -8,8 +8,6 @@ from discord.ext.commands import Bot, Cog, Group, Command
 from typing import Dict, List, Union, overload
 
 NO_HELP = "도움말이 작성되지 않았습니다"
-MORE_INFO = "자세한 정보"
-
 HelpObj = Union[None, Cog, Group, Command]
 
 def hoverlink(text: str, url: str, hover: str = '') -> str:
@@ -98,7 +96,6 @@ class EmbedHelp(commands.HelpCommand):
 
         embed.title = self.title
         embed.description = f"`{self.help_usage}`"
-        # embed.description = f"{MORE_INFO}: `{self.help_usage}`"
         embed.set_thumbnail(url=self.thumbnail or str(self.bot.user.avatar_url))
 
         if self.tips:
@@ -120,7 +117,6 @@ class EmbedHelp(commands.HelpCommand):
         embed.title = f"{self.get_icon(cog)} {cog.qualified_name} 카테고리"
         embed.description = f"**{cog.description or NO_HELP}**"
         embed.set_footer(text=f"{self.help_usage}")
-        # embed.set_footer(text=f"{MORE_INFO}: {self.help_usage}")
 
         for cmd in cog.get_commands(): # set 'showcase' attr for custom order
             usage = self.cmd_usage(cmd)
@@ -139,7 +135,6 @@ class EmbedHelp(commands.HelpCommand):
         embed.title = f"{self.clean_prefix}{grp.qualified_name}"
         embed.description = f"**{grp.help or NO_HELP}**"
         embed.set_footer(text=f"{self.help_usage}")
-        # embed.set_footer(text=f"{MORE_INFO}: {self.help_usage}")
 
         for cmd in grp.commands:
             usage = self.cmd_usage(cmd)
@@ -158,7 +153,6 @@ class EmbedHelp(commands.HelpCommand):
         embed.set_author(name=f"카테고리: {cmd.cog_name or '없음'}")
         embed.title = f"{self.cmd_usage(cmd)}"
         embed.set_footer(text=f"{self.help_usage}")
-        # embed.set_footer(text=f"{MORE_INFO}: {self.help_usage}")
 
         description = f"```{cmd.help or NO_HELP}```"
         if cmd.aliases and not (

@@ -85,13 +85,18 @@ class MacLak(commands.Context):
         """
         return await self.send(f"```{lang}\n{content}\n```")
 
-    async def tick(self, value: bool):
+    async def tick(self, value: bool) -> bool:
         """
-        add reaction (True: check, False: cross)
+        Add reaction (True: check, False: cross)
+        Return if the operation was successful or not
         """
         emoji = '\N{WHITE HEAVY CHECK MARK}' if value else '\N{CROSS MARK}'
-        try: await self.message.add_reaction(emoji)
-        except: pass # please just shut up don't stop my entire code
+        try:
+            await self.message.add_reaction(emoji)
+        except:
+            return False
+        else:
+            return True
 
     async def error(self, content: str) -> discord.Message:
         """

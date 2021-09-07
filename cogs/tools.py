@@ -13,7 +13,7 @@ class Tools(clockbot.Cog, name="도구"):
 
     def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
-        self.icon = "\U0001f527" # Wrench
+        self.icon = "\N{WRENCH}" # Wrench
         self.showcase = [
             self.user_avatar,
             self.server_avatar,

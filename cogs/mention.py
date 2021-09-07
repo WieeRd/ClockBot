@@ -12,7 +12,7 @@ class Mention(clockbot.Cog, name="고급멘션"):
     """
     def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
-        self.icon = "\U0001f4cc" # pushpin
+        self.icon = "\N{PUSHPIN}"
         self.showcase = [
             self.member,
             self.mention,

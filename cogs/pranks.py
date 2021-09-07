@@ -108,10 +108,10 @@ class Pranks(clockbot.Cog, name="장난"):
     async def add_filter(self, ctx: GMacLak, target: discord.Member):
         """
         해당 유저의 채팅에 필터(말투변환기)를 적용한다
-        관리자가 적용한 필터는 관리자만 해제할 수 있으며,
-        이는 뮤트를 먹이는 창의적인 방법이 될 수 있다.
+        관리자가 적용한 필터는 관리자만 해제할 수 있으니
         아까부터 개소리(비유적)를 해대는 친구에게 개소리를 걸어
         개소리(말 그대로)를 울부짖는 모습을 구경해보자.
+        해제 명령어는 '필터해제 @유저'
         """
         assert isinstance(ctx.invoked_with, str)
         by_admin = await self.bot.owner_or_admin(ctx.author)

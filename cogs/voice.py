@@ -36,7 +36,7 @@ class Voice(clockbot.Cog, name="TTS"):
     """
     def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
-        self.icon = "\U0001f50a"
+        self.icon = "\N{SPEAKER WITH THREE SOUND WAVES}"
         self.showcase = [
             self.join,
             self.leave,

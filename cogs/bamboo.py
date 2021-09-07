@@ -104,7 +104,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
 
     def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
-        self.icon = '\U0001f38d'
+        self.icon = "\N{PINE DECORATION}"
         self.showcase = [
             self._forest,
             self._ban,

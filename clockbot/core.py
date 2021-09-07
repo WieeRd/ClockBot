@@ -65,7 +65,7 @@ def command(name: str = None, cls: Type[T] = Command, **attrs) -> Callable[[Call
         return cls(func, name=name, **attrs)
     return decorator
 
-def alias_as_arg(name: str, aliases: List[str], **attrs):
+def alias_as_arg(name: str = None, aliases: List[str] = [], **attrs):
     """
     Decorator for AliasAsArg command.
     """

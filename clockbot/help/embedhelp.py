@@ -302,7 +302,7 @@ class EmbedMenu(EmbedHelp):
                 await self.msg.edit(embed=embed)
                 return
 
-            await reaction.remove(user)
+            await reaction.remove(user) # TODO: can't remove reaction in DM
             icon = reaction.emoji
 
             if icon == self.exit:

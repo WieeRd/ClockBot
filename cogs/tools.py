@@ -17,7 +17,6 @@ class Tools(clockbot.Cog, name="도구"):
         self.showcase = [
             self.user_avatar,
             self.server_avatar,
-            self.get_emoji,
             self.coin,
             self.dice,
             self.choose,
@@ -41,15 +40,6 @@ class Tools(clockbot.Cog, name="도구"):
         현재 서버의 프로필 사진을 띄운다
         """
         await ctx.send(ctx.guild.icon_url)
-
-    @commands.command(name="이모지", aliases=["이모티콘"], usage=":thonk:")
-    async def get_emoji(self, ctx: MacLak, emoji: discord.PartialEmoji):
-        """
-        커스텀 이모티콘의 원본 이미지를 띄운다
-        서버 주인장에 따라 자작 이모티콘을 맘대로
-        가져가는 건 싫어할지도 모르니 주의하자
-        """
-        await ctx.send(emoji.url)
 
     @commands.command(name="동전")
     async def coin(self, ctx: MacLak):

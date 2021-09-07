@@ -36,9 +36,10 @@ class Pranks(clockbot.Cog, name="장난"):
 
     def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
-        # self.icon = "\U0001f383" # Jack-o-Lantern
-        self.icon = "\U0001f602" # LMAO
+        # self.icon = "\N{JACK-O-LANTERN}"
+        self.icon = "\N{FACE WITH TEARS OF JOY}"
         self.help_menu = [
+            self.get_emoji,
             self.impersonate,
             self.yell,
             self.add_filter,
@@ -60,6 +61,15 @@ class Pranks(clockbot.Cog, name="장난"):
 
             if t := SPECIAL_LANGS.get(filter_t):
                 self.filters[(guild_id, user_id)] = (t, by_admin)
+
+    @commands.command(name="이모지", aliases=["이모티콘"], usage=":thonk:")
+    async def get_emoji(self, ctx: MacLak, emoji: discord.PartialEmoji):
+        """
+        커스텀 이모티콘을 큼지막하게 출력한다
+        번쩍거리는 이모지에 사용해서 눈을 더욱 아프게 만들거나
+        이모티콘 원본 이미지를 다운받는데 사용할 수 있다.
+        """
+        await ctx.send(emoji.url)
 
     @commands.command(name="사칭", usage="닉네임/@멘션 <선동&날조>")
     @commands.bot_has_permissions(manage_webhooks=True, manage_messages=True)

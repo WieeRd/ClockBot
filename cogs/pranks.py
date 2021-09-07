@@ -1,5 +1,4 @@
 import discord
-import asyncio
 import emojis
 import re
 
@@ -46,6 +45,8 @@ class Pranks(clockbot.Cog, name="장난"):
             self.rm_filter,
         ]
 
+        self.imperDB = DictDB(bot.db.impersonate)
+
         self.filters: Dict[Tuple[int, int], Tuple[Translator, bool]] = {}
         self.filterDB = DictDB(bot.db.filters)
 
@@ -81,17 +82,13 @@ class Pranks(clockbot.Cog, name="장난"):
         재밌긴 하지만 당하면 화내는 사람들도 있고 악용의 우려가 있어
         명령어가 적힌 메세지를 삭제하면 가짜 메세지도 자동 삭제된다.
         """
-        mimic_msg = await ctx.mimic(user, txt, wait=True)
-        check = lambda msg: msg==ctx.message
-        try:
-            # TODO: this accumulates coros and slows down bot
-            # TODO: But what if purge is called and 50 queries occur at once
-            await self.bot.wait_for('message_delete', check=check, timeout=90)
-        except asyncio.TimeoutError:
-            pass
-        else:
-            assert mimic_msg is not None
-            await mimic_msg.delete()
+        msg = await ctx.mimic(user, txt, wait=True)
+        assert msg != None
+
+        await self.imperDB.insert_one({
+            '_id': ctx.message.id,
+            'mimic': msg.id
+        }) # message id is not globally unique, but chance of collision is still low
 
     @commands.command(name="빼액", usage="<텍스트>")
     async def yell(self, ctx: MacLak, *, txt: str):
@@ -188,5 +185,17 @@ class Pranks(clockbot.Cog, name="장난"):
             if not strObject.match(content):
                 content = t[0](content)
             await ctx.mimic(msg.author, content)
+
+
+    @commands.Cog.listener()
+    async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
+        if query := await self.imperDB.get(payload.message_id):
+            channel = self.bot.get_channel(payload.channel_id)
+            if isinstance(channel, discord.TextChannel):
+                try:
+                    mimic = await channel.fetch_message(query['mimic'])
+                    await mimic.delete()
+                except:
+                    pass
 
 setup = Pranks.setup

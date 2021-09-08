@@ -37,7 +37,7 @@ class Pranks(clockbot.Cog, name="장난"):
         self.bot = bot
         # self.icon = "\N{JACK-O-LANTERN}"
         self.icon = "\N{FACE WITH TEARS OF JOY}"
-        self.help_menu = [
+        self.showcase = [
             self.get_emoji,
             self.impersonate,
             self.yell,

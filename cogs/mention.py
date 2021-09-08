@@ -6,6 +6,10 @@ import clockbot
 from clockbot import GMacLak, MacLak
 import utils.MemberFilter as MemberFilter
 
+# TODO: used embed
+# TODO: usage command
+# TODO: easier expr
+# TODO: fuzzy match
 class Mention(clockbot.Cog, name="고급멘션"):
     """
     멘션 대상을 더 '섬세하게' 지정하는 방법
@@ -26,9 +30,6 @@ class Mention(clockbot.Cog, name="고급멘션"):
         """
         조건식에 맞는 멤버 목록을 출력한다
         멘션 알림이 가지 않으니 안심하자.
-        메세지에서 멘션 권한을 없애면 모바일에선
-        @invalid-user로 표시되는 버그가 있다.
-        ***시계봇이 아니라 디스코드 버그다***
         """
         try:
             target = MemberFilter.parse(expression, ctx.guild)

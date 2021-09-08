@@ -1,4 +1,5 @@
 discord.py
+discord.py-stubs
 motor
 pyYAML
 jishaku

@@ -1,6 +1,8 @@
 #!/bin/bash
-echo "Creating .venv"
-python3 -m venv .venv
+if ! [ -d ".venv" ]; then
+    echo "Creating .venv"
+    python3 -m venv .venv
+fi
 
 echo "Entering .venv"
 source .venv/bin/activate

@@ -10,3 +10,5 @@ cogs.babel - NyanChat, Hawawa
 help cog - part of cogs.owner - runtime import
 null DB
 setup logging
+
+venv and requirements.txt

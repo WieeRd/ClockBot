@@ -1,10 +1,16 @@
 #!/bin/bash
-
-# cd to directory of script file
 cd "$(dirname -- "${BASH_SOURCE[0]}")"
 
-python3 ./main.py
+if [ -d ".venv" ]; then
+    echo "Entering .venv"
+    source .venv/bin/activate
+else
+    echo ".venv was not found"
+fi
+
+python3 main.py
 exitopt=$?
+
 yes = | head -n$(($COLUMNS)) | tr -d '\n'
 echo Received exitcode $exitopt
 
@@ -27,7 +33,6 @@ elif [ $exitopt -eq 4 ]; then
 elif [ $exitopt -eq 5 ]; then
 	echo "Reboot!"
 	/sbin/reboot
-	reboot
 else
 	echo "Something's wrong... I can feel it"
 fi

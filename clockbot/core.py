@@ -24,6 +24,7 @@ class AliasAsArg(Command):
     Send help when invoked with name.
     """
 
+    # TODO: reinvoke() is a thing
     async def invoke(self, ctx: commands.Context):
         ctx.command = self
         ctx.invoked_subcommand = None

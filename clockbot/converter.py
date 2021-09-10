@@ -63,8 +63,9 @@ def bestmatches(key: str, doors: Iterable[T], lock: Callable[[T], str]) -> Set[T
     candidates = set()
 
     for door in doors:
-        target = lock(door)
-        index = target.find(key)
+        # Ignorecase due to popular demand :(
+        target = lock(door).lower()
+        index = target.find(key.lower())
         if index != -1:
             if len(key) == len(target):  # exact match
                 index = -1
@@ -202,8 +203,8 @@ class SelectMember(commands.MemberConverter, MemberType):
             raise
 
         await question.delete()
+        await answer.delete()
         if answer.content == "c":
-            await answer.delete()
             await ctx.reply("선택지 취소됨", mention_author=False)
             raise  # TODO: safe way to terminate conversion
         return members[int(answer.content) - 1]
@@ -254,8 +255,8 @@ class SelectRole(commands.RoleConverter, RoleType):
             raise
 
         await question.delete()
+        await answer.delete()
         if answer.content == "c":
-            await answer.delete()
             await ctx.reply("선택지 취소됨", mention_author=False)
             raise
         return roles[int(answer.content) - 1]

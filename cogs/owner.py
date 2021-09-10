@@ -57,13 +57,13 @@ class Owner(clockbot.Cog, name="제작자"):
             await ctx.send(f"{uptime:.1}시간만의 퇴근...!")
         elif opt == "재시작":
             exitopt = ExitOpt.RESTART
-            await ctx.send("껐다 켠다고 뭐든 고쳐지는건 아닌데")
+            await ctx.send("껐다 켠다고 뭐든 고쳐지는건 아니다만")
         elif opt == "업데이트":
             exitopt = ExitOpt.UPDATE
             embed = discord.Embed(
                 color=self.bot.color,
                 title="업데이트 설치중 42/999",
-                description=("**절대 봇을 끄지 마세요**\n" "예상 소요시간: 1972년 11개월 21일"),
+                description="**절대 봇을 끄지 마세요**\n예상 소요시간: 1972년 11개월 21일",
             )
             await ctx.send(embed=embed)
         else:

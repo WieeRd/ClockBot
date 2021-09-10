@@ -267,6 +267,7 @@ class ClockBot(commands.Bot):
 
         elif isinstance(error, commands.UserInputError):
             await ctx.send_help(ctx.command)
+        # TODO: TargetAmbiguous
 
         elif isinstance(error, commands.CheckFailure):
             if isinstance(error, commands.NotOwner):

@@ -102,6 +102,7 @@ class RoleAmbiguous(TargetAmbiguous):
     candidates: Set[discord.Role]
 
 
+# TODO: read members from channel not entire guild
 def search_member(arg: str, guild: discord.Guild) -> discord.Member:
     members = bestmatches(arg, guild.members, lambda m: m.display_name)
     if len(members) == 0:
@@ -179,11 +180,11 @@ class SelectMember(commands.MemberConverter, MemberType):
         options = "\n".join(
             f" {i+1} : {m.display_name} ({m})" for (i, m) in enumerate(members)
         )
-        pattern = re.compile(f"^[1-{len(members)}]$")
+        pattern = re.compile(f"^[c1-{len(members)}]$")
 
         embed = discord.Embed()
         embed.set_author(name=f'"{arg}"의 의도가 분명하지 않습니다')
-        embed.description = f"선택할 유저 번호를 입력하고 엔터```prolog\n{options}\n```"
+        embed.description = f"선택할 유저 번호를 입력하고 엔터```prolog\n{options}\n c : 취소```"
         question = await ctx.send(embed=embed)
 
         def check(msg: discord.Message) -> bool:
@@ -201,13 +202,17 @@ class SelectMember(commands.MemberConverter, MemberType):
             raise
 
         await question.delete()
+        if answer.content == "c":
+            await answer.delete()
+            await ctx.reply("선택지 취소됨", mention_author=False)
+            raise  # TODO: safe way to terminate conversion
         return members[int(answer.content) - 1]
 
 
 class SelectRole(commands.RoleConverter, RoleType):
     """
-    Like SearchMember but command invoker can choose
-    between candidates when MemberAmbiguous occurs
+    Like SearchRole but command invoker can choose
+    between candidates when RoleAmbiguous occurs
     """
 
     async def convert(self, ctx: commands.Context, arg: str) -> discord.Role:
@@ -226,14 +231,12 @@ class SelectRole(commands.RoleConverter, RoleType):
             raise error
 
         roles = list(error.candidates)
-        options = "\n".join(
-            f" {i+1} : {r}" for (i, r) in enumerate(roles)
-        )
-        pattern = re.compile(f"^[1-{len(roles)}]$")
+        options = "\n".join(f" {i+1} : {r}" for (i, r) in enumerate(roles))
+        pattern = re.compile(f"^[c1-{len(roles)}]$")
 
         embed = discord.Embed()
         embed.set_author(name=f'"{arg}"의 의도가 분명하지 않습니다')
-        embed.description = f"선택할 역할 번호를 입력하고 엔터```prolog\n{options}\n```"
+        embed.description = f"선택할 역할 번호를 입력하고 엔터```prolog\n{options}\n c : 취소```"
         question = await ctx.send(embed=embed)
 
         def check(msg: discord.Message) -> bool:
@@ -251,5 +254,9 @@ class SelectRole(commands.RoleConverter, RoleType):
             raise
 
         await question.delete()
+        if answer.content == "c":
+            await answer.delete()
+            await ctx.reply("선택지 취소됨", mention_author=False)
+            raise
         return roles[int(answer.content) - 1]
 

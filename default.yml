@@ -14,7 +14,8 @@ extensions:
 help: # kwargs for HelpCommand
     color: 0x7289da
     title: "시계봇 도움말"
-    url: "http://add.clockbot.kro.kr"
+    invite: "http://add.clockbot.kro.kr"
+    contact: "하지마"
     menu: # cogs shown in main(bot) menu
         - "대나무숲"
         - "고급멘션"

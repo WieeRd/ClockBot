@@ -80,14 +80,14 @@ bot = ClockBot(
     heartbeat_timeout = 60,
 )
 
-# TODO: move to Info Cog
-@bot.command(name="초대코드")
-async def invitecode(ctx: commands.Context):
-    """
-    봇 초대코드 생성
-    """
-    link = "http://add.clockbot.kro.kr"
-    await ctx.send(f"다른 서버에 봇 추가하기:\n{link}")
+# # TODO: move to Info Cog
+# @bot.command(name="초대코드")
+# async def invitecode(ctx: commands.Context):
+#     """
+#     봇 초대코드 생성
+#     """
+#     link = "http://add.clockbot.kro.kr"
+#     await ctx.send(f"다른 서버에 봇 추가하기:\n{link}")
 
 print("Loading initial extensions")
 success = 0

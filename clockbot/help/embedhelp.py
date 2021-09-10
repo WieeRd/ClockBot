@@ -23,7 +23,8 @@ class EmbedHelp(commands.HelpCommand):
             command_attrs = {},
             color: int = 0xFFFFFF,
             title: str = "Sample Text",
-            url: str = "https://youtu.be/dQw4w9WgXcQ",
+            invite: str = "https://youtu.be/dQw4w9WgXcQ",
+            contact: str = "하지마",
             thumbnail: str = None,
             menu: List[str] = [],
             tips: List[str] = [],
@@ -31,7 +32,8 @@ class EmbedHelp(commands.HelpCommand):
         super().__init__(command_attrs=command_attrs, **options)
         self.color = color
         self.title = title
-        self.url = url
+        self.invite = invite
+        self.contact = contact
         self.thumbnail = thumbnail
         self.menu = menu
         self.tips = tips
@@ -91,7 +93,7 @@ class EmbedHelp(commands.HelpCommand):
         return mapping
 
     def bot_page(self, mapping: Dict[str, Cog]) -> discord.Embed:
-        embed = discord.Embed(color=self.color, url=self.url)
+        embed = discord.Embed(color=self.color, url=self.invite)
 
         embed.title = self.title
         embed.description = f"`{self.help_usage}`"
@@ -108,10 +110,21 @@ class EmbedHelp(commands.HelpCommand):
                 inline = False
             )
 
+        embed.add_field(
+            name = "봇 추가하기",
+            value = hoverlink("`여기를 클릭`", self.invite, self.invite),
+            inline = True
+        )
+        embed.add_field(
+            name = "버그 신고",
+            value = self.contact,
+            inline = True
+        )
+
         return embed
 
     def cog_page(self, cog: Cog) -> discord.Embed:
-        embed = discord.Embed(color=self.color, url=self.url)
+        embed = discord.Embed(color=self.color, url=self.invite)
 
         embed.title = f"{self.get_icon(cog)} {cog.qualified_name} 카테고리"
         embed.description = f"**{cog.description or NO_HELP}**"
@@ -128,9 +141,9 @@ class EmbedHelp(commands.HelpCommand):
         return embed
 
     def group_page(self, grp: Group) -> discord.Embed:
-        embed = discord.Embed(color=self.color, url=self.url)
+        embed = discord.Embed(color=self.color, url=self.invite)
 
-        embed.set_author(name=f"카테고리: {grp.cog_name or '없음'}")
+        # embed.set_author(name=f"카테고리: {grp.cog_name or '없음'}")
         embed.title = f"{self.clean_prefix}{grp.qualified_name}"
         embed.description = f"**{grp.help or NO_HELP}**"
         embed.set_footer(text=f"{self.help_usage}")
@@ -147,9 +160,9 @@ class EmbedHelp(commands.HelpCommand):
 
     # TODO: command check field (perm, cooldown)
     def command_page(self, cmd: Command) -> discord.Embed:
-        embed = discord.Embed(color=self.color, url=self.url)
+        embed = discord.Embed(color=self.color, url=self.invite)
 
-        embed.set_author(name=f"카테고리: {cmd.cog_name or '없음'}")
+        # embed.set_author(name=f"카테고리: {cmd.cog_name or '없음'}")
         embed.title = f"{self.cmd_usage(cmd)}"
         embed.set_footer(text=f"{self.help_usage}")
 

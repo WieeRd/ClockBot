@@ -39,7 +39,10 @@ class Cog(commands.Cog):
         Return 'showcase' attribute if it's available.
         Otherwise same as original get_commands()
         """
-        return getattr(self, 'showcase', None) or super().get_commands()
+        showcase = getattr(self, 'showcase', None)
+        if showcase != None:
+            return showcase
+        return super().get_commands()
 
     @classmethod
     def setup(cls, bot: ClockBot):

@@ -12,16 +12,17 @@ import utils.MemberFilter as MemberFilter
 # TODO: fuzzy match
 class Mention(clockbot.Cog, name="고급멘션"):
     """
-    멘션 대상을 더 '섬세하게' 지정하는 방법
+    사용법이 어렵다고 해서 뜯어고치는 중
     """
+    # 멘션 대상을 더 '섬세하게' 지정하는 방법
     def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
         self.icon = "\N{PUSHPIN}"
         self.showcase = [
-            self.member,
-            self.mention,
-            self.DMention,
-            self.expr_usage,
+            # self.member,
+            # self.mention,
+            # self.DMention,
+            # self.expr_usage,
         ]
 
     @commands.command(name="멤버", usage="<조건식>")

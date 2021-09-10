@@ -10,6 +10,6 @@ cogs.babel - NyanChat, Hawawa
 help cog - part of cogs.owner - runtime import
 null DB
 setup logging
-invitation code in help
 on_context event
 send help when mentioned
+magic

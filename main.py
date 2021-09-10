@@ -15,36 +15,38 @@ if not os.path.exists("config.yml"):
     exit(ExitOpt.ERROR)
 
 print("Loading config.yml")
-with open("config.yml", 'r') as f:
+with open("config.yml", "r") as f:
     config: dict = yaml.load(f, Loader=yaml.FullLoader)
 
 try:
-    TOKEN = config['token']
-    PREFIX = config['prefix']
-    COLOR = config['color']
-    STATUS = config['status']
-    INIT_EXTS = config['extensions']
-    HELP_OPT = config['help']
-    DB_INFO = config['mongodb']
-    DB_NAME = config['database']
+    TOKEN = config["token"]
+    PREFIX = config["prefix"]
+    COLOR = config["color"]
+    STATUS = config["status"]
+    INIT_EXTS = config["extensions"]
+    HELP_OPT = config["help"]
+    DB_INFO = config["mongodb"]
+    DB_NAME = config["database"]
 except KeyError as e:
     print(f"Error: config option '{e}' is missing")
     exit(ExitOpt.ERROR)
 
 help_command = EmbedMenu(
     **HELP_OPT,
-    command_attrs = {
+    command_attrs={
         "name": "도움",
         "aliases": ["help", "?"],
         "usage": "<카테고리/명령어>",
-        "help": '\n'.join([
-            "해당 항목의 도움말을 띄운다",
-            "제발 매뉴얼 좀 만들라는 무수한 요청 끝에",
-            "무려 6개월 뒤 점심시간에 간신히 작성된 기능으로,",
-            "사실 말이 도움말이지 별 도움은 안되는",
-            "제작자의 온갖 불평과 만담들이 섞여있다.",
-        ])
-    }
+        "help": "\n".join(
+            [
+                "해당 항목의 도움말을 띄운다",
+                "제발 매뉴얼 좀 만들라는 무수한 요청 끝에",
+                "무려 6개월 뒤 점심시간에 간신히 작성된 기능으로,",
+                "사실 말이 도움말이지 별 도움은 안되는",
+                "제작자의 온갖 불평과 만담들이 섞여있다.",
+            ]
+        ),
+    },
 )
 
 """
@@ -56,7 +58,7 @@ may this never happen again.
  - WieeRd's dev note, 2021-07-23
 """
 
-client = AsyncIOMotorClient(serverSelectionTimeoutMS=10, **DB_INFO) # ','
+client = AsyncIOMotorClient(serverSelectionTimeoutMS=10, **DB_INFO)  # ','
 try:
     loop = asyncio.get_event_loop()
     server_info = loop.run_until_complete(client.server_info())
@@ -71,13 +73,13 @@ intents = discord.Intents.all()
 activity = discord.Game(STATUS or "Hello World")
 
 bot = ClockBot(
-    db = db,
-    color = COLOR,
-    command_prefix = PREFIX,
-    intents = intents,
-    activity = activity,
-    help_command = help_command,
-    heartbeat_timeout = 60,
+    db=db,
+    color=COLOR,
+    command_prefix=PREFIX,
+    intents=intents,
+    activity=activity,
+    help_command=help_command,
+    heartbeat_timeout=60,
 )
 
 # # TODO: move to Info Cog
@@ -93,7 +95,7 @@ print("Loading initial extensions")
 success = 0
 for i, ext in enumerate(INIT_EXTS):
     try:
-        print(f"[{i+1}] Loading '{ext}' ", end='', flush=True)
+        print(f"[{i+1}] Loading '{ext}' ", end="", flush=True)
         bot.load_extension(ext)
     except commands.ExtensionFailed as e:
         e = e.original

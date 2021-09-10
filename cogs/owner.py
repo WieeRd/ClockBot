@@ -10,18 +10,22 @@ import subprocess
 import time
 import io
 
+
 def run_cmd(cmd, timeout=None):
-    proc = subprocess.Popen(cmd,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT,
-                            shell=True,
-                            universal_newlines=True)
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        shell=True,
+        universal_newlines=True,
+    )
     try:
         output = proc.communicate(timeout=timeout)
-        return  proc.returncode, output[0]
+        return proc.returncode, output[0]
     except subprocess.TimeoutExpired:
         proc.kill()
         return None
+
 
 # TODO: bot status / avatar
 class Owner(clockbot.Cog, name="제작자"):
@@ -49,7 +53,7 @@ class Owner(clockbot.Cog, name="제작자"):
         opt = ctx.invoked_with
         if opt == "퇴근":
             exitopt = ExitOpt.QUIT
-            uptime = (time.time() - self.bot.started)/3600
+            uptime = (time.time() - self.bot.started) / 3600
             await ctx.send(f"{uptime:.1}시간만의 퇴근...!")
         elif opt == "재시작":
             exitopt = ExitOpt.RESTART
@@ -57,15 +61,13 @@ class Owner(clockbot.Cog, name="제작자"):
         elif opt == "업데이트":
             exitopt = ExitOpt.UPDATE
             embed = discord.Embed(
-                color = self.bot.color,
-                title = "업데이트 설치중 42/999",
-                description = (
-                    "**절대 봇을 끄지 마세요**\n"
-                    "예상 소요시간: 1972년 11개월 21일"
-                )
+                color=self.bot.color,
+                title="업데이트 설치중 42/999",
+                description=("**절대 봇을 끄지 마세요**\n" "예상 소요시간: 1972년 11개월 21일"),
             )
             await ctx.send(embed=embed)
-        else: return
+        else:
+            return
 
         self.bot.exitopt = exitopt
         await self.bot.change_presence(activity=discord.Game(opt))
@@ -81,17 +83,9 @@ class Owner(clockbot.Cog, name="제작자"):
         users = self.bot.users
 
         embed = discord.Embed(color=self.bot.color, title="연결된 서버 정보")
-        embed.description = '\n'.join(f"{s.name} : {s.member_count}" for s in guilds) 
-        embed.add_field(
-            name = "서버수",
-            value = str(len(guilds)),
-            inline = True
-        )
-        embed.add_field(
-            name = "유저수",
-            value = str(len(users)),
-            inline = True
-        )
+        embed.description = "\n".join(f"{s.name} : {s.member_count}" for s in guilds)
+        embed.add_field(name="서버수", value=str(len(guilds)), inline=True)
+        embed.add_field(name="유저수", value=str(len(users)), inline=True)
 
         await ctx.send(embed=embed)
 
@@ -110,17 +104,17 @@ class Owner(clockbot.Cog, name="제작자"):
         elif cog := self.bot.get_cog(entity):
             target = cog.__class__
             file = inspect.getfile(target)
-            with open(file, 'r') as f:
+            with open(file, "r") as f:
                 code = f.read()
         else:
             await ctx.tick(False)
             return
 
-        if len(code)<2000:
-            await ctx.code(code, lang='python')
+        if len(code) < 2000:
+            await ctx.code(code, lang="python")
         else:
-            raw = code.encode(encoding='utf8')
-            fname = target.__name__ + '.py'
+            raw = code.encode(encoding="utf8")
+            fname = target.__name__ + ".py"
             await ctx.send(file=discord.File(io.BytesIO(raw), filename=fname))
         return
 
@@ -137,23 +131,24 @@ class Owner(clockbot.Cog, name="제작자"):
         봇이 켜진지 얼마나 지났는지 출력한다
         """
         uptime = time.time() - self.bot.started
-        dd, rem = divmod(uptime, 24*60*60)
-        hh, rem = divmod(rem, 60*60)
+        dd, rem = divmod(uptime, 24 * 60 * 60)
+        hh, rem = divmod(rem, 60 * 60)
         mm, ss = divmod(rem, 60)
         dd, hh, mm, ss = int(dd), int(hh), int(mm), int(ss)
         tm = f"{hh:02d}:{mm:02d}:{ss:02d}"
-        if dd>0: tm = f"{dd}일 {tm}"
+        if dd > 0:
+            tm = f"{dd}일 {tm}"
         await ctx.send(tm)
 
-    @commands.Cog.listener(name='on_message')
+    @commands.Cog.listener(name="on_message")
     async def terminal(self, msg):
-        if msg.content.startswith('$') and await self.bot.is_owner(msg.author):
+        if msg.content.startswith("$") and await self.bot.is_owner(msg.author):
             cmd = msg.content[1:]
             arg = cmd.split(maxsplit=1)
             timeout = 3
 
             if arg[0].isdigit():
-                if int(arg[0])>0:
+                if int(arg[0]) > 0:
                     timeout = int(arg[0])
                 else:
                     timeout = None
@@ -162,11 +157,12 @@ class Owner(clockbot.Cog, name="제작자"):
 
             print(f"Executing '{cmd}' (Timeout: {timeout})")
             result = run_cmd(cmd, timeout)
-            if(result != None):
+            if result != None:
                 await msg.channel.send(f"```{result[1]}```")
                 print(result[1] + f"(Returned {result[0]})")
             else:
                 await msg.channel.send(f"```'{cmd}' timed out: {timeout}s```")
                 print(f"{cmd} timed out: {timeout}s")
+
 
 setup = Owner.setup

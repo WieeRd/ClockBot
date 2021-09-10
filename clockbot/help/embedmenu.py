@@ -6,6 +6,7 @@ from typing import Dict, Union, overload
 
 from .embedhelp import EmbedHelp, HelpObj
 
+
 class EmbedMenu(EmbedHelp):
     """
     ClockBot Help v3 using reaction menu
@@ -18,13 +19,15 @@ class EmbedMenu(EmbedHelp):
     cursor: HelpObj
     partial: bool
 
-    def __init__(self, *,
-            main: str = "\N{BOOKMARK}",
-            exit: str = "\N{CROSS MARK}",
-            timeout: float = 60,
-            inactive: int = 0x000000,
-            **kwargs
-        ):
+    def __init__(
+        self,
+        *,
+        main: str = "\N{BOOKMARK}",
+        exit: str = "\N{CROSS MARK}",
+        timeout: float = 60,
+        inactive: int = 0x000000,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.cached = {}
         self.main = main
@@ -49,22 +52,27 @@ class EmbedMenu(EmbedHelp):
             embed = self.group_page(obj)
         elif isinstance(obj, Command):
             embed = self.command_page(obj)
-        else: raise TypeError(f"{obj.__class__.__name__} is not HelpObj")
+        else:
+            raise TypeError(f"{obj.__class__.__name__} is not HelpObj")
 
         self.cached[obj] = embed
         return embed
 
     @overload
-    def get_higher_being(self, obj: None) -> None: ...
+    def get_higher_being(self, obj: None) -> None:
+        ...
 
     @overload
-    def get_higher_being(self, obj: Cog) -> None: ...
+    def get_higher_being(self, obj: Cog) -> None:
+        ...
 
     @overload
-    def get_higher_being(self, obj: Group) -> Cog: ...
+    def get_higher_being(self, obj: Group) -> Cog:
+        ...
 
     @overload
-    def get_higher_being(self, obj: Command) -> Union[Group, Cog]: ...
+    def get_higher_being(self, obj: Command) -> Union[Group, Cog]:
+        ...
 
     def get_higher_being(self, obj: HelpObj) -> HelpObj:
         if obj == None:
@@ -80,21 +88,22 @@ class EmbedMenu(EmbedHelp):
         """
         Handles reaction button interaction
         """
+
         def check(reaction: discord.Reaction, user: discord.User) -> bool:
             return (
-                reaction.message == self.msg and
-                user == self.context.author and
-                ( reaction.emoji == self.main or
-                  reaction.emoji == self.exit or
-                  reaction.emoji in self.mapping )
+                reaction.message == self.msg
+                and user == self.context.author
+                and (
+                    reaction.emoji == self.main
+                    or reaction.emoji == self.exit
+                    or reaction.emoji in self.mapping
+                )
             )
-            
+
         while True:
             try:
                 reaction, user = await self.bot.wait_for(
-                    'reaction_add',
-                    check = check,
-                    timeout = timeout
+                    "reaction_add", check=check, timeout=timeout
                 )
             except asyncio.TimeoutError:
                 embed = self.get_page(self.cursor)
@@ -103,8 +112,10 @@ class EmbedMenu(EmbedHelp):
                 await self.msg.edit(embed=embed)
                 return
 
-            try: await reaction.remove(user)
-            except: pass # TODO: can't remove reaction in DM
+            try:
+                await reaction.remove(user)
+            except:
+                pass  # TODO: can't remove reaction in DM
             icon = reaction.emoji
 
             if icon == self.exit:
@@ -113,7 +124,7 @@ class EmbedMenu(EmbedHelp):
             elif icon == self.main:
                 obj = self.get_higher_being(self.cursor)
             else:
-                obj = self.mapping[icon] # mapping might not exist at this point
+                obj = self.mapping[icon]  # mapping might not exist at this point
 
             if obj == self.cursor:
                 continue
@@ -122,13 +133,13 @@ class EmbedMenu(EmbedHelp):
             embed = self.get_page(obj)
             await self.msg.edit(embed=embed)
 
-            if obj==None and self.partial:
+            if obj == None and self.partial:
                 self.partial = False
                 for emoji in self.mapping:
                     await self.msg.add_reaction(emoji)
 
     async def fork(self, destin: discord.abc.Messageable, cursor: HelpObj):
-        ... # TODO: start help menu in other destination
+        ...  # TODO: start help menu in other destination
 
     async def send_bot_help(self, mapping: Dict[str, Cog]):
         embed = self.bot_page(mapping)

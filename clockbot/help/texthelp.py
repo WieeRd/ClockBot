@@ -7,26 +7,27 @@ from typing import List, Union
 # this is unused legacy code to be honest
 # maybe I'll update it to fit in new clockbot features
 
+
 class TextPage:
     def __init__(self):
         self.buffer = []
         self.istack = []
 
-    def line(self, content: str = ''):
+    def line(self, content: str = ""):
         if content:
             self.buffer.extend(self.istack)
             self.buffer.append(content)
-        self.buffer.append('\n')
+        self.buffer.append("\n")
 
     def lines(self, content: Union[str, List[str]]):
         if isinstance(content, str):
-            content = content.split('\n')
+            content = content.split("\n")
         for line in content:
             self.line(line)
 
     def indent(self, amount: Union[int, str]):
         if isinstance(amount, int):
-            self.istack.append(' '*amount)
+            self.istack.append(" " * amount)
         else:
             self.istack.append(amount)
 
@@ -40,18 +41,19 @@ class TextPage:
         self.dedent()
 
     @contextmanager
-    def codeblock(self, lang: str = ''):
+    def codeblock(self, lang: str = "prolog"):
         # so many bugs on mobile ahhhhh
-        self.buffer.append('```' + lang + '\n')
+        self.buffer.append("```" + lang + "\n")
         yield
-        self.buffer.append('\n```')
+        self.buffer.append("\n```")
 
     def generate(self) -> str:
-        return ''.join(self.buffer)
+        return "".join(self.buffer)
 
     def clear(self):
         self.buffer = []
         self.istack = []
+
 
 class TextHelp(commands.HelpCommand):
     """
@@ -61,15 +63,12 @@ class TextHelp(commands.HelpCommand):
 
     context: commands.Context
 
-    def __init__(self,
-            prefix: str = '',
-            suffix: str = '',
-            cogs: List[str] = [],
-            **options
-        ):
+    def __init__(
+        self, prefix: str = "", suffix: str = "", cogs: List[str] = [], **options
+    ):
         super().__init__(**options)
-        self.name = options['command_attrs']['name']
-        self.page = TextPage() # why not just create new page per sending
+        self.name = options["command_attrs"]["name"]
+        self.page = TextPage()  # why not just create new page per sending
         self.prefix = prefix
         self.suffix = suffix
         self.cogs = cogs
@@ -83,7 +82,9 @@ class TextHelp(commands.HelpCommand):
         msg = await destin.send(content)
         return msg
 
-    def _add_cmd_info(self, cmd: commands.Command, short_doc: str = '', usage: str = ''):
+    def _add_cmd_info(
+        self, cmd: commands.Command, short_doc: str = "", usage: str = ""
+    ):
         """
         Add simple command/group info to the page
         !name usage
@@ -93,31 +94,33 @@ class TextHelp(commands.HelpCommand):
         usage = cmd.usage or usage
         short_doc = cmd.short_doc or short_doc
 
-        if cmd.name.startswith('_'):
+        if cmd.name.startswith("_"):
             if cmd.parent:
-                aliases = '/'.join(cmd.aliases)
+                aliases = "/".join(cmd.aliases)
                 self.page.line(f"{p}{cmd.full_parent_name} [{aliases}] {usage}")
             else:
-                self.page.line('\n'.join(f"{p}{alias} {usage}" for alias in cmd.aliases))
+                self.page.line(
+                    "\n".join(f"{p}{alias} {usage}" for alias in cmd.aliases)
+                )
         else:
             self.page.line(f"{p}{cmd.qualified_name} {usage}")
 
-        with self.page.indented(' -> '):
+        with self.page.indented(" -> "):
             self.page.line(short_doc)
 
-    def _add_cmd_detail(self, cmd: commands.Command, _help: str = '', usage: str = ''):
+    def _add_cmd_detail(self, cmd: commands.Command, _help: str = "", usage: str = ""):
         p = self.clean_prefix
         usage = cmd.usage or usage
         _help = cmd.help or _help
-        lines = _help.split('\n')
+        lines = _help.split("\n")
 
         short_doc = lines[0]
         more_info = lines[1:]
 
-        if cmd.name.startswith('_'):
+        if cmd.name.startswith("_"):
             if cmd.parent:
                 parent = cmd.parent.name
-                subcmds = '/'.join(cmd.aliases)
+                subcmds = "/".join(cmd.aliases)
                 self.page.line(f"사용법: {p}{parent} [{subcmds}] {usage}")
             else:
                 self.page.line(f"사용법: {p}<{cmd.name[1:]}> {usage}")
@@ -125,15 +128,15 @@ class TextHelp(commands.HelpCommand):
         else:
             self.page.line(f"사용법: {p}{cmd.qualified_name} {usage}")
 
-        self.page.line(' -> ' + short_doc)
+        self.page.line(" -> " + short_doc)
         with self.page.indented(4):
             self.page.lines(more_info)
 
     def _add_cog_info(self, cog: commands.Cog):
         self.page.line(f"[{cog.qualified_name}]: {cog.description}")
-        cmd_lst = getattr(cog, 'help_menu', cog.get_commands())
+        cmd_lst = getattr(cog, "help_menu", cog.get_commands())
         cmd_names = [f"{self.clean_prefix}{c.name}" for c in cmd_lst]
-        self.page.line(' -> ' + ' '.join(cmd_names))
+        self.page.line(" -> " + " ".join(cmd_names))
 
     async def send_command_help(self, cmd: commands.Command):
         with self.page.codeblock():
@@ -161,7 +164,7 @@ class TextHelp(commands.HelpCommand):
 
     async def send_cog_help(self, cog: commands.Cog):
         self.page.line(f"**[{cog.qualified_name}]** : {cog.description}")
-        cmd_lst = getattr(cog, 'help_menu', cog.get_commands())
+        cmd_lst = getattr(cog, "help_menu", cog.get_commands())
 
         for cmd in cmd_lst:
             with self.page.codeblock():
@@ -190,13 +193,13 @@ class TextHelp(commands.HelpCommand):
             name = cog.qualified_name
             with self.page.codeblock():
                 cmd_lst = []
-                for cmd in getattr(cog, 'help_menu', cog.get_commands()):
-                    if cmd.name.startswith('_'):
+                for cmd in getattr(cog, "help_menu", cog.get_commands()):
+                    if cmd.name.startswith("_"):
                         cmd_lst.extend(cmd.aliases)
                     else:
                         cmd_lst.append(cmd.name)
                 self.page.line(f"[{name}]: {cog.description}")
-                self.page.line(' > ' + ' '.join(p+c for c in cmd_lst))
+                self.page.line(" > " + " ".join(p + c for c in cmd_lst))
 
         with self.page.codeblock():
             helpcmd = self.clean_prefix + self.name

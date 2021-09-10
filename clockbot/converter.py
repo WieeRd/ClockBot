@@ -68,10 +68,6 @@ def bestmatches(key: str, doors: Iterable[T], lock: Callable[[T], str]) -> Set[T
 
 
 class MemberType(discord.Member):
-    """
-    To provide member type hints for converters
-    """
-
     def __init__(self):
         pass
 
@@ -86,18 +82,21 @@ class MemberAmbiguous(commands.MemberNotFound):
 class PartialMember(commands.MemberConverter, MemberType):
     """
     MemberConverter but it also accepts partial nickname match
+    raise MemberAmbiguous if matching result isn't one
     """
+
+    @classmethod
+    def search(cls, arg: str, guild: discord.Guild) -> discord.Member:
+        members = bestmatches(arg, guild.members, lambda m: m.display_name)
+        if len(members) != 1:
+            raise MemberAmbiguous(arg, members)
+        return next(iter(members))
 
     async def convert(self, ctx: commands.Context, arg: str) -> discord.Member:
         try:
             return await super().convert(ctx, arg)
         except commands.MemberNotFound:
-            if ctx.guild == None:
+            if not ctx.guild:
                 raise
 
-        members = bestmatches(arg, ctx.guild.members, lambda m: m.display_name)
-        if len(members) == 0:
-            raise commands.MemberNotFound(arg)
-        if len(members) >= 2:
-            raise MemberAmbiguous(arg, members)
-        return next(iter(members))
+        return self.search(arg, ctx.guild)

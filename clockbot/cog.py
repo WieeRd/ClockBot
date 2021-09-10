@@ -2,15 +2,18 @@ from discord.ext import commands
 from typing import List
 
 from .bot import ClockBot
+
 # from .core import Command
 
-__all__ = ('ExtensionRequireDB', 'Cog')
+__all__ = ("ExtensionRequireDB", "Cog")
+
 
 class ExtensionRequireDB(Exception):
     """
     raised in setup() if bot.db is None
     if extension requires DB connection
     """
+
     def __init__(self, name: str):
         """
         Set extension parameter to __name__
@@ -21,6 +24,7 @@ class ExtensionRequireDB(Exception):
     def __str__(self) -> str:
         return f"Cog '{self.name}' requires DB connection"
 
+
 class Cog(commands.Cog):
     """
     Standard base class for documented ClockBot Cog
@@ -30,16 +34,16 @@ class Cog(commands.Cog):
     """
 
     bot: ClockBot
-    icon: str # unicode emoji
+    icon: str  # unicode emoji
     showcase: List[commands.Command]
-    require_db: bool = False # TODO: require level (+ 'wanted')
+    require_db: bool = False  # TODO: require level (+ 'wanted')
 
     def get_commands(self) -> List[commands.Command]:
         """
         Return 'showcase' attribute if it's available.
         Otherwise same as original get_commands()
         """
-        showcase = getattr(self, 'showcase', None)
+        showcase = getattr(self, "showcase", None)
         if showcase != None:
             return showcase
         return super().get_commands()

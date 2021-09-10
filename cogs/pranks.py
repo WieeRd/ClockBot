@@ -21,16 +21,18 @@ strObject = re.compile(f"(({MENTION}|{EMOJI})\s*)+$")
 Translator = Callable[[str], str]
 SPECIAL_LANGS: Dict[str, Translator] = {
     # '랜덤': randslate,
-    '개소리': doggoslate,
-    '냥소리': kittyslate,
-    '멈뭄미': mumslate,
-    '흑우'  : cowslate,
+    "개소리": doggoslate,
+    "냥소리": kittyslate,
+    "멈뭄미": mumslate,
+    "흑우": cowslate,
 }
+
 
 class Pranks(clockbot.Cog, name="장난"):
     """
     참신하고 장난치기 좋은 기능들
     """
+
     require_db = True
 
     def __init__(self, bot: clockbot.ClockBot):
@@ -55,10 +57,10 @@ class Pranks(clockbot.Cog, name="장난"):
     @tasks.loop(count=1)
     async def load_filters(self):
         async for doc in self.filterDB.find():
-            guild_id = doc['_id']['guild']
-            user_id = doc['_id']['user']
-            filter_t = doc['filter_t']
-            by_admin = doc['by_admin']
+            guild_id = doc["_id"]["guild"]
+            user_id = doc["_id"]["user"]
+            filter_t = doc["filter_t"]
+            by_admin = doc["by_admin"]
 
             if t := SPECIAL_LANGS.get(filter_t):
                 self.filters[(guild_id, user_id)] = (t, by_admin)
@@ -85,10 +87,9 @@ class Pranks(clockbot.Cog, name="장난"):
         msg = await ctx.mimic(user, txt, wait=True)
         assert msg != None
 
-        await self.imperDB.insert_one({
-            '_id': ctx.message.id,
-            'mimic': msg.id
-        }) # message id is not globally unique, but chance of collision is still low
+        await self.imperDB.insert_one(
+            {"_id": ctx.message.id, "mimic": msg.id}
+        )  # message id is not globally unique, but chance of collision is still low
 
     @commands.command(name="빼액", usage="<텍스트>")
     async def yell(self, ctx: MacLak, *, txt: str):
@@ -119,13 +120,10 @@ class Pranks(clockbot.Cog, name="장난"):
         query = (target.guild.id, target.id)
         if t := self.filters.get(query):
             if t[1] and not by_admin:
-                await ctx.code(
-                    "에러: 관리자에 의해 다른 필터가 걸려있습니다\n"
-                    "(팁: 평소에 처신을 잘하세요)"
-                )
+                await ctx.code("에러: 관리자에 의해 다른 필터가 걸려있습니다\n" "(팁: 평소에 처신을 잘하세요)")
                 return
 
-        if ctx.author!=target and not by_admin:
+        if ctx.author != target and not by_admin:
             await ctx.code("에러: 타인에게 필터를 적용하려면 관리자 권한이 필요합니다")
             return
 
@@ -133,13 +131,13 @@ class Pranks(clockbot.Cog, name="장난"):
         t = SPECIAL_LANGS[lang]
 
         await self.filterDB.set(
-            {'guild': target.guild.id, 'user': target.id},
-            filter_t = ctx.invoked_with,
-            by_admin = by_admin
+            {"guild": target.guild.id, "user": target.id},
+            filter_t=ctx.invoked_with,
+            by_admin=by_admin,
         )
         self.filters[(target.guild.id, target.id)] = (t, by_admin)
 
-        await ctx.send( # TODO: custom message for each filter
+        await ctx.send(  # TODO: custom message for each filter
             f"{target.display_name}님에게 '{lang}' 필터를 적용합니다\n"
             f"`{ctx.prefix}필터해제 @유저`으로 해제할 수 있습니다"
         )
@@ -155,16 +153,12 @@ class Pranks(clockbot.Cog, name="장난"):
         query = (target.guild.id, target.id)
         if t := self.filters.get(query):
             if t[1] and not by_admin:
-                await ctx.code(
-                    "에러: 관리자가 적용한 필터는 관리자만 해제할 수 있습니다\n"
-                    "(팁: 평소에 처신을 잘하세요)"
-                )
+                await ctx.code("에러: 관리자가 적용한 필터는 관리자만 해제할 수 있습니다\n" "(팁: 평소에 처신을 잘하세요)")
             else:
                 del self.filters[query]
-                await self.filterDB.remove({
-                    'guild': target.guild.id,
-                    'user': target.id
-                })
+                await self.filterDB.remove(
+                    {"guild": target.guild.id, "user": target.id}
+                )
                 if not await ctx.tick(True):
                     await ctx.send("필터가 해제되었습니다")
         else:
@@ -186,16 +180,16 @@ class Pranks(clockbot.Cog, name="장난"):
                 content = t[0](content)
             await ctx.mimic(msg.author, content)
 
-
     @commands.Cog.listener()
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
         if query := await self.imperDB.get(payload.message_id):
             channel = self.bot.get_channel(payload.channel_id)
             if isinstance(channel, discord.TextChannel):
                 try:
-                    mimic = await channel.fetch_message(query['mimic'])
+                    mimic = await channel.fetch_message(query["mimic"])
                     await mimic.delete()
                 except:
                     pass
+
 
 setup = Pranks.setup

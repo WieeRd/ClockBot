@@ -19,10 +19,11 @@ from discord import Webhook, AsyncWebhookAdapter
 #         ret.append(bark*len(word))
 #     return '! '.join(ret) + "!!!"
 
+
 def load_data():
     poggers: Dict[int, dict] = dict()
     try:
-        with open("settings/poggers.json", 'r') as f:
+        with open("settings/poggers.json", "r") as f:
             tmp = json.load(f)
             for key, val in tmp.items():
                 poggers[int(key)] = val
@@ -33,12 +34,15 @@ def load_data():
         pass
     return poggers
 
+
 poggers = load_data()
 
+
 def save_change():
-    with open("settings/poggers.json", 'w') as f:
+    with open("settings/poggers.json", "w") as f:
         json.dump(poggers, f, indent=4, ensure_ascii=False)
     print("poggers.json updated")
+
 
 class Meme(commands.Cog):
     def __init__(self, bot):
@@ -87,8 +91,10 @@ class Meme(commands.Cog):
     @commands.command(name="만우절")
     async def aprilfools(self, ctx):
         await asyncio.sleep(0.5)
-        if  not (ctx.author.guild_permissions.administrator
-                 or await self.bot.is_owner(ctx.author)):
+        if not (
+            ctx.author.guild_permissions.administrator
+            or await self.bot.is_owner(ctx.author)
+        ):
             await ctx.send("해당 커맨드는 서버 관리자 권한이 필요합니다")
             return
 
@@ -100,7 +106,7 @@ class Meme(commands.Cog):
         if ctx.guild.id in poggers:
             channel_id = poggers[ctx.guild.id]["channel"]
             channel = self.bot.get_channel(channel_id)
-            if channel!=None:
+            if channel != None:
                 await ctx.send(channel.mention)
                 return
             else:
@@ -109,11 +115,11 @@ class Meme(commands.Cog):
         channel_hooks = await ctx.channel.webhooks()
         my_hook = None
         for hook in channel_hooks:
-            if hook.user==self.bot.user:
+            if hook.user == self.bot.user:
                 my_hook = hook
                 break
-        if my_hook==None:
-            hook = await ctx.channel.create_webhook(name='ClockBot')
+        if my_hook == None:
+            hook = await ctx.channel.create_webhook(name="ClockBot")
         else:
             hook = my_hook
 
@@ -123,12 +129,16 @@ class Meme(commands.Cog):
 
     @commands.command(name="제발그만")
     async def itstimetostop(self, ctx):
-        if  not (ctx.author.guild_permissions.administrator
-                 or await self.bot.is_owner(ctx.author)):
+        if not (
+            ctx.author.guild_permissions.administrator
+            or await self.bot.is_owner(ctx.author)
+        ):
             await ctx.send("해당 커맨드는 서버 관리자 권한이 필요합니다")
             return
 
-        if (ctx.guild.id in poggers) and (poggers[ctx.guild.id]["channel"]==ctx.channel.id):
+        if (ctx.guild.id in poggers) and (
+            poggers[ctx.guild.id]["channel"] == ctx.channel.id
+        ):
             del poggers[ctx.guild.id]
             await ctx.send("뇌절 멈춰!")
         else:
@@ -136,25 +146,33 @@ class Meme(commands.Cog):
 
     @commands.Cog.listener(name="on_message")
     async def messup_message(self, msg):
-        if ((not isinstance(msg.channel, discord.DMChannel)) and
-            (not msg.author.bot) and
-            (msg.guild.id in poggers) and
-            (msg.channel.id==poggers[msg.guild.id]["channel"]) ):
+        if (
+            (not isinstance(msg.channel, discord.DMChannel))
+            and (not msg.author.bot)
+            and (msg.guild.id in poggers)
+            and (msg.channel.id == poggers[msg.guild.id]["channel"])
+        ):
             txt = msg.content
             name = msg.author.display_name
             avatar = msg.author.avatar_url
             await msg.delete()
             async with aiohttp.ClientSession() as session:
                 webhook_url = poggers[msg.guild.id]["webhook"]
-                webhook = Webhook.from_url(webhook_url, adapter=AsyncWebhookAdapter(session))
+                webhook = Webhook.from_url(
+                    webhook_url, adapter=AsyncWebhookAdapter(session)
+                )
 
-                i = 0 # this is where the fun begins
-                while len(txt)>i:
-                    await webhook.send(content=name, username=txt[i:i+32], avatar_url=avatar)
+                i = 0  # this is where the fun begins
+                while len(txt) > i:
+                    await webhook.send(
+                        content=name, username=txt[i : i + 32], avatar_url=avatar
+                    )
                     i += 32
+
 
 def setup(bot):
     bot.add_cog(Meme(bot))
+
 
 def teardown(bot):
     save_change()

@@ -9,8 +9,10 @@ from typing import Dict, List, Union
 NO_HELP = "도움말이 작성되지 않았습니다"
 HelpObj = Union[None, Cog, Group, Command]
 
-def hoverlink(text: str, url: str, hover: str = '') -> str:
+
+def hoverlink(text: str, url: str, hover: str = "") -> str:
     return f"[{text}]({url} '{hover}')"
+
 
 class EmbedHelp(commands.HelpCommand):
     """
@@ -19,16 +21,19 @@ class EmbedHelp(commands.HelpCommand):
 
     context: commands.Context
 
-    def __init__(self, *,
-            command_attrs = {},
-            color: int = 0xFFFFFF,
-            title: str = "Sample Text",
-            invite: str = "https://youtu.be/dQw4w9WgXcQ",
-            contact: str = "하지마",
-            thumbnail: str = None,
-            menu: List[str] = [],
-            tips: List[str] = [],
-            **options):
+    def __init__(
+        self,
+        *,
+        command_attrs={},
+        color: int = 0xFFFFFF,
+        title: str = "Sample Text",
+        invite: str = "https://youtu.be/dQw4w9WgXcQ",
+        contact: str = "하지마",
+        thumbnail: str = None,
+        menu: List[str] = [],
+        tips: List[str] = [],
+        **options,
+    ):
         super().__init__(command_attrs=command_attrs, **options)
         self.color = color
         self.title = title
@@ -45,7 +50,7 @@ class EmbedHelp(commands.HelpCommand):
     @property
     def help_usage(self) -> str:
         prefix = self.clean_prefix
-        usage = self.command_attrs.get('usage') or ''
+        usage = self.command_attrs.get("usage") or ""
         return f"{prefix}{self.invoked_with} {usage}"
 
     def cmd_usage(self, cmd: Command) -> str:
@@ -54,7 +59,7 @@ class EmbedHelp(commands.HelpCommand):
             # %alias1 usage
             # %alias2 usage
             variants = [f"{prefix}{name} {cmd.signature}" for name in cmd.aliases]
-            usage = '\n'.join(variants)
+            usage = "\n".join(variants)
         elif isinstance(cmd, clockbot.AliasGroup):
             # %parent [A/B] usage
             options = f"{cmd.name}/{'/'.join(cmd.aliases)}"
@@ -70,14 +75,14 @@ class EmbedHelp(commands.HelpCommand):
         If not, Cog.__class__.__name__'s initial letter
         as :regional_indicator_*: emoji unicode.
         """
-        if icon := getattr(cog, 'icon', None):
+        if icon := getattr(cog, "icon", None):
             return icon
 
         char = cog.qualified_name[0].upper()
-        if char==char.lower(): # not English
+        if char == char.lower():  # not English
             char = cog.__class__.__name__[0].upper()
 
-        offset = ord("\U0001f1e6") - ord('A')
+        offset = ord("\U0001f1e6") - ord("A")
         icon = chr(offset + ord(char))
         return icon
 
@@ -101,25 +106,21 @@ class EmbedHelp(commands.HelpCommand):
 
         if self.tips:
             tip = random.choice(self.tips)
-            embed.set_footer(text = f"팁: {tip}")
+            embed.set_footer(text=f"팁: {tip}")
 
         for icon, cog in mapping.items():
             embed.add_field(
-                name = f"{icon} {cog.qualified_name}",
-                value = cog.description or NO_HELP,
-                inline = False
+                name=f"{icon} {cog.qualified_name}",
+                value=cog.description or NO_HELP,
+                inline=False,
             )
 
         embed.add_field(
-            name = "봇 추가하기",
-            value = hoverlink("`여기를 클릭`", self.invite, self.invite),
-            inline = True
+            name="봇 추가하기",
+            value=hoverlink("`여기를 클릭`", self.invite, self.invite),
+            inline=True,
         )
-        embed.add_field(
-            name = "버그 신고",
-            value = self.contact,
-            inline = True
-        )
+        embed.add_field(name="버그 신고", value=self.contact, inline=True)
 
         return embed
 
@@ -130,12 +131,10 @@ class EmbedHelp(commands.HelpCommand):
         embed.description = f"**{cog.description or NO_HELP}**"
         embed.set_footer(text=f"{self.help_usage}")
 
-        for cmd in cog.get_commands(): # set 'showcase' attr for custom order
+        for cmd in cog.get_commands():  # set 'showcase' attr for custom order
             usage = self.cmd_usage(cmd)
             embed.add_field(
-                name = f"`{usage}`",
-                value = cmd.short_doc or NO_HELP,
-                inline = False
+                name=f"`{usage}`", value=cmd.short_doc or NO_HELP, inline=False
             )
 
         return embed
@@ -151,9 +150,7 @@ class EmbedHelp(commands.HelpCommand):
         for cmd in grp.commands:
             usage = self.cmd_usage(cmd)
             embed.add_field(
-                name = f"`{usage}`",
-                value = cmd.short_doc or NO_HELP,
-                inline = False
+                name=f"`{usage}`", value=cmd.short_doc or NO_HELP, inline=False
             )
 
         return embed
@@ -168,11 +165,10 @@ class EmbedHelp(commands.HelpCommand):
 
         description = f"```{cmd.help or NO_HELP}```"
         if cmd.aliases and not (
-            isinstance(cmd, clockbot.AliasAsArg) or
-            isinstance(cmd, clockbot.AliasGroup)
+            isinstance(cmd, clockbot.AliasAsArg) or isinstance(cmd, clockbot.AliasGroup)
         ):
-            parent = cmd.full_parent_name + ' ' if cmd.parent else ''
-            aliases = ', '.join(f"`{parent}{alias}`" for alias in cmd.aliases)
+            parent = cmd.full_parent_name + " " if cmd.parent else ""
+            aliases = ", ".join(f"`{parent}{alias}`" for alias in cmd.aliases)
             description = f" = {aliases}\n{description}"
         embed.description = description
 
@@ -200,14 +196,14 @@ class EmbedHelp(commands.HelpCommand):
 
     async def command_not_found(self, cmd: str) -> discord.Embed:
         prefix = self.clean_prefix
-        embed = discord.Embed(color = self.color)
+        embed = discord.Embed(color=self.color)
         embed.set_author(name=f"명령어/카테고리 '{cmd}'를 찾을 수 없습니다")
         embed.description = f"전체 목록 확인: `{prefix}{self.invoked_with}`"
         return embed
 
     async def subcommand_not_found(self, cmd: Command, sub: str) -> discord.Embed:
         prefix = self.clean_prefix
-        embed = discord.Embed(color = self.color)
+        embed = discord.Embed(color=self.color)
         embed.set_author(name=f"하위 명령어 '{sub}'를 찾을 수 없습니다")
         embed.description = f"전체 목록 확인: `{prefix}{self.invoked_with} {cmd.name}`"
         return embed
@@ -216,4 +212,3 @@ class EmbedHelp(commands.HelpCommand):
     async def send_error_message(self, error: discord.Embed):
         destin = self.get_destination()
         await destin.send(embed=error)
-

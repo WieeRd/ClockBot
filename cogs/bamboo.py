@@ -14,20 +14,24 @@ from clockbot import MacLak, GMacLak, DMacLak
 from utils.db import DictDB
 
 CONTAIN_URL = re.compile(r"http[s]?://")
+
+
 def is_media(msg: discord.Message) -> bool:
     """
     If message is containing
     File attachments or URL
     """
-    if len(msg.attachments)>0:
+    if len(msg.attachments) > 0:
         return True
     if CONTAIN_URL.search(msg.content):
         return True
     return False
 
-PREFIX = "[익명]" # default prefix for anonymous chat
-TIMEOUT = 5 # DM link timeout (minute)
-COLOR = 0x3ba55e # 'online green'
+
+PREFIX = "[익명]"  # default prefix for anonymous chat
+TIMEOUT = 5  # DM link timeout (minute)
+COLOR = 0x3BA55E  # 'online green'
+
 
 class ForestDoc(TypedDict):
     _id: int
@@ -37,12 +41,13 @@ class ForestDoc(TypedDict):
     prefix: str
     allow_media: bool
 
+
 @dataclass
 class Forest:
-    __slots__ = ('channel', 'links', 'banned', 'prefix', 'allow_media')
+    __slots__ = ("channel", "links", "banned", "prefix", "allow_media")
     channel: discord.TextChannel
-    links: List[discord.User] # discord.abc.Messageable
-    banned: Set[int] # to skip unnecessary get_user()
+    links: List[discord.User]  # discord.abc.Messageable
+    banned: Set[int]  # to skip unnecessary get_user()
     prefix: str
     allow_media: bool
     # record: bool
@@ -67,39 +72,42 @@ class Forest:
         ret = await self.channel.send(content, files=files)
 
         # for dm links, attachments are sent as url
-        if len(files)==1 and (not msg.content):
+        if len(files) == 1 and (not msg.content):
             content += ret.attachments[0].url
-        elif len(files)>0:
-            att_urls = '\n'.join(att.url for att in ret.attachments)
-            content += '\n' + att_urls
+        elif len(files) > 0:
+            att_urls = "\n".join(att.url for att in ret.attachments)
+            content += "\n" + att_urls
 
         links = self.links
-        if isinstance(msg.channel, discord.DMChannel): # exclude original author
-            links = filter(lambda user: user!=msg.author, links)
+        if isinstance(msg.channel, discord.DMChannel):  # exclude original author
+            links = filter(lambda user: user != msg.author, links)
         await asyncio.gather(*(user.send(content) for user in links))
 
         return ret
 
     def to_dict(self) -> ForestDoc:
         return {
-            '_id': self.channel.guild.id,
-            'channel': self.channel.id,
-            'links': list(user.id for user in self.links),
-            'banned': list(self.banned),
-            'prefix': self.prefix,
-            'allow_media': self.allow_media,
+            "_id": self.channel.guild.id,
+            "channel": self.channel.id,
+            "links": list(user.id for user in self.links),
+            "banned": list(self.banned),
+            "prefix": self.prefix,
+            "allow_media": self.allow_media,
         }
+
 
 @dataclass
 class DMlink:
-    __slots__ = ('forest', 'recent')
+    __slots__ = ("forest", "recent")
     forest: Forest
     recent: float
+
 
 class Bamboo(clockbot.Cog, name="대나무숲"):
     """
     익명 채팅 채널 '대나무숲' 생성 & 관리
     """
+
     require_db = True
 
     def __init__(self, bot: clockbot.ClockBot):
@@ -124,18 +132,19 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         self.timeout.start()
 
     def init_forest(self, doc: ForestDoc) -> Optional[Forest]:
-        channel = self.bot.get_channel(doc['channel'])
+        channel = self.bot.get_channel(doc["channel"])
         if not isinstance(channel, discord.TextChannel):
             return
 
         links = list()
-        for uid in doc['links']:
+        for uid in doc["links"]:
             user = self.bot.get_user(uid)
-            if user: links.append(user)
+            if user:
+                links.append(user)
 
-        banned = set(doc['banned'])
-        prefix = doc['prefix']
-        allow_media = doc['allow_media']
+        banned = set(doc["banned"])
+        prefix = doc["prefix"]
+        allow_media = doc["allow_media"]
 
         return Forest(channel, links, banned, prefix, allow_media)
 
@@ -144,7 +153,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         now = time.time()
         await self.bot.wait_until_ready()
         async for doc in self.db.find():
-            guild = self.bot.get_guild(doc['_id'])
+            guild = self.bot.get_guild(doc["_id"])
             forest = self.init_forest(doc)
             if guild and forest:
                 self.forests[guild] = forest
@@ -160,7 +169,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         now = time.time()
         dead: List[discord.User] = []
         for user, link in self.dm_links.items():
-            if (now - link.recent)>TIMEOUT*60:
+            if (now - link.recent) > TIMEOUT * 60:
                 dead.append(user)
 
         for user in dead:
@@ -168,7 +177,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             link.forest.links.remove(user)
 
             guild = link.forest.channel.guild
-            await self.db.pull(guild.id, 'links', user.id)
+            await self.db.pull(guild.id, "links", user.id)
 
             embed = discord.Embed(color=COLOR)
             embed.set_author(name=f"{TIMEOUT}분동안 활동이 없어 연결을 종료합니다")
@@ -196,9 +205,9 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
                 await self.db.remove(ctx.guild.id)
                 exist = None
 
-        if ctx.invoked_with=="설치":
+        if ctx.invoked_with == "설치":
             await self.add_forest(ctx, exist)
-        elif ctx.invoked_with=="제거":
+        elif ctx.invoked_with == "제거":
             await self.rm_forest(ctx, exist)
 
     async def add_forest(self, ctx: GMacLak, exist: Optional[Forest]):
@@ -207,7 +216,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             return
         if special := self.bot.specials.get(ctx.channel.id):
             await ctx.send(f"채널이 {special}(으)로 설정되어 있어 불가합니다")
-            return # TODO: bot.check_special(channel)
+            return  # TODO: bot.check_special(channel)
 
         forest = Forest(ctx.channel, [], set(), PREFIX, False)
         await self.db.insert_one(forest.to_dict())
@@ -218,24 +227,24 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         embed = discord.Embed(color=COLOR)
         embed.title = "익명 채널 '대나무숲'이 설치됬습니다"
         embed.add_field(
-            name = "모바일 알림에 작성자가 드러날 수 있습니다",
-            value = f"완전한 익명을 위해 `{p}대숲 연결`을 이용하세요",
-            inline = False
+            name="모바일 알림에 작성자가 드러날 수 있습니다",
+            value=f"완전한 익명을 위해 `{p}대숲 연결`을 이용하세요",
+            inline=False,
         )
         embed.add_field(
-            name = "관리자는 메세지 작성자를 공개할 수 있습니다",
-            value = f"`{p}대숲 열람` 명령어는 신중하게 이용해주세요",
-            inline = False
+            name="관리자는 메세지 작성자를 공개할 수 있습니다",
+            value=f"`{p}대숲 열람` 명령어는 신중하게 이용해주세요",
+            inline=False,
         )
         # embed.set_footer(text=f"자세한 정보: {ctx.prefix}대나무숲")
 
         await ctx.channel.edit(name="대나무숲", topic="대체 누가 한 말이야?")
         msg = await ctx.send(embed=embed)
         await msg.pin()
-        
+
     # TODO: removing forest shouldn't require permissions
     async def rm_forest(self, ctx: GMacLak, exist: Optional[Forest]):
-        if (not exist) or (exist.channel!=ctx.channel):
+        if (not exist) or (exist.channel != ctx.channel):
             # await ctx.send("대나무숲으로 설정된 채널이 아닙니다")
             await ctx.tick(False)
             return
@@ -247,7 +256,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         await self.db.remove(ctx.guild.id)
 
         for pin in await ctx.channel.pins():
-            if pin.author==self.bot.user:
+            if pin.author == self.bot.user:
                 await pin.unpin()
 
         embed = discord.Embed(color=COLOR)
@@ -257,7 +266,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
 
     @bamboo.command(name="연결", usage="<서버이름>")
     @commands.dm_only()
-    async def add_link(self, ctx: DMacLak, *, server: str = ''):
+    async def add_link(self, ctx: DMacLak, *, server: str = ""):
         """
         봇 DM채널과 서버 대나무숲 채널을 연결한다
         연결하면 DM에 보낸 채팅은 대나무숲으로,
@@ -268,29 +277,29 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         """
         p = ctx.prefix
 
-        if link := self.dm_links.get(ctx.author): # remove existing link
+        if link := self.dm_links.get(ctx.author):  # remove existing link
             forest = link.forest
             forest.links.remove(ctx.author)
             del self.dm_links[ctx.author]
-            await self.db.pull(forest.channel.guild.id, 'links', ctx.author.id)
+            await self.db.pull(forest.channel.guild.id, "links", ctx.author.id)
 
         joined = tuple(filter(lambda g: self.forests.get(g), ctx.author.mutual_guilds))
-        if len(joined)==0: # no mutual guild with forest
+        if len(joined) == 0:  # no mutual guild with forest
             embed = discord.Embed(color=COLOR)
             embed.set_author(name=f"연결 가능한 대나무숲이 없습니다!")
             embed.description = f"`{p}대숲 설치`로 새로운 대나무숲을 만들어보세요"
             await ctx.send(embed=embed)
             return False
 
-        server = server.lower() # 'set ignorecase'
+        server = server.lower()  # 'set ignorecase'
         candidates = tuple(filter(lambda g: server in g.name.lower(), joined))
-        if len(candidates)>1: # multiple search results
+        if len(candidates) > 1:  # multiple search results
             embed = discord.Embed(color=COLOR)
             if server:
-                embed.set_author(name=f"\"{server}\"에 대한 검색 결과:")
+                embed.set_author(name=f'"{server}"에 대한 검색 결과:')
             else:
                 embed.set_author(name="대나무숲이 설치된 서버들:")
-            results = '\n'.join(g.name for g in candidates)
+            results = "\n".join(g.name for g in candidates)
             embed.description = (
                 f"```{results}```\n"
                 f"`{p}대숲 연결 <서버이름>`으로 접속하세요\n"
@@ -299,9 +308,9 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             await ctx.send(embed=embed)
             return False
 
-        if len(candidates)==0: # no search result
+        if len(candidates) == 0:  # no search result
             embed = discord.Embed(color=COLOR)
-            embed.set_author(name=f"\"{server}\"에 대한 검색 결과가 없습니다")
+            embed.set_author(name=f'"{server}"에 대한 검색 결과가 없습니다')
             embed.description = f"`{p}대숲 연결`로 연결 가능한 서버를 확인하세요"
             await ctx.send(embed=embed)
             return False
@@ -318,8 +327,8 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         embed = discord.Embed(color=COLOR)
         embed.title = f"[{target.name}] 서버와 연결합니다"
         embed.description = (
-             "채팅을 입력하면 대나무숲으로 전송되며,\n"
-             "대나무숲의 채팅은 이곳으로 전송됩니다.\n"
+            "채팅을 입력하면 대나무숲으로 전송되며,\n"
+            "대나무숲의 채팅은 이곳으로 전송됩니다.\n"
             f"연결 해제 명령어: `{p}대숲 연결해제`"
         )
         await ctx.send(embed=embed)
@@ -327,19 +336,19 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         forest = self.forests[target]
         forest.links.append(ctx.author)
         self.dm_links[ctx.author] = DMlink(forest, time.time())
-        await self.db.push(target.id, 'links', ctx.author.id)
+        await self.db.push(target.id, "links", ctx.author.id)
         return True
 
     @bamboo.command(name="연결유지", usage="<서버이름>")
     @commands.dm_only()
-    async def keep_link(self, ctx: DMacLak, *, server: str = ''):
+    async def keep_link(self, ctx: DMacLak, *, server: str = ""):
         """
         타임아웃으로 연결이 끊기지 않는 '대숲 연결'.
         한번 연결하고 DM 알림을 꺼두면 언제나
         완벽한 익명의 대나무숲을 바로 이용할 수 있다.
         """
         if await self.add_link(ctx, server=server):
-            self.dm_links[ctx.author].recent = float('INF')
+            self.dm_links[ctx.author].recent = float("INF")
 
     @bamboo.command(name="연결해제")
     @commands.dm_only()
@@ -354,7 +363,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         forest = self.dm_links[ctx.author].forest
         forest.links.remove(ctx.author)
         del self.dm_links[ctx.author]
-        await self.db.pull(forest.channel.guild.id, 'links', ctx.author.id)
+        await self.db.pull(forest.channel.guild.id, "links", ctx.author.id)
 
         await ctx.tick(True)
 
@@ -367,9 +376,9 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         혼자 익명이 아닌 것에 좋아하는 이상한 사람이라면
         추가적으로 '개소리' 명령어 사용을 고려해보자.
         """
-        if ctx.invoked_with=="밴":
+        if ctx.invoked_with == "밴":
             await self.ban(ctx, user)
-        elif ctx.invoked_with=="사면":
+        elif ctx.invoked_with == "사면":
             await self.unban(ctx, user)
 
     async def ban(self, ctx: GMacLak, user: discord.User):
@@ -383,12 +392,12 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             return
 
         forest.banned.add(user.id)
-        await self.db.push(ctx.guild.id, 'banned', user.id)
+        await self.db.push(ctx.guild.id, "banned", user.id)
 
         if user in forest.links:
             forest.links.remove(user)
             del self.dm_links[user]
-            await self.db.pull(forest.channel.guild.id, 'links', user.id)
+            await self.db.pull(forest.channel.guild.id, "links", user.id)
 
             embed = discord.Embed(color=COLOR)
             embed.set_author(name="연결이 강제 종료되었습니다")
@@ -399,8 +408,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         embed = discord.Embed(color=COLOR)
         embed.title = "대나무숲 밴"
         embed.description = (
-            f"{user.mention}가 대나무숲에서 차단됬습니다.\n"
-            f"`{p}대숲 사면` 받기 전까지 익명성이 박탈됩니다."
+            f"{user.mention}가 대나무숲에서 차단됬습니다.\n" f"`{p}대숲 사면` 받기 전까지 익명성이 박탈됩니다."
         )
         await ctx.send(embed=embed)
 
@@ -408,7 +416,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         if forest := self.forests.get(ctx.guild):
             if user.id in forest.banned:
                 forest.banned.remove(user.id)
-                await self.db.pull(ctx.guild.id, 'banned', user.id)
+                await self.db.pull(ctx.guild.id, "banned", user.id)
                 embed = discord.Embed(color=COLOR)
                 embed.title = "대나무숲 사면"
                 embed.description = f"{user.mention}가 사면됬습니다. 처신 잘하라고 ;)"
@@ -433,10 +441,12 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             await ctx.send_help(self.inspect)
             return
 
-        query = await self.logs.get({
-            'channel': target.channel.id,
-            'message': target.id,
-        })
+        query = await self.logs.get(
+            {
+                "channel": target.channel.id,
+                "message": target.id,
+            }
+        )
 
         if not query:
             embed = discord.Embed(color=COLOR)
@@ -445,24 +455,16 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             await ctx.send(embed=embed)
             return
 
-        author = query['author']
+        author = query["author"]
         when = int(target.created_at.timestamp())
 
         embed = discord.Embed(
             color=COLOR,
-            title = "대나무숲 열람",
-            description = f"관리자 {ctx.author.mention}님이 익명 메세지를 공개했습니다"
+            title="대나무숲 열람",
+            description=f"관리자 {ctx.author.mention}님이 익명 메세지를 공개했습니다",
         )
-        embed.add_field(
-            name = "작성자",
-            value = f"<@!{author}>",
-            inline = True
-        )
-        embed.add_field(
-            name = "작성일",
-            value = f"<t:{when}:F>",
-            inline = True
-        )
+        embed.add_field(name="작성자", value=f"<@!{author}>", inline=True)
+        embed.add_field(name="작성일", value=f"<t:{when}:F>", inline=True)
         await target.reply(embed=embed)
 
     @bamboo.group(name="설정", usage="<설정> <설정값>")
@@ -479,27 +481,17 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
     async def prefix(self, ctx: GMacLak, *, value: str):
         """
         익명 닉네임을 변경한다 (기본값 [익명])
-        """ # not {PREFIX} because docstring doesn't support f-string
+        """  # not {PREFIX} because docstring doesn't support f-string
         forest = self.forests.get(ctx.guild)
         if not forest:
             await ctx.code("에러: 서버에 대나무숲이 존재하지 않습니다")
             return
 
         embed = discord.Embed(
-            color = COLOR,
-            title = "대나무숲 설정",
-            description = "익명 닉네임을 변경했습니다"
+            color=COLOR, title="대나무숲 설정", description="익명 닉네임을 변경했습니다"
         )
-        embed.add_field(
-            name = "Before",
-            value = forest.prefix,
-            inline = True
-        )
-        embed.add_field(
-            name = "After",
-            value = value,
-            inline = True
-        )
+        embed.add_field(name="Before", value=forest.prefix, inline=True)
+        embed.add_field(name="After", value=value, inline=True)
         await ctx.send(embed=embed)
         forest.prefix = value
         await self.db.set(ctx.guild.id, prefix=value)
@@ -516,18 +508,16 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             await ctx.code("에러: 서버에 대나무숲이 존재하지 않습니다")
             return
 
-        if value=="허용":
+        if value == "허용":
             allow = True
-        elif value=="금지":
+        elif value == "금지":
             allow = False
         else:
             await ctx.send_help(self.media)
             return
 
         embed = discord.Embed(
-            color = COLOR,
-            title = "대나무숲 설정",
-            description = f"이미지/URL 전송이 {value}되었습니다"
+            color=COLOR, title="대나무숲 설정", description=f"이미지/URL 전송이 {value}되었습니다"
         )
         await ctx.send(embed=embed)
         forest.allow_media = allow
@@ -552,7 +542,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
 
         if isinstance(channel, discord.TextChannel):
             forest = self.forests.get(channel.guild)
-            if forest and forest.channel==channel:
+            if forest and forest.channel == channel:
 
                 if msg.author.id in forest.banned:
                     # await msg.author.send(
@@ -575,13 +565,13 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
                 sent = await link.forest.send(msg)
 
         if sent:
-            self.logs.insert_one({
-                '_id': {
-                    'channel': sent.channel.id,
-                    'message': sent.id
-                },
-                'author': msg.author.id,
-                'when': datetime.utcnow()
-            })
+            self.logs.insert_one(
+                {
+                    "_id": {"channel": sent.channel.id, "message": sent.id},
+                    "author": msg.author.id,
+                    "when": datetime.utcnow(),
+                }
+            )
+
 
 setup = Bamboo.setup

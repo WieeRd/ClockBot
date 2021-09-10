@@ -6,7 +6,11 @@ __all__ = (
     "bestmatch",
     "bestmatches",
     "MemberAmbiguous",
-    "PartialMember",
+    "RoleAmbiguous",
+    "search_member",
+    "search_role",
+    "SearchMember",
+    "SearchRole",
 )
 
 T = TypeVar("T")
@@ -72,6 +76,11 @@ class MemberType(discord.Member):
         pass
 
 
+class RoleType(discord.Role):
+    def __init__(self):
+        pass
+
+
 class MemberAmbiguous(commands.MemberNotFound):
     def __init__(self, arg: str, members: Set[discord.Member]):
         self.arg = arg
@@ -79,18 +88,32 @@ class MemberAmbiguous(commands.MemberNotFound):
         super().__init__(f'Member "{arg}" is ambiguous ({len(members)} candidates)')
 
 
-class PartialMember(commands.MemberConverter, MemberType):
+class RoleAmbiguous(commands.RoleNotFound):
+    def __init__(self, arg: str, roles: Set[discord.Role]):
+        self.arg = arg
+        self.roles = roles
+        super().__init__(f'Role "{arg}" is ambiguous ({len(roles)} candidates)')
+
+
+def search_member(arg: str, guild: discord.Guild) -> discord.Member:
+    members = bestmatches(arg, guild.members, lambda m: m.display_name)
+    if len(members) != 1:
+        raise MemberAmbiguous(arg, members)
+    return next(iter(members))
+
+
+def search_role(arg: str, guild: discord.Guild) -> discord.Role:
+    roles = bestmatches(arg, guild.roles, lambda m: m.name)
+    if len(roles) != 1:
+        raise RoleAmbiguous(arg, roles)
+    return next(iter(roles))
+
+
+class SearchMember(commands.MemberConverter, MemberType):
     """
-    MemberConverter but it also accepts partial nickname match
+    MemberConverter that also accepts partial match
     raise MemberAmbiguous if matching result isn't one
     """
-
-    @classmethod
-    def search(cls, arg: str, guild: discord.Guild) -> discord.Member:
-        members = bestmatches(arg, guild.members, lambda m: m.display_name)
-        if len(members) != 1:
-            raise MemberAmbiguous(arg, members)
-        return next(iter(members))
 
     async def convert(self, ctx: commands.Context, arg: str) -> discord.Member:
         try:
@@ -99,4 +122,20 @@ class PartialMember(commands.MemberConverter, MemberType):
             if not ctx.guild:
                 raise
 
-        return self.search(arg, ctx.guild)
+        return search_member(arg, ctx.guild)
+
+
+class SearchRole(commands.RoleConverter, RoleType):
+    """
+    RoleConverter that also accepts partial match
+    raise RoleAmbiguous if matching result isn't one
+    """
+
+    async def convert(self, ctx: commands.Context, arg: str) -> discord.Role:
+        try:
+            return await super().convert(ctx, arg)
+        except commands.RoleNotFound:
+            if not ctx.guild:
+                raise
+
+        return search_role(arg, ctx.guild)

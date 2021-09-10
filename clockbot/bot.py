@@ -269,35 +269,35 @@ class ClockBot(commands.Bot):
             await ctx.send_help(ctx.command)
 
         elif isinstance(error, commands.CheckFailure):
-            if isinstance(error, commands.NoPrivateMessage):
+            if isinstance(error, commands.NotOwner):
+                await ctx.code("에러: 봇 관리자 전용 명령어입니다")
+
+            elif isinstance(error, commands.NoPrivateMessage):
                 await ctx.code("에러: 해당 명령어는 서버에서만 사용할 수 있습니다")
             elif isinstance(error, commands.PrivateMessageOnly):
                 await ctx.code("에러: 해당 명령어는 DM에서만 사용할 수 있습니다")
 
             elif isinstance(error, commands.BotMissingPermissions):
                 perm_lst = ", ".join(
-                    [PERM_KR_NAME[str(perm)] for perm in error.missing_perms]
+                    PERM_KR_NAME[str(perm)] for perm in error.missing_perms
                 )
                 many = "들" if len(perm_lst) > 1 else ""
                 await ctx.code(f"에러: 봇에게 다음 권한{many}이 필요합니다: {perm_lst}")
             elif isinstance(error, commands.MissingPermissions):
                 perm_lst = ", ".join(
-                    [PERM_KR_NAME[str(perm)] for perm in error.missing_perms]
+                    PERM_KR_NAME[str(perm)] for perm in error.missing_perms
                 )
                 many = "들" if len(perm_lst) > 1 else ""
                 await ctx.code(f"에러: 다음 권한{many}이 필요합니다: {perm_lst}")
-
-            elif isinstance(error, commands.NotOwner):
-                await ctx.code("에러: 봇 관리자 전용 명령어입니다")
 
         elif isinstance(error, commands.CommandOnCooldown):
             pass  # TODO
 
         elif isinstance(error, commands.CommandInvokeError):
+            self.dumped.append(ctx)
             e = error.original
             print(f"Unexpected Error by: {ctx.message.content}")
-            print(f"Dumping context #{len(self.dumped)}")
-            self.dumped.append(ctx)
+            print(f"Dumped context #{len(self.dumped)}")
             try:
                 raise e
             except:
@@ -307,3 +307,6 @@ class ClockBot(commands.Bot):
                 f"{type(e).__name__}: {str(e)}\n"
                 f"버그 맞으니까 제작자에게 멘션 테러를 권장합니다"
             )  # TODO: send_owner()
+
+        elif isinstance(error, commands.ConversionError):
+            pass # TODO

@@ -120,7 +120,7 @@ class EmbedHelp(commands.HelpCommand):
             value=hoverlink("`여기를 클릭`", self.invite, self.invite),
             inline=True,
         )
-        embed.add_field(name="버그 신고", value=self.contact, inline=True)
+        embed.add_field(name="피드백", value=self.contact, inline=True)
 
         return embed
 

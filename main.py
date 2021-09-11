@@ -35,7 +35,7 @@ help_command = EmbedMenu(
     **HELP_OPT,
     command_attrs={
         "name": "도움",
-        "aliases": ["help", "?"],
+        "aliases": ["도움말", "help", "?"],
         "usage": "<카테고리/명령어>",
         "help": "\n".join(
             [

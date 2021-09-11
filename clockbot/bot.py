@@ -2,9 +2,7 @@
 ClockBot, MacLak (Bot, Context)
 """
 import discord
-import asyncio
 import aiohttp
-import re
 import time
 import traceback
 
@@ -13,6 +11,8 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from enum import IntEnum
 from typing import Dict, List, Optional
+
+from .converter import NoProblem, TargetAmbiguous
 
 __all__ = (
     "PERM_KR_NAME",
@@ -266,8 +266,12 @@ class ClockBot(commands.Bot):
                 await ctx.send_help(cog)
 
         elif isinstance(error, commands.UserInputError):
-            await ctx.send_help(ctx.command)
-        # TODO: TargetAmbiguous
+            if isinstance(error, (commands.UserNotFound, commands.MemberNotFound)):
+                await ctx.code(f'에러: 유저 "{error.argument}"을(를) 찾을 수 없습니다')
+            elif isinstance(error, TargetAmbiguous):
+                await ctx.code(f'에러: "{error.arg}"에 해당하는 대상이 너무 많습니다')
+            else:
+                await ctx.send_help(ctx.command)
 
         elif isinstance(error, commands.CheckFailure):
             if isinstance(error, commands.NotOwner):
@@ -294,9 +298,12 @@ class ClockBot(commands.Bot):
         elif isinstance(error, commands.CommandOnCooldown):
             pass  # TODO
 
-        elif isinstance(error, commands.CommandInvokeError):
-            self.dumped.append(ctx)
+        elif isinstance(error, (commands.CommandInvokeError, commands.ConversionError)):
             e = error.original
+            if isinstance(e, NoProblem):
+                return  # this is fine
+
+            self.dumped.append(ctx)
             print(f"Unexpected Error by: {ctx.message.content}")
             print(f"Dumped context #{len(self.dumped)}")
             try:
@@ -308,6 +315,3 @@ class ClockBot(commands.Bot):
                 f"{type(e).__name__}: {str(e)}\n"
                 f"버그 맞으니까 제작자에게 멘션 테러를 권장합니다"
             )  # TODO: send_owner()
-
-        elif isinstance(error, commands.ConversionError):
-            pass # TODO

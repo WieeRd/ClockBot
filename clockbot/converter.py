@@ -7,6 +7,8 @@ from typing import Iterable, Callable, Optional, Set, TypeVar
 __all__ = (
     "bestmatch",
     "bestmatches",
+    "NoProblem",
+    "TargetAmbiguous",
     "MemberAmbiguous",
     "RoleAmbiguous",
     "search_member",
@@ -88,6 +90,15 @@ class RoleType(discord.Role):
         pass
 
 
+class NoProblem(Exception):
+    """
+    ConversionError handler should suppress this
+    raise this to 'give up' conversion
+    """
+    def __init__(self):
+        super().__init__("This is fine")
+
+
 class TargetAmbiguous(commands.BadArgument):
     def __init__(self, arg: str, candidates: set):
         self.arg = arg
@@ -160,6 +171,7 @@ class SelectMember(commands.MemberConverter, MemberType):
     """
     Like SearchMember but command invoker can choose
     between candidates when MemberAmbiguous occurs
+    raises MemberAmbiguous if there are too many candidates
     """
 
     async def convert(self, ctx: commands.Context, arg: str) -> discord.Member:
@@ -200,13 +212,16 @@ class SelectMember(commands.MemberConverter, MemberType):
         except asyncio.TimeoutError:
             await question.delete()
             await ctx.reply("선택지 제한시간 초과", mention_author=False)
-            raise
+            raise NoProblem
 
-        await question.delete()
         await answer.delete()
         if answer.content == "c":
-            await ctx.reply("선택지 취소됨", mention_author=False)
-            raise  # TODO: safe way to terminate conversion
+            embed = discord.Embed()
+            embed.set_author(name="선택지 취소됨")
+            await question.edit(embed=embed)
+            raise NoProblem
+
+        await question.delete()
         return members[int(answer.content) - 1]
 
 
@@ -214,6 +229,7 @@ class SelectRole(commands.RoleConverter, RoleType):
     """
     Like SearchRole but command invoker can choose
     between candidates when RoleAmbiguous occurs
+    raises RoleAmbiguous if there are too many candidates
     """
 
     async def convert(self, ctx: commands.Context, arg: str) -> discord.Role:
@@ -252,12 +268,15 @@ class SelectRole(commands.RoleConverter, RoleType):
         except asyncio.TimeoutError:
             await question.delete()
             await ctx.reply("선택지 제한시간 초과", mention_author=False)
-            raise
+            raise NoProblem
 
-        await question.delete()
         await answer.delete()
         if answer.content == "c":
-            await ctx.reply("선택지 취소됨", mention_author=False)
-            raise
+            embed = discord.Embed()
+            embed.set_author(name="선택지 취소됨")
+            await question.edit(embed=embed)
+            raise NoProblem
+
+        await question.delete()
         return roles[int(answer.content) - 1]
 

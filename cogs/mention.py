@@ -2,21 +2,28 @@ import discord
 import asyncio
 from discord.ext import commands
 
+import clockbot
+from clockbot import GMacLak, MacLak
 import utils.MemberFilter as MemberFilter
 
-from clockbot import ClockBot, GMacLak, MacLak
+# TODO: used embed
+# TODO: usage command
+# TODO: easier expr
+# TODO: fuzzy match
+class Mention(clockbot.Cog, name="고급멘션"):
+    """
+    사용법이 어렵다고 해서 뜯어고치는 중
+    """
 
-class Mention(commands.Cog, name="고급멘션"):
-    """
-    '온라인인 관리자', '1명 제외 모두'를 핑하고 싶다면?
-    """
-    def __init__(self, bot: ClockBot):
+    # 멘션 대상을 더 '섬세하게' 지정하는 방법
+    def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
-        self.help_menu = [
-            self.member,
-            self.mention,
-            self.DMention,
-            self.expr_usage,
+        self.icon = "\N{PUSHPIN}"
+        self.showcase = [
+            # self.member,
+            # self.mention,
+            # self.DMention,
+            # self.expr_usage,
         ]
 
     @commands.command(name="멤버", usage="<조건식>")
@@ -25,17 +32,16 @@ class Mention(commands.Cog, name="고급멘션"):
         """
         조건식에 맞는 멤버 목록을 출력한다
         멘션 알림이 가지 않으니 안심하자.
-        메세지에서 멘션 권한을 없애면 모바일에선
-        @invalid-user로 표시되는 버그가 있다.
-        ***시계봇이 아니라 디스코드 버그다***
         """
         try:
             target = MemberFilter.parse(expression, ctx.guild)
         except Exception as e:
             await ctx.send(f"```{type(e).__name__}: {e.args[0]}```")
             return
-        if len(target)>0:
-            msg = ' '.join([f"{m.mention}(`{m.name}#{m.discriminator}`)" for m in target])
+        if len(target) > 0:
+            msg = " ".join(
+                [f"{m.mention}(`{m.name}#{m.discriminator}`)" for m in target]
+            )
             msg += "\n`이 메세지는 알림(핑)이 가지 않습니다`"
             await ctx.send(msg, allowed_mentions=discord.AllowedMentions.none())
         else:
@@ -55,8 +61,8 @@ class Mention(commands.Cog, name="고급멘션"):
         except Exception as e:
             await ctx.send(f"```{type(e).__name__}: {e.args[0]}```")
             return
-        if len(target)>0:
-            msg = ' '.join([m.mention for m in target])
+        if len(target) > 0:
+            msg = " ".join([m.mention for m in target])
             msg += f"\n`{len(target)}명의 유저를 멘션합니다`"
             await ctx.send(msg)
         else:
@@ -75,13 +81,13 @@ class Mention(commands.Cog, name="고급멘션"):
         except Exception as e:
             await ctx.send(f"```{type(e).__name__}: {e.args[0]}```")
             return
-        if len(target)>0:
+        if len(target) > 0:
             who = ctx.author.mention
             where = ctx.guild.name
             url = ctx.message.jump_url
             msg = f"{who}님이 [{where}]에서 당신을 멘션했습니다.\n바로가기: {url}"
 
-            send = lambda user: getattr(user, 'send')(msg)
+            send = lambda user: getattr(user, "send")(msg)
             await asyncio.gather(*map(send, target))
             # for user in target:
             #     await user.send(msg)
@@ -98,13 +104,7 @@ class Mention(commands.Cog, name="고급멘션"):
         언젠가 개선할 계획
         """
         # TODO: use module docstring maybe?
-        await ctx.send(
-            "미안하지만 이젠 나도 잘 모르겠어\n"
-            " - 제작자 - "
-        )
+        await ctx.send("미안하지만 이젠 나도 잘 모르겠어\n" " - 제작자 - ")
 
-def setup(bot):
-    bot.add_cog(Mention(bot))
 
-def teardown(bot):
-    pass
+setup = Mention.setup

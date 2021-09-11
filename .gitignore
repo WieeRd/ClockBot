@@ -4,3 +4,4 @@ settings/
 config.yml
 *.tmp
 test.*
+.venv

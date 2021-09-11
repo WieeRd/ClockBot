@@ -1,27 +1,35 @@
 token:
-prefix: '!'
-status: "Hello World"
+prefix: '%'
+color: 0x7289da
+status: "MUYAHO"
 extensions:
     - jishaku
-    # - cogs.owner
-    # - cogs.bamboo
-    # - cogs.babel
-    # - cogs.mention
-    # - cogs.voice
-    # - cogs.clock
-    - cogs.misc
-help_options:
-    prefix: ''
-    suffix: "봇 초대코드: http://add.clockbot.kro.kr"
-    category:
+    - cogs.owner
+    - cogs.clock
+    - cogs.bamboo
+    - cogs.mention
+    - cogs.voice
+    - cogs.pranks
+    - cogs.tools
+help: # kwargs for HelpCommand
+    color: 0x7289da
+    title: "시계봇 도움말"
+    invite: "http://add.clockbot.kro.kr"
+    contact: "하지마"
+    menu: # cogs shown in main(bot) menu
         - "대나무숲"
-        - "바벨탑"
         - "고급멘션"
         - "TTS"
-        - "기타"
-database:
-    host: localhost
-    port: 3306
-    user:
+        - "장난"
+        - "도구"
+    tips: # random tips shown in embed footer
+        - "디스코드 그만 보고 현생을 사세요"
+        - "버그가 아니라 기능입니다. 그렇다면 그런 줄 알아."
+    timeout: 60
+    inactive: 0x99aab5
+mongodb: # kwargs for AsyncIOMotorClient
+    host:
+    port:
+    username:
     password:
-    db: clockbot
+database: "clockbot" # mongodb database name

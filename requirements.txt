@@ -1,9 +1,9 @@
-aiohttp>=3.7.4.post0
-discord.py>=1.7.1
-aiomysql>=0.0.21
-google_trans_new>=1.1.9
-aiogTTS>=1.1.0
-discord>=1.0.1
-PyYAML>=5.4.1
-PyNaCl>=1.4.0
+discord.py
+discord.py-stubs
+motor
+pyYAML
+jishaku
+pillow
+aiogtts
+emojis
 jamo

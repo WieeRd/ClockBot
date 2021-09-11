@@ -1,15 +1,15 @@
-DB - reddis | mongo
-cogs.bamboo - apply DB
 cogs.mention - easier expr
- + member converter using MemberFilter
+ + Converters, Fuzzy search
 cogs.portal - new
+cogs.game - chess, TicTacTo
 cogs.voice - improve
-cogs.misc - cogs.common / cogs.uncommon
 cogs.custom - custom command for each server
-cogs.babel - NyanChat, BlackCow filter
+ -> %tip command
+cogs.babel - NyanChat, Hawawa
 
-chess - pvp / Stockfish
-network visualization
-voice recognition
-
-Utils inside GMacLak should be usable without context
+help cog - part of cogs.owner - runtime import
+null DB
+setup logging
+on_context event
+send help when mentioned
+magic

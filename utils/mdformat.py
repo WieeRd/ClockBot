@@ -1,32 +1,42 @@
 # Functions for markdown formatting
 # Not so useful tbh but I made it anyway
 
-def codeword(txt):
-	return '`' + txt + '`'
 
-def codeline(txt, lang=''):
-    return "```" + lang + '\n' + txt + '\n' + "```"
+def codeword(txt):
+    return "`" + txt + "`"
+
+
+def codeline(txt, lang=""):
+    return "```" + lang + "\n" + txt + "\n" + "```"
+
 
 def bold(txt):
-	return "**" + txt + "**"
+    return "**" + txt + "**"
+
 
 def italic(txt):
-	return '_' + txt + '_'
+    return "_" + txt + "_"
+
 
 def emphasize(txt):
-	return "***" + txt + "***"
+    return "***" + txt + "***"
+
 
 def underln(txt):
-	return "__" + txt + "__"
+    return "__" + txt + "__"
+
 
 def strike(txt):
-	return "~~" + txt + "~~"
+    return "~~" + txt + "~~"
+
 
 def spoiler(txt):
-	return "||" + txt + "||"
+    return "||" + txt + "||"
+
 
 def quote(txt):
-	return ">>>" + txt
+    return ">>>" + txt
+
 
 cd = codeline
 cw = codeword
@@ -38,12 +48,14 @@ st = strike
 sp = spoiler
 qt = quote
 
+
 def mdformat(txt, *func, **kwargs):
-	for f in func:
-		if((f==codeln) and (kwargs['lang']!=None)):
-			txt = f(txt, kwargs['lang'])
-		else:
-			txt = f(txt)
-	return txt
+    for f in func:
+        if (f == codeln) and (kwargs["lang"] != None):
+            txt = f(txt, kwargs["lang"])
+        else:
+            txt = f(txt)
+    return txt
+
 
 # ex) mdformat("asdf", bd, it, lang='python')

@@ -10,6 +10,7 @@ import subprocess
 import time
 import io
 
+from typing import Dict
 
 def run_cmd(cmd, timeout=None):
     proc = subprocess.Popen(
@@ -43,6 +44,8 @@ class Owner(clockbot.Cog, name="제작자"):
             self.ping,
             self.serverlist,
         ]
+
+        self.cmd_usage: Dict[str, int] = {}
 
     @clockbot.alias_as_arg(name="종료", aliases=["퇴근", "재시작", "업뎃"])
     @commands.is_owner()
@@ -119,14 +122,14 @@ class Owner(clockbot.Cog, name="제작자"):
         return
 
     @commands.command(name="핑")
-    async def ping(self, ctx):
+    async def ping(self, ctx: MacLak):
         """
         메세지 핑 측정
         """
         await ctx.send(f"{int(self.bot.latency*1000)}ms")
 
     @commands.command(name="업타임")
-    async def uptime(self, ctx):
+    async def uptime(self, ctx: MacLak):
         """
         봇이 켜진지 얼마나 지났는지 출력한다
         """
@@ -140,29 +143,54 @@ class Owner(clockbot.Cog, name="제작자"):
             tm = f"{dd}일 {tm}"
         await ctx.send(tm)
 
-    @commands.Cog.listener(name="on_message")
-    async def terminal(self, msg):
-        if msg.content.startswith("$") and await self.bot.is_owner(msg.author):
-            cmd = msg.content[1:]
-            arg = cmd.split(maxsplit=1)
-            timeout = 3
+    # TODO: temporary feature; will apply DB and stuff later
+    @commands.command(name="통계")
+    @commands.is_owner()
+    async def stat(self, ctx: MacLak):
+        """
+        명령어 사용량 순위
+        """
+        cmds = sorted(self.cmd_usage.items(), key=lambda item: item[1])
+        embed = discord.Embed(
+            color=self.bot.color,
+            title="명령어 사용량",
+            description="\n".join(f"**{'%'+c[0]} : {c[1]}**" for c in cmds)
+        )
+        await ctx.send(embed=embed)
 
-            if arg[0].isdigit():
-                if int(arg[0]) > 0:
-                    timeout = int(arg[0])
-                else:
-                    timeout = None
-                    await msg.channel.send("```Warning: Timeout set to unlimited```")
-                cmd = arg[1]
+    @commands.Cog.listener(name="on_command")
+    async def record(self, ctx: MacLak):
+        if await self.bot.is_owner(ctx.author):
+            return
 
-            print(f"Executing '{cmd}' (Timeout: {timeout})")
-            result = run_cmd(cmd, timeout)
-            if result != None:
-                await msg.channel.send(f"```{result[1]}```")
-                print(result[1] + f"(Returned {result[0]})")
-            else:
-                await msg.channel.send(f"```'{cmd}' timed out: {timeout}s```")
-                print(f"{cmd} timed out: {timeout}s")
+        cmd = ctx.command.qualified_name
+        if cmd in self.cmd_usage:
+            self.cmd_usage[cmd] += 1
+        else:
+            self.cmd_usage[cmd] = 1
 
+    # @commands.Cog.listener(name="on_message")
+    # async def terminal(self, msg: discord.Message):
+    #     if msg.content.startswith("$") and await self.bot.is_owner(msg.author):
+    #         cmd = msg.content[1:]
+    #         arg = cmd.split(maxsplit=1)
+    #         timeout = 3
+
+    #         if arg[0].isdigit():
+    #             if int(arg[0]) > 0:
+    #                 timeout = int(arg[0])
+    #             else:
+    #                 timeout = None
+    #                 await msg.channel.send("```Warning: Timeout set to unlimited```")
+    #             cmd = arg[1]
+
+    #         print(f"Executing '{cmd}' (Timeout: {timeout})")
+    #         result = run_cmd(cmd, timeout)
+    #         if result != None:
+    #             await msg.channel.send(f"```{result[1]}```")
+    #             print(result[1] + f"(Returned {result[0]})")
+    #         else:
+    #             await msg.channel.send(f"```'{cmd}' timed out: {timeout}s```")
+    #             print(f"{cmd} timed out: {timeout}s")
 
 setup = Owner.setup

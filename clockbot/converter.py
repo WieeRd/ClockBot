@@ -4,6 +4,8 @@ import re
 from discord.ext import commands
 from typing import Iterable, Callable, Optional, Set, TypeVar
 
+# TODO: too much duplicate codes
+
 __all__ = (
     "bestmatch",
     "bestmatches",
@@ -19,8 +21,6 @@ __all__ = (
     "SelectRole",
 )
 
-# TODO: too much duplicate codes
-
 T = TypeVar("T")
 
 
@@ -32,6 +32,11 @@ def bestmatch(key: str, doors: Iterable[T], lock: Callable[[T], str]) -> Optiona
     """
     if key == "":
         return
+
+    # 'smartcase': ignorecase if key is all lowercase
+    if re.match(r"^[^A-Z]+$", key):
+        original = lock  # prevent recursion
+        lock = lambda d: original(d).lower()
 
     bestDoor = None
     bestIndex = float("INF")
@@ -61,13 +66,17 @@ def bestmatches(key: str, doors: Iterable[T], lock: Callable[[T], str]) -> Set[T
     if key == "":
         return set()
 
+    # 'smartcase': ignorecase if key is all lowercase
+    if re.match(r"^[^A-Z]+$", key):
+        original = lock  # prevent recursion
+        lock = lambda d: original(d).lower()
+
     bestIndex = float("INF")
     candidates = set()
 
     for door in doors:
-        # Ignorecase due to popular demand :(
-        target = lock(door).lower()
-        index = target.find(key.lower())
+        target = lock(door)
+        index = target.find(key)
         if index != -1:
             if len(key) == len(target):  # exact match
                 index = -1
@@ -95,6 +104,7 @@ class NoProblem(Exception):
     ConversionError handler should suppress this
     raise this to 'give up' conversion
     """
+
     def __init__(self):
         super().__init__("This is fine")
 
@@ -191,7 +201,7 @@ class SelectMember(commands.MemberConverter, MemberType):
 
         members = list(error.candidates)
         options = "\n".join(
-            f" {i+1} : {m.display_name} ({m})" for (i, m) in enumerate(members)
+            f" {i+1} : '{m.display_name}' ({m})" for (i, m) in enumerate(members)
         )
         pattern = re.compile(f"^[c1-{len(members)}]$")
 
@@ -210,8 +220,9 @@ class SelectMember(commands.MemberConverter, MemberType):
         try:
             answer = await ctx.bot.wait_for("message", check=check, timeout=15)
         except asyncio.TimeoutError:
-            await question.delete()
-            await ctx.reply("선택지 제한시간 초과", mention_author=False)
+            embed = discord.Embed()
+            embed.set_author(name="선택지 시간제한 초과")
+            await question.edit(embed=embed)
             raise NoProblem
 
         await answer.delete()
@@ -266,8 +277,9 @@ class SelectRole(commands.RoleConverter, RoleType):
         try:
             answer = await ctx.bot.wait_for("message", check=check, timeout=15)
         except asyncio.TimeoutError:
-            await question.delete()
-            await ctx.reply("선택지 제한시간 초과", mention_author=False)
+            embed = discord.Embed()
+            embed.set_author(name="선택지 시간제한 초과")
+            await question.edit(embed=embed)
             raise NoProblem
 
         await answer.delete()
@@ -279,4 +291,3 @@ class SelectRole(commands.RoleConverter, RoleType):
 
         await question.delete()
         return roles[int(answer.content) - 1]
-

@@ -225,7 +225,11 @@ class SelectMember(commands.MemberConverter, MemberType):
             await question.edit(embed=embed)
             raise NoProblem
 
-        await answer.delete()
+        try:
+            await answer.delete()
+        except:
+            pass
+
         if answer.content == "c":
             embed = discord.Embed()
             embed.set_author(name="선택지 취소됨")
@@ -282,7 +286,11 @@ class SelectRole(commands.RoleConverter, RoleType):
             await question.edit(embed=embed)
             raise NoProblem
 
-        await answer.delete()
+        try:
+            await answer.delete()
+        except:
+            pass
+
         if answer.content == "c":
             embed = discord.Embed()
             embed.set_author(name="선택지 취소됨")

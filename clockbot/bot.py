@@ -2,6 +2,7 @@
 ClockBot, MacLak (Bot, Context)
 """
 import discord
+import asyncio
 import aiohttp
 import time
 import traceback
@@ -296,7 +297,13 @@ class ClockBot(commands.Bot):
                 await ctx.code(f"에러: 다음 권한{many}이 필요합니다: {perm_lst}")
 
         elif isinstance(error, commands.CommandOnCooldown):
-            pass  # TODO
+            t = error.retry_after
+            content = f"**명령어 쿨타임에 걸렸습니다!** 남은시간 {t:.2}초"
+            delete_after = min(t, 3)
+            try:
+                await ctx.reply(content=content, delete_after=delete_after)
+            except:
+                await ctx.send(content=content, delete_after=delete_after)
 
         elif isinstance(error, (commands.CommandInvokeError, commands.ConversionError)):
             e = error.original

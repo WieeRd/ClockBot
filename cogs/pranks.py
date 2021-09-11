@@ -172,7 +172,8 @@ class Pranks(clockbot.Cog, name="장난"):
 
         # TODO: ctx utils are available in bot now
         if t := self.filters.get((msg.channel.guild.id, msg.author.id)):
-            await msg.delete()
+            try: await msg.delete()
+            except: pass
             content = emojis.decode(msg.content)
             if not strObject.match(content):
                 content = t[0](content)

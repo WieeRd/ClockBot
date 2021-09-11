@@ -7,12 +7,13 @@ from discord.ext import tasks
 from typing import Callable, Dict, Tuple
 
 import clockbot
-from clockbot import GMacLak, MacLak
+from clockbot import GMacLak, MacLak, SelectMember
 from utils.chatfilter import *
 from utils.db import DictDB
 
 # TODO: google_trans_new is broken, find alternative
 # TODO: custom emojis from other servers aren't available to bot
+# TODO: bonk command
 
 MENTION = r"(<[\w@!&#:]+\d+>)"
 EMOJI = r"(:\w+:)"
@@ -69,20 +70,19 @@ class Pranks(clockbot.Cog, name="장난"):
     async def get_emoji(self, ctx: MacLak, emoji: discord.PartialEmoji):
         """
         커스텀 이모티콘을 큼지막하게 출력한다
-        번쩍거리는 이모지에 사용해서 눈을 더욱 아프게 만들거나
+        번쩍거리는 이모지에 사용해서 발작을 유발하거나,
         이모티콘 원본 이미지를 다운받는데 사용할 수 있다.
         """
         await ctx.send(emoji.url)
 
     @commands.command(name="사칭", usage="닉네임/@멘션 <선동&날조>")
     @commands.bot_has_permissions(manage_webhooks=True, manage_messages=True)
-    async def impersonate(self, ctx: GMacLak, user: discord.Member, *, txt):
+    async def impersonate(self, ctx: GMacLak, user: SelectMember, *, txt):
         """
         다른 사람이 보낸 듯한 가짜 메세지를 보낸다
-        옆에 '봇' 표시를 제외하면 닉네임/프사가 같아 꽤나 혼란스럽다.
-        제작자가 자주 치던 장난을 공식 기능으로 만든 것으로,
-        재밌긴 하지만 당하면 화내는 사람들도 있고 악용의 우려가 있어
-        명령어가 적힌 메세지를 삭제하면 가짜 메세지도 자동 삭제된다.
+        명령어를 삭제하면 가짜 메세지도 자동 삭제된다.
+        이를 우회하는 간단한 꼼수(버그)가 있지만
+        제작자도 애용하는 기술이기에 고치지 않는다 ;)
         """
         msg = await ctx.mimic(user, txt, wait=True)
         assert msg != None
@@ -106,12 +106,11 @@ class Pranks(clockbot.Cog, name="장난"):
     @clockbot.alias_as_arg(name="필터", aliases=list(SPECIAL_LANGS), usage="닉네임/@멘션")
     @commands.bot_has_permissions(manage_messages=True, manage_webhooks=True)
     @commands.guild_only()
-    async def add_filter(self, ctx: GMacLak, target: discord.Member):
+    async def add_filter(self, ctx: GMacLak, target: SelectMember):
         """
         해당 유저의 채팅에 필터(말투변환기)를 적용한다
-        관리자가 적용한 필터는 관리자만 해제할 수 있으니
-        아까부터 개소리(비유적)를 해대는 친구에게 개소리를 걸어
-        개소리(말 그대로)를 울부짖는 모습을 구경해보자.
+        관리자가 적용한 필터는 관리자만 해제할 수 있으며,
+        이는 창의적인 처벌(권력남용) 방식이 될 수 있다!
         해제 명령어는 '필터해제 @유저'
         """
         assert isinstance(ctx.invoked_with, str)
@@ -144,7 +143,7 @@ class Pranks(clockbot.Cog, name="장난"):
 
     @commands.command(name="필터해제", usage="닉네임/@멘션")
     @commands.guild_only()
-    async def rm_filter(self, ctx: GMacLak, target: discord.Member):
+    async def rm_filter(self, ctx: GMacLak, target: SelectMember):
         """
         해당 유저에게 적용된 필터를 제거한다
         """
@@ -153,7 +152,7 @@ class Pranks(clockbot.Cog, name="장난"):
         query = (target.guild.id, target.id)
         if t := self.filters.get(query):
             if t[1] and not by_admin:
-                await ctx.code("에러: 관리자가 적용한 필터는 관리자만 해제할 수 있습니다\n" "(팁: 평소에 처신을 잘하세요)")
+                await ctx.code("에러: 관리자가 적용한 필터는 관리자만 해제할 수 있습니다\n(팁: 평소에 처신을 잘하세요)")
             else:
                 del self.filters[query]
                 await self.filterDB.remove(
@@ -166,19 +165,18 @@ class Pranks(clockbot.Cog, name="장난"):
 
     @commands.Cog.listener()
     async def on_message(self, msg: discord.Message):
-        if msg.guild is None:
-            return
         if not msg.content:
+            return
+        if not isinstance(msg.channel, discord.TextChannel):
             return
 
         # TODO: ctx utils are available in bot now
-        if t := self.filters.get((msg.guild.id, msg.author.id)):
-            ctx = await self.bot.get_context(msg, cls=GMacLak)
+        if t := self.filters.get((msg.channel.guild.id, msg.author.id)):
             await msg.delete()
             content = emojis.decode(msg.content)
             if not strObject.match(content):
                 content = t[0](content)
-            await ctx.mimic(msg.author, content)
+            await self.bot.mimic(msg.channel, msg.author, content)
 
     @commands.Cog.listener()
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):

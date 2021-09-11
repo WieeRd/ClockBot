@@ -3,7 +3,7 @@ import random
 from discord.ext import commands
 
 import clockbot
-from clockbot import MacLak, GMacLak
+from clockbot import MacLak, GMacLak, SelectMember
 from utils.chatfilter import txt2emoji
 
 
@@ -24,15 +24,21 @@ class Tools(clockbot.Cog, name="도구"):
             self.purge,
         ]
 
-    @commands.command(name="프사", usage='"닉네임"/@멘션')
-    async def user_avatar(self, ctx: MacLak, user: discord.User):
+    @commands.command(name="프사", usage="닉네임/@멘션")
+    async def user_avatar(self, ctx: MacLak, user: SelectMember):
         """
         해당 유저의 프로필 사진을 띄운다
-        멘션에 발작하는 친구가 있다면 닉네임으로도 가능하다
-        참고로 영어는 대소문자 구별이며,
-        공백이 들어간 이름은 ""로 감싸주자
+        멘션 대신 닉네임으로도 선택 가능하다
+        (제작자에겐 멘션에 발작하는 친구가 있다)
         """
-        await ctx.send(user.avatar_url)
+        url = str(user.avatar_url)
+        embed = discord.Embed(
+            color=self.bot.color,
+            title=str(user),
+            description=f"[원본 링크]({url}, '{url}')"
+        )
+        embed.set_image(url=url)
+        await ctx.send(embed=embed)
 
     @commands.command(name="서버프사")
     @commands.guild_only()
@@ -40,7 +46,14 @@ class Tools(clockbot.Cog, name="도구"):
         """
         현재 서버의 프로필 사진을 띄운다
         """
-        await ctx.send(ctx.guild.icon_url)
+        url = str(ctx.guild.icon_url)
+        embed = discord.Embed(
+            color=self.bot.color,
+            title=ctx.guild.name,
+            description=f"[원본 링크]({url}, '{url}')"
+        )
+        embed.set_image(url=url)
+        await ctx.send(embed=embed)
 
     @commands.command(name="동전")
     async def coin(self, ctx: MacLak):
@@ -87,9 +100,8 @@ class Tools(clockbot.Cog, name="도구"):
     async def choose(self, ctx, *, arg: str):
         """
         결정장애 해결사
-        하지만 보통 사람들은 이걸 돌리고 나서도
-        이게 맞는가에 대해 계속해서 고민하곤 한다.
-        그렇다면 애초에 봇한테 물어본 이유가 뭔가?
+        제작자의 점심 메뉴를 고르기 위해 만들어졌으나
+        생각해보니 난 기숙사에 살아서 선택권이 없다
         """
         argv = arg.split()
         argc = len(set(argv))

@@ -4,11 +4,9 @@ import clockbot
 
 from discord.ext import commands
 from discord.ext.commands import Bot, Cog, Group, Command
-from typing import Dict, List, Union
+from typing import Dict, List
 
 NO_HELP = "도움말이 작성되지 않았습니다"
-HelpObj = Union[None, Cog, Group, Command]
-
 
 def hoverlink(text: str, url: str, hover: str = "") -> str:
     return f"[{text}]({url} '{hover}')"
@@ -17,6 +15,7 @@ def hoverlink(text: str, url: str, hover: str = "") -> str:
 class EmbedHelp(commands.HelpCommand):
     """
     ClockBot Help v2 using Embeds
+    Written in the back of the exam paper
     """
 
     context: commands.Context
@@ -28,7 +27,7 @@ class EmbedHelp(commands.HelpCommand):
         color: int = 0xFFFFFF,
         title: str = "Sample Text",
         invite: str = "https://youtu.be/dQw4w9WgXcQ",
-        contact: str = "하지마",
+        contact: str = "안받음",
         thumbnail: str = None,
         menu: List[str] = [],
         tips: List[str] = [],
@@ -53,13 +52,37 @@ class EmbedHelp(commands.HelpCommand):
         usage = self.command_attrs.get("usage") or ""
         return f"{prefix}{self.invoked_with} {usage}"
 
+    def Embed(self) -> discord.Embed:
+        """
+        Returns Embed with default settings
+        """
+        embed = discord.Embed()
+        embed.color = self.color
+        embed.url = self.invite
+        embed.set_footer(text=self.help_usage)
+        return embed
+
+    def cmd_name(self, cmd: Command) -> str:
+        prefix = self.clean_prefix
+        if isinstance(cmd, clockbot.AliasAsArg):
+            # %alias1
+            # %alias2
+            name = "\n".join(f"{prefix}{name}" for name in cmd.aliases)
+        elif isinstance(cmd, clockbot.AliasGroup):
+            # %parent [A/B]
+            options = f"{cmd.name}/{'/'.join(cmd.aliases)}"
+            name = f"{prefix}{cmd.full_parent_name} [{options}]"
+        else:
+            # %parent name
+            name = f"{prefix}{cmd.qualified_name}"
+        return name
+
     def cmd_usage(self, cmd: Command) -> str:
         prefix = self.clean_prefix
         if isinstance(cmd, clockbot.AliasAsArg):
             # %alias1 usage
             # %alias2 usage
-            variants = [f"{prefix}{name} {cmd.signature}" for name in cmd.aliases]
-            usage = "\n".join(variants)
+            usage = "\n".join(f"{prefix}{name} {cmd.signature}" for name in cmd.aliases)
         elif isinstance(cmd, clockbot.AliasGroup):
             # %parent [A/B] usage
             options = f"{cmd.name}/{'/'.join(cmd.aliases)}"
@@ -98,7 +121,7 @@ class EmbedHelp(commands.HelpCommand):
         return mapping
 
     def bot_page(self, mapping: Dict[str, Cog]) -> discord.Embed:
-        embed = discord.Embed(color=self.color, url=self.invite)
+        embed = self.Embed()
 
         embed.title = self.title
         embed.description = f"`{self.help_usage}`"
@@ -125,27 +148,23 @@ class EmbedHelp(commands.HelpCommand):
         return embed
 
     def cog_page(self, cog: Cog) -> discord.Embed:
-        embed = discord.Embed(color=self.color, url=self.invite)
-
+        embed = self.Embed()
         embed.title = f"{self.get_icon(cog)} {cog.qualified_name} 카테고리"
         embed.description = f"**{cog.description or NO_HELP}**"
-        embed.set_footer(text=f"{self.help_usage}")
 
-        for cmd in cog.get_commands():  # set 'showcase' attr for custom order
-            usage = self.cmd_usage(cmd)
+        for cmd in cog.get_commands():
             embed.add_field(
-                name=f"`{usage}`", value=cmd.short_doc or NO_HELP, inline=False
+                name=self.cmd_name(cmd),
+                value=f"`{cmd.short_doc or NO_HELP}`",
+                inline=False
             )
 
         return embed
 
     def group_page(self, grp: Group) -> discord.Embed:
-        embed = discord.Embed(color=self.color, url=self.invite)
-
-        # embed.set_author(name=f"카테고리: {grp.cog_name or '없음'}")
+        embed = self.Embed()
         embed.title = f"{self.clean_prefix}{grp.qualified_name}"
         embed.description = f"**{grp.help or NO_HELP}**"
-        embed.set_footer(text=f"{self.help_usage}")
 
         for cmd in grp.commands:
             usage = self.cmd_usage(cmd)
@@ -157,11 +176,8 @@ class EmbedHelp(commands.HelpCommand):
 
     # TODO: command check field (perm, cooldown)
     def command_page(self, cmd: Command) -> discord.Embed:
-        embed = discord.Embed(color=self.color, url=self.invite)
-
-        # embed.set_author(name=f"카테고리: {cmd.cog_name or '없음'}")
+        embed = self.Embed()
         embed.title = f"{self.cmd_usage(cmd)}"
-        embed.set_footer(text=f"{self.help_usage}")
 
         description = f"```{cmd.help or NO_HELP}```"
         if cmd.aliases and not (

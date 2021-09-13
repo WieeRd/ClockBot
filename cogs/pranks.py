@@ -108,7 +108,7 @@ class Pranks(clockbot.Cog, name="장난"):
     @commands.guild_only()
     async def add_filter(self, ctx: GMacLak, target: SelectMember):
         """
-        해당 유저의 채팅에 필터(말투변환기)를 적용한다
+        채팅에 필터(말투변환기)를 적용한다
         관리자가 적용한 필터는 관리자만 해제할 수 있으며,
         이는 창의적인 처벌(권력남용) 방식이 될 수 있다!
         해제 명령어는 '필터해제 @유저'
@@ -145,7 +145,7 @@ class Pranks(clockbot.Cog, name="장난"):
     @commands.guild_only()
     async def rm_filter(self, ctx: GMacLak, target: SelectMember):
         """
-        해당 유저에게 적용된 필터를 제거한다
+        적용된 필터를 제거한다
         """
         by_admin = await self.bot.owner_or_admin(ctx.author)
 

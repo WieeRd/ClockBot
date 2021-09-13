@@ -2,8 +2,7 @@ import discord
 import emojis
 import re
 
-from discord.ext import commands
-from discord.ext import tasks
+from discord.ext import commands, tasks
 from typing import Callable, Dict, Tuple
 
 import clockbot
@@ -28,6 +27,10 @@ SPECIAL_LANGS: Dict[str, Translator] = {
     "흑우": cowslate,
 }
 
+from io import BytesIO
+from wand.image import Image
+
+BONK = Image(filename="assets/image/bonk.png")
 
 class Pranks(clockbot.Cog, name="장난"):
     """
@@ -42,6 +45,7 @@ class Pranks(clockbot.Cog, name="장난"):
         self.icon = "\N{FACE WITH TEARS OF JOY}"
         self.showcase = [
             self.get_emoji,
+            self.bonk,
             self.impersonate,
             self.yell,
             self.add_filter,
@@ -162,6 +166,41 @@ class Pranks(clockbot.Cog, name="장난"):
                     await ctx.send("필터가 해제되었습니다")
         else:
             await ctx.code("에러: 적용되어 있는 필터가 없습니다")
+
+    @commands.command(name="퍽", usage="닉네임/@멘션", cooldown_after_parsing=True)
+    @commands.cooldown(rate=1, per=15, type=commands.BucketType.user)
+    async def bonk(self, ctx: MacLak, user: SelectMember):
+        """
+        사람을 이유없이 때린다
+        연타는 너무하므로 쿨타임 15초
+        """
+        await ctx.trigger_typing()
+
+        avatar = BytesIO()
+        result = BytesIO()
+
+        asset = user.avatar_url_as(format="png", static_format="png", size=512)
+        await asset.save(avatar, seek_begin=True)
+
+        with Image(file=avatar) as img:
+            img.resize(512, 512)
+            img.swirl(45)
+            img.implode(0.4)
+            img.composite(BONK)
+            img.save(result)
+            result.seek(0)
+
+        file = discord.File(result, filename=f"{user}.png")
+        msg = await ctx.send(file=file)
+
+        embed = discord.Embed(color=self.bot.color)
+        embed.title = f"{user.display_name} << 퍽퍽"
+        embed.set_image(url=msg.attachments[0].proxy_url)
+
+        try: await ctx.reply(embed=embed)
+        except: await ctx.send(embed=embed)
+
+        await msg.delete()
 
     @commands.Cog.listener()
     async def on_message(self, msg: discord.Message):

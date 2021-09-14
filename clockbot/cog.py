@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 from typing import List
 
@@ -5,7 +6,7 @@ from .bot import ClockBot
 
 # from .core import Command
 
-__all__ = ("ExtensionRequireDB", "Cog")
+__all__ = ("ExtensionRequireDB", "Cog", "InfoCog")
 
 
 class ExtensionRequireDB(Exception):
@@ -59,3 +60,14 @@ class Cog(commands.Cog):
             raise ExtensionRequireDB(cls.__name__)
         cog = cls(bot)
         bot.add_cog(cog)
+
+class InfoCog(Cog):
+    """
+    Embed Info page in HelpCommand
+    """
+    
+    def info(self, ctx: commands.Context) -> discord.Embed:
+        """
+        Override this function to customize Cog help page
+        """
+        raise NotImplementedError

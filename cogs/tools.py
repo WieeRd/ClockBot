@@ -9,7 +9,7 @@ from utils.chatfilter import txt2emoji
 
 class Tools(clockbot.Cog, name="도구"):
     """
-    단순하지만 대단히 편리한 명령어들
+    간단하고 흔하고 편리한 기능들
     """
 
     def __init__(self, bot: clockbot.ClockBot):

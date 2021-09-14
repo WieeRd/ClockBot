@@ -298,7 +298,7 @@ class ClockBot(commands.Bot):
 
         elif isinstance(error, commands.CommandOnCooldown):
             t = error.retry_after
-            content = f"**명령어 쿨타임에 걸렸습니다!** 남은시간 {t:.2}초"
+            content = f"**명령어 쿨타임에 걸렸습니다!** 남은시간 {t:.1f}초"
             delete_after = min(t, 3)
             try:
                 await ctx.reply(content=content, delete_after=delete_after)

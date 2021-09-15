@@ -61,7 +61,7 @@ class Owner(clockbot.Cog, name="제작자"):
         elif opt == "재시작":
             exitopt = ExitOpt.RESTART
             await ctx.send("껐다 켠다고 뭐든 고쳐지는건 아니다만")
-        elif opt == "업데이트":
+        elif opt == "업뎃":
             exitopt = ExitOpt.UPDATE
             embed = discord.Embed(
                 color=self.bot.color,

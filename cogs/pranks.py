@@ -41,7 +41,6 @@ class Pranks(clockbot.Cog, name="장난"):
 
     def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
-        # self.icon = "\N{JACK-O-LANTERN}"
         self.icon = "\N{FACE WITH TEARS OF JOY}"
         self.showcase = [
             self.get_emoji,
@@ -176,6 +175,18 @@ class Pranks(clockbot.Cog, name="장난"):
         """
         await ctx.trigger_typing()
 
+        if user == self.bot.user:
+            file = discord.File("assets/memes/time2stop.jpg")
+            msg = await ctx.send(file=file)
+
+            embed = discord.Embed(color=self.bot.color)
+            embed.title = "__***시계 혐오를 멈춰주세요***__"
+            embed.set_image(url=msg.attachments[0].proxy_url)
+
+            await ctx.send(embed=embed)
+            await msg.delete()
+            return
+
         avatar = BytesIO()
         result = BytesIO()
 
@@ -197,9 +208,7 @@ class Pranks(clockbot.Cog, name="장난"):
         embed.title = f"{user.display_name} << 퍽퍽"
         embed.set_image(url=msg.attachments[0].proxy_url)
 
-        try: await ctx.reply(embed=embed)
-        except: await ctx.send(embed=embed)
-
+        await ctx.send(embed=embed)
         await msg.delete()
 
     @commands.Cog.listener()

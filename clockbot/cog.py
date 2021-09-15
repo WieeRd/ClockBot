@@ -61,12 +61,13 @@ class Cog(commands.Cog):
         cog = cls(bot)
         bot.add_cog(cog)
 
+
 class InfoCog(Cog):
     """
     Embed Info page in HelpCommand
     """
-    
-    def info(self, ctx: commands.Context) -> discord.Embed:
+
+    def info(self, msg: discord.Message) -> discord.Embed:
         """
         Override this function to customize Cog help page
         """

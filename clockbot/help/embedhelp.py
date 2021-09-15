@@ -149,7 +149,7 @@ class EmbedHelp(commands.HelpCommand):
 
     def cog_page(self, cog: Cog) -> discord.Embed:
         if isinstance(cog, clockbot.InfoCog):
-            return cog.info(self.context)
+            return cog.info(self.context.message)
 
         embed = self.Embed()
         embed.title = f"{self.get_icon(cog)} {cog.qualified_name} 카테고리"

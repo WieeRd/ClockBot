@@ -13,3 +13,6 @@ setup logging
 on_context event
 send help when mentioned
 magic
+
+bot.permissions -> invite code
+cog.permissions -> setup

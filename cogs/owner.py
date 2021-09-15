@@ -4,6 +4,10 @@ from discord.ext import commands
 import clockbot
 from clockbot import ClockBot, MacLak, ExitOpt
 
+import inspect
+import textwrap
+import io
+
 import subprocess
 import time
 
@@ -68,6 +72,34 @@ class Owner(clockbot.Cog, name="제작자"):
         await self.bot.change_presence(activity=discord.Game(opt))
         await self.bot.close()
 
+    @commands.command(name="코드", usage="<명령어/카테고리>")
+    async def getsource(self, ctx: MacLak, entity: str):
+        """
+        해당 명령어/카테고리의 소스코드를 출력한다
+        시계봇은 오픈소스 프로젝트라는 사실
+        그러나 아무도 개발을 도와주지 않았다는 사실
+        전체 코드: https://github.com/WieeRd/ClockBot
+        """
+        if cmd := self.bot.get_command(entity):
+            target = cmd.callback
+            code = inspect.getsource(target)
+            code = textwrap.dedent(code)
+        elif cog := self.bot.get_cog(entity):
+            target = cog.__class__
+            file = inspect.getfile(target)
+            with open(file, "r") as f:
+                code = f.read()
+        else:
+            await ctx.tick(False)
+            return
+
+        if len(code) < 2000:
+            await ctx.code(code, lang="python")
+        else:
+            raw = code.encode(encoding="utf8")
+            fname = target.__name__ + ".py"
+            await ctx.send(file=discord.File(io.BytesIO(raw), filename=fname))
+
     @commands.command(name="서버목록")
     @commands.is_owner()
     async def serverlist(self, ctx: MacLak):
@@ -106,28 +138,5 @@ class Owner(clockbot.Cog, name="제작자"):
             tm = f"{dd}일 {tm}"
         await ctx.send(tm)
 
-    # @commands.Cog.listener(name="on_message")
-    # async def terminal(self, msg: discord.Message):
-    #     if msg.content.startswith("$") and await self.bot.is_owner(msg.author):
-    #         cmd = msg.content[1:]
-    #         arg = cmd.split(maxsplit=1)
-    #         timeout = 3
-
-    #         if arg[0].isdigit():
-    #             if int(arg[0]) > 0:
-    #                 timeout = int(arg[0])
-    #             else:
-    #                 timeout = None
-    #                 await msg.channel.send("```Warning: Timeout set to unlimited```")
-    #             cmd = arg[1]
-
-    #         print(f"Executing '{cmd}' (Timeout: {timeout})")
-    #         result = run_cmd(cmd, timeout)
-    #         if result != None:
-    #             await msg.channel.send(f"```{result[1]}```")
-    #             print(result[1] + f"(Returned {result[0]})")
-    #         else:
-    #             await msg.channel.send(f"```'{cmd}' timed out: {timeout}s```")
-    #             print(f"{cmd} timed out: {timeout}s")
 
 setup = Owner.setup

@@ -1,4 +1,5 @@
 import discord
+import clockbot
 import asyncio
 
 from discord.ext.commands import Cog, Group, Command
@@ -118,11 +119,7 @@ class EmbedMenu(EmbedHelp):
                     "reaction_add", check=check, timeout=timeout
                 )
             except asyncio.TimeoutError:
-                embed = self.get_page(self.cursor)
-                embed.color = self.inactive
-                embed.set_footer(text=self.help_usage)
-                await self.msg.clear_reactions()
-                await self.msg.edit(embed=embed)
+                await self.timeout_handler()
                 return
 
             try:
@@ -151,6 +148,16 @@ class EmbedMenu(EmbedHelp):
                 self.partial = False
                 for emoji in self.mapping:
                     await self.msg.add_reaction(emoji)
+
+    async def timeout_handler(self):
+        await self.msg.clear_reactions()
+        if isinstance(self.cursor, clockbot.InfoCog):
+            return
+
+        embed = self.get_page(self.cursor)
+        embed.color = self.inactive
+        embed.set_footer(text=self.help_usage)
+        await self.msg.edit(embed=embed)
 
     async def send_bot_help(self, mapping: Dict[str, Cog]):
         embed = self.bot_page(mapping)

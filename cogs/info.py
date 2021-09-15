@@ -1,14 +1,24 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 import clockbot
 from clockbot import ClockBot, MacLak
 
-import inspect
-import textwrap
-import io
+import random
+from typing import Dict, List, Tuple
 
-from typing import Dict
+TIPS = [
+    "디스코드 그만 보고 현생을 사세요",
+    "시계봇은 닉값을 합니다 (프사 주목)",
+    "제작자는 컨셉을 위해 하루 244번씩 봇 프사를 바꿉니다",
+    "1972년 11월 21일...",
+    "RIP Groovy & Rythm (~2021)",
+    "버그가 아니라 기능입니다. 그렇다면 그런 줄 알아.",
+    "동전 명령어는 1% 확률로 옆면이 나온다는 사실",
+    "Q. 뭐하러 만든 봇인가요? A. 글쎄 심심하더라고",
+    "Never gonna give you up~ Never gonna let you down~",
+]
+
 
 class Info(clockbot.InfoCog, name="정보"):
     """
@@ -19,78 +29,83 @@ class Info(clockbot.InfoCog, name="정보"):
         self.bot = bot
         self.icon = "\N{WHITE QUESTION MARK ORNAMENT}"
 
+        self.owner: discord.User
         self.cmd_usage: Dict[str, int] = {}
 
-    def info(self, ctx: MacLak) -> discord.Embed:
+        self.ainit.start()
+
+    @tasks.loop(count=1)
+    async def ainit(self):
+        appinfo = await self.bot.application_info()
+        self.owner = appinfo.owner
+
+    @commands.Cog.listener(name="on_command_completion")
+    async def record(self, ctx: MacLak):
+        if await self.bot.is_owner(ctx.author):
+            return
+
+        # TODO: save to DB
+        # TODO: exclude custom commands
+
+        cmd = ctx.command.root_parent or ctx.command
+        if cmd.name in self.cmd_usage:
+            self.cmd_usage[cmd.name] += 1
+        else:
+            self.cmd_usage[cmd.name] = 1
+
+    def popular_commands(self) -> List[Tuple[str, int]]:
+        key = lambda item: item[1]
+        return sorted(self.cmd_usage.items(), key=key, reverse=True)
+
+    def primary_prefix(self) -> str:
+        prefix = self.bot.command_prefix
+        if isinstance(prefix, str):
+            return prefix
+        elif isinstance(prefix, (list, tuple)):
+            return prefix[0]
+        raise NotImplementedError("Callable prefix not supported (I'm lazy)")
+
+    def info(self, msg: discord.Message) -> discord.Embed:
         embed = discord.Embed(color=self.bot.color)
+        prefix = self.primary_prefix()
+
         embed.set_thumbnail(url=str(self.bot.user.avatar_url))
         embed.title = "시계봇입니다."
-        embed.description = "반가워요"
-
-        # Hello
-        # Owner
-        # open source
-        # server count
-        # popular commands
-        # invite
-
-        # embed.add_field(
-        #     name="초대코드",
-        #     value="[여기를 클릭](http://add.clockbot.kro.kr '초대코드')",
-        # )
+        embed.description = "반가워요!"
 
         embed.add_field(
-            name="만든 인간",
-            value="`WieeRd#9000`",
+            name="제작자",
+            value=f"[`{self.owner}`](https://github.com/WieeRd)",
+        )
+
+        embed.add_field(
+            name="봇 초대하기",
+            value="[`여기를 클릭`](http://add.clockbot.kro.kr/)",
+        ) # TODO: bot.invite_url()
+
+        top5 = "\n".join(
+            f"{prefix}{cmd[0]:4}: {cmd[1]}회" for cmd in self.popular_commands()[:5]
+        )
+        embed.add_field(
+            name="인기 명령어 TOP5",
+            value="```" + top5 + "```",
             inline=False
         )
 
         embed.add_field(
-            name="봇 초대코드",
-            value="[`여기를 클릭`](http://add.clockbot.kro.kr/)",
-            inline=False
+            name="도움말",
+            value=f"`{prefix}도움`",
         )
 
         embed.add_field(
             name="유저/서버",
-            value=f"`{len(self.bot.guilds)}/{len(self.bot.users)}`",
-            inline=False
+            value=f"`{len(self.bot.users)}/{len(self.bot.guilds)}`",
         )
 
-        embed.add_field(
-            name="오늘의 인기 명령어",
-            value="%퍽: 174\n%빼액: 54\n%사칭: 31"
-        )
+        tip = random.choice(TIPS)
+        embed.set_footer(text=f"팁: {tip}")
 
         return embed
-
-    @commands.command(name="코드", usage="<명령어/카테고리>")
-    async def getsource(self, ctx: MacLak, entity: str):
-        """
-        해당 명령어/카테고리의 소스코드를 출력한다
-        시계봇은 오픈소스 프로젝트라는 사실
-        그러나 아무도 개발을 도와주지 않았다는 사실
-        전체 코드: https://github.com/WieeRd/ClockBot
-        """
-        if cmd := self.bot.get_command(entity):
-            target = cmd.callback
-            code = inspect.getsource(target)
-            code = textwrap.dedent(code)
-        elif cog := self.bot.get_cog(entity):
-            target = cog.__class__
-            file = inspect.getfile(target)
-            with open(file, "r") as f:
-                code = f.read()
-        else:
-            await ctx.tick(False)
-            return
-
-        if len(code) < 2000:
-            await ctx.code(code, lang="python")
-        else:
-            raw = code.encode(encoding="utf8")
-            fname = target.__name__ + ".py"
-            await ctx.send(file=discord.File(io.BytesIO(raw), filename=fname))
 
     @commands.command(name="통계")
     @commands.is_owner()
@@ -102,20 +117,9 @@ class Info(clockbot.InfoCog, name="정보"):
         embed = discord.Embed(
             color=self.bot.color,
             title="명령어 사용량",
-            description="\n".join(f"**{'%'+c[0]} : {c[1]}**" for c in cmds)
+            description="\n".join(f"**{'%'+c[0]} : {c[1]}**" for c in cmds),
         )
         await ctx.send(embed=embed)
-
-    @commands.Cog.listener(name="on_command")
-    async def record(self, ctx: MacLak):
-        if await self.bot.is_owner(ctx.author):
-            return
-
-        cmd = ctx.command.qualified_name
-        if cmd in self.cmd_usage:
-            self.cmd_usage[cmd] += 1
-        else:
-            self.cmd_usage[cmd] = 1
 
 
 setup = Info.setup

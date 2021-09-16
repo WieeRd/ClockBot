@@ -121,15 +121,20 @@ class Voice(clockbot.Cog, name="TTS"):
     @commands.Cog.listener(name="on_voice_state_update")
     async def update(self, who: discord.Member, before: VoiceState, after: VoiceState):
         vc = who.guild.voice_client
-        if vc == None:
-            return
-        if before.channel == vc.channel and before.channel != after.channel:
+        if (
+            vc
+            and isinstance(vc.channel, discord.VoiceChannel)
+            and before.channel == vc.channel
+            and before.channel != after.channel
+        ):
             # when bot is kicked
             if who == self.bot.user and after.channel == None:
                 del self.tts_link[who.guild.id]
-            # when everyone leaves
+
+            # when everyone has left except the bot
             elif len(vc.channel.members) == 1:
                 await vc.disconnect(force=False)
+                del self.tts_link[who.guild.id]
 
     @commands.Cog.listener(name="on_message")
     async def send_tts(self, msg: discord.Message):
@@ -140,6 +145,10 @@ class Voice(clockbot.Cog, name="TTS"):
             and self.tts_link.get(msg.guild.id) == msg.channel.id
         ):
 
+            if len(msg.content) >= 30:
+                await msg.reply("```에러: 30자 제한 (음성 도배 방지)```")
+                return
+
             try:
                 # TODO: these tmp files doesn't get deleted sometimes
                 filename = f"tts{self.count}.tmp"
@@ -149,9 +158,7 @@ class Voice(clockbot.Cog, name="TTS"):
                 return
 
             vc = msg.guild.voice_client
-            assert isinstance(
-                vc, discord.VoiceClient
-            ), "tts_link exist but voice_client doesn't"
+            assert isinstance(vc, discord.VoiceClient), "VoiceClient not available"
             if vc.is_playing():
                 vc.stop()
             audio = FFmpegPCMAudio(filename, options="-loglevel panic")

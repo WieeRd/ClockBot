@@ -478,7 +478,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
 
     @config.command(name="닉네임", usage="<닉네임>")
     @clockbot.owner_or_admin()
-    async def prefix(self, ctx: GMacLak, *, value: str):
+    async def prefix(self, ctx: GMacLak, *, value: str = ""):
         """
         익명 닉네임을 변경한다 (기본값 [익명])
         """  # not {PREFIX} because docstring doesn't support f-string
@@ -487,11 +487,12 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             await ctx.code("에러: 서버에 대나무숲이 존재하지 않습니다")
             return
 
-        embed = discord.Embed(
-            color=COLOR, title="대나무숲 설정", description="익명 닉네임을 변경했습니다"
-        )
-        embed.add_field(name="Before", value=forest.prefix, inline=True)
-        embed.add_field(name="After", value=value, inline=True)
+        embed = discord.Embed(color=COLOR)
+        embed.title = "대나무숲 설정"
+        embed.description = "익명 닉네임을 변경했습니다"
+        embed.add_field(name="Before", value=forest.prefix or "`없음`", inline=True)
+        embed.add_field(name="After", value=value or "`없음`", inline=True)
+
         await ctx.send(embed=embed)
         forest.prefix = value
         await self.db.set(ctx.guild.id, prefix=value)

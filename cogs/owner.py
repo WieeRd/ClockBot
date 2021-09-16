@@ -47,7 +47,7 @@ class Owner(clockbot.Cog, name="제작자"):
 
         self.cmd_usage: Dict[str, int] = {}
 
-    @clockbot.alias_as_arg(name="종료", aliases=["퇴근", "재시작", "업뎃"])
+    @clockbot.alias_as_arg(name="종료", aliases=["퇴근", "재시작", "업데이트"])
     @commands.is_owner()
     async def shutdown(self, ctx: MacLak):
         """
@@ -61,7 +61,7 @@ class Owner(clockbot.Cog, name="제작자"):
         elif opt == "재시작":
             exitopt = ExitOpt.RESTART
             await ctx.send("껐다 켠다고 뭐든 고쳐지는건 아니다만")
-        elif opt == "업뎃":
+        elif opt == "업데이트":
             exitopt = ExitOpt.UPDATE
             embed = discord.Embed(
                 color=self.bot.color,

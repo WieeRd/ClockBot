@@ -67,11 +67,19 @@ else:
     print(f"Connected to DB '{DB_NAME}' [{client.HOST}:{client.PORT}]")
     db = client.get_database(name=DB_NAME)
 
+perms = discord.Permissions(
+    send_messages=True,
+    read_messages=True,
+    add_reactions=True,
+    attach_files=True,
+)
+
 intents = discord.Intents.all()
 activity = discord.Game(STATUS or "Hello World")
 
 bot = ClockBot(
     db=db,
+    perms=perms,
     color=COLOR,
     command_prefix=PREFIX,
     intents=intents,
@@ -79,15 +87,6 @@ bot = ClockBot(
     help_command=help_command,
     heartbeat_timeout=60,
 )
-
-# # TODO: move to Info Cog
-# @bot.command(name="초대코드")
-# async def invitecode(ctx: commands.Context):
-#     """
-#     봇 초대코드 생성
-#     """
-#     link = "http://add.clockbot.kro.kr"
-#     await ctx.send(f"다른 서버에 봇 추가하기:\n{link}")
 
 print("Loading initial extensions")
 success = 0

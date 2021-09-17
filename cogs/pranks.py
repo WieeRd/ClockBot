@@ -40,6 +40,7 @@ class Pranks(clockbot.Cog, name="장난"):
         self.bot = bot
         # self.icon = "\N{JACK-O-LANTERN}"
         self.icon = "\N{FACE WITH TEARS OF JOY}"
+
         self.showcase = [
             self.get_emoji,
             self.impersonate,
@@ -47,6 +48,11 @@ class Pranks(clockbot.Cog, name="장난"):
             self.add_filter,
             self.rm_filter,
         ]
+
+        self.perms = discord.Permissions(
+            manage_messages=True,
+            manage_webhooks=True,
+        )
 
         self.imperDB = DictDB(bot.db.impersonate)
 
@@ -170,7 +176,6 @@ class Pranks(clockbot.Cog, name="장난"):
         if not isinstance(msg.channel, discord.TextChannel):
             return
 
-        # TODO: ctx utils are available in bot now
         if t := self.filters.get((msg.channel.guild.id, msg.author.id)):
             try: await msg.delete()
             except: pass
@@ -181,6 +186,7 @@ class Pranks(clockbot.Cog, name="장난"):
 
     @commands.Cog.listener()
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
+        # TODO: delete the doc after this
         if query := await self.imperDB.get(payload.message_id):
             channel = self.bot.get_channel(payload.channel_id)
             if isinstance(channel, discord.TextChannel):

@@ -15,6 +15,7 @@ class Tools(clockbot.Cog, name="도구"):
     def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
         self.icon = "\N{WRENCH}"  # Wrench
+
         self.showcase = [
             self.user_avatar,
             self.server_avatar,
@@ -23,6 +24,11 @@ class Tools(clockbot.Cog, name="도구"):
             self.choose,
             self.purge,
         ]
+
+        self.perms = discord.Permissions(
+            read_message_history=True,
+            manage_messages=True,
+        )
 
     @commands.command(name="프사", usage="닉네임/@멘션")
     async def user_avatar(self, ctx: MacLak, user: SelectMember):

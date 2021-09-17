@@ -75,13 +75,13 @@ class Info(clockbot.InfoCog, name="정보"):
 
         embed.add_field(
             name="제작자",
-            value=f"[`{self.owner}`](https://github.com/WieeRd)",
+            value=f"[`{self.owner}`](https://github.com/WieeRd 'GitHub 프로필')",
         )
 
         embed.add_field(
             name="봇 초대하기",
-            value="[`여기를 클릭`](http://add.clockbot.kro.kr/)",
-        ) # TODO: bot.invite_url()
+            value=f"[`여기를 클릭`]({self.bot.invite} '봇 초대링크')",
+        )
 
         top5 = "\n".join(
             f"{prefix}{cmd[0]:4}: {cmd[1]}회" for cmd in self.popular_commands()[:5]

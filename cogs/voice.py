@@ -42,10 +42,16 @@ class Voice(clockbot.Cog, name="TTS"):
     def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
         self.icon = "\N{SPEAKER WITH THREE SOUND WAVES}"
+
         self.showcase = [
             self.join,
             self.leave,
         ]
+
+        self.perms = discord.Permissions(
+            connect=True,
+            speak=True,
+        )
 
         self.engine = Text2Speech(bot.session)
         self.tts_link: Dict[int, int] = dict()  # guild.id : channel.id

@@ -1,22 +1,25 @@
 import discord
+import clockbot
 import asyncio
 
 from discord.ext.commands import Cog, Group, Command
-from typing import Dict, Union, overload
+from typing import Dict, Union
 
-from .embedhelp import EmbedHelp, HelpObj
+from .embedhelp import EmbedHelp, NO_HELP, hoverlink
+
+HelpOBJ = Union[None, Cog, Group, Command]
 
 
 class EmbedMenu(EmbedHelp):
     """
     ClockBot Help v3 using reaction menu
-    Written in the back of the exam paper
+    Heavily inspired by Fbot Help
     """
 
     mapping: Dict[str, Cog]
-    cached: Dict[HelpObj, discord.Embed]
+    cached: Dict[HelpOBJ, discord.Embed]
     msg: discord.Message
-    cursor: HelpObj
+    cursor: HelpOBJ
     partial: bool
 
     def __init__(
@@ -29,17 +32,33 @@ class EmbedMenu(EmbedHelp):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.cached = {}
         self.main = main
         self.exit = exit
         self.timeout = timeout
         self.inactive = inactive
+        self.cached = {}
 
-    @property
-    def help_usage(self) -> str:
-        return super().help_usage + " or 반응 추가"
+    def Embed(self) -> discord.Embed:
+        embed = discord.Embed()
+        embed.color = self.color
+        embed.url = self.invite
+        embed.set_footer(text="하단 버튼(반응)을 눌러보세요")
+        return embed
 
-    def get_page(self, obj: HelpObj) -> discord.Embed:
+    def bot_page(self, mapping: Dict[str, Cog]) -> discord.Embed:
+        embed = self.Embed()
+        embed.title = f"**{self.title}**"
+
+        for icon, cog in mapping.items():
+            desc = cog.description or NO_HELP
+            hover = hoverlink("커서 올려보기", self.invite, desc)
+            embed.add_field(
+                name=f"{icon} {cog.qualified_name}", value=hover, inline=True
+            )
+
+        return embed
+
+    def get_page(self, obj: HelpOBJ) -> discord.Embed:
         if cached := self.cached.get(obj):
             return cached
 
@@ -58,23 +77,7 @@ class EmbedMenu(EmbedHelp):
         self.cached[obj] = embed
         return embed
 
-    @overload
-    def get_higher_being(self, obj: None) -> None:
-        ...
-
-    @overload
-    def get_higher_being(self, obj: Cog) -> None:
-        ...
-
-    @overload
-    def get_higher_being(self, obj: Group) -> Cog:
-        ...
-
-    @overload
-    def get_higher_being(self, obj: Command) -> Union[Group, Cog]:
-        ...
-
-    def get_higher_being(self, obj: HelpObj) -> HelpObj:
+    def get_higher_being(self, obj: HelpOBJ) -> HelpOBJ:
         if obj == None:
             return None
         elif isinstance(obj, Cog):
@@ -88,6 +91,16 @@ class EmbedMenu(EmbedHelp):
         """
         Handles reaction button interaction
         """
+
+        if self.partial:
+            # only main / exit
+            await self.msg.add_reaction(self.main)
+            await self.msg.add_reaction(self.exit)
+        else:
+            # full category menu
+            await self.msg.add_reaction(self.main)
+            for icon in self.mapping:
+                await self.msg.add_reaction(icon)
 
         def check(reaction: discord.Reaction, user: discord.User) -> bool:
             return (
@@ -106,21 +119,19 @@ class EmbedMenu(EmbedHelp):
                     "reaction_add", check=check, timeout=timeout
                 )
             except asyncio.TimeoutError:
-                embed = self.get_page(self.cursor)
-                embed.color = self.inactive
-                await self.msg.clear_reactions()
-                await self.msg.edit(embed=embed)
+                await self.timeout_handler()
                 return
 
             try:
                 await reaction.remove(user)
             except:
                 pass  # TODO: can't remove reaction in DM
-            icon = reaction.emoji
 
+            icon = reaction.emoji
             if icon == self.exit:
                 await self.msg.delete()
                 return
+
             elif icon == self.main:
                 obj = self.get_higher_being(self.cursor)
             else:
@@ -138,8 +149,15 @@ class EmbedMenu(EmbedHelp):
                 for emoji in self.mapping:
                     await self.msg.add_reaction(emoji)
 
-    async def fork(self, destin: discord.abc.Messageable, cursor: HelpObj):
-        ...  # TODO: start help menu in other destination
+    async def timeout_handler(self):
+        await self.msg.clear_reactions()
+        if isinstance(self.cursor, clockbot.InfoCog):
+            return
+
+        embed = self.get_page(self.cursor)
+        embed.color = self.inactive
+        embed.set_footer(text=self.help_usage)
+        await self.msg.edit(embed=embed)
 
     async def send_bot_help(self, mapping: Dict[str, Cog]):
         embed = self.bot_page(mapping)
@@ -147,10 +165,6 @@ class EmbedMenu(EmbedHelp):
         msg = await destin.send(embed=embed)
 
         self.partial = False
-        await msg.add_reaction(self.main)
-        for icon in mapping:
-            await msg.add_reaction(icon)
-
         self.mapping = mapping
         self.cached[None] = embed
         self.msg = msg
@@ -164,9 +178,6 @@ class EmbedMenu(EmbedHelp):
         msg = await destin.send(embed=embed)
 
         self.partial = True
-        await msg.add_reaction(self.main)
-        await msg.add_reaction(self.exit)
-
         self.cached[cog] = embed
         self.msg = msg
         self.cursor = cog
@@ -179,9 +190,6 @@ class EmbedMenu(EmbedHelp):
         msg = await destin.send(embed=embed)
 
         self.partial = True
-        await msg.add_reaction(self.main)
-        await msg.add_reaction(self.exit)
-
         self.cached[grp] = embed
         self.msg = msg
         self.cursor = grp
@@ -194,9 +202,6 @@ class EmbedMenu(EmbedHelp):
         msg = await destin.send(embed=embed)
 
         self.partial = True
-        await msg.add_reaction(self.main)
-        await msg.add_reaction(self.exit)
-
         self.cached[cmd] = embed
         self.msg = msg
         self.cursor = cmd

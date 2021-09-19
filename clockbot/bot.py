@@ -2,7 +2,6 @@
 ClockBot, MacLak (Bot, Context)
 """
 import discord
-import asyncio
 import aiohttp
 import time
 import traceback
@@ -147,10 +146,14 @@ class DMacLak(MacLak):
     me: discord.ClientUser
 
 
-# TODO: parameter 'required_permissions'
-# TODO: method 'create_invite() -> str'
 class ClockBot(commands.Bot):
-    def __init__(self, db: AsyncIOMotorDatabase, color: int = 0x000000, **options):
+    def __init__(
+        self,
+        db: AsyncIOMotorDatabase,
+        color: int = 0x000000,
+        perms: discord.Permissions = discord.Permissions(0),
+        **options,
+    ):
         super().__init__(**options)
         self.started: float = 0
         self.exitopt = ExitOpt.UNSET
@@ -160,6 +163,8 @@ class ClockBot(commands.Bot):
         self.db = db
         # default embed color
         self.color = color
+        # required permissions
+        self.perms = perms
         # cached webhook
         self.webhooks: Dict[int, discord.Webhook] = {}
         # special channels (ex: bamboo forest) { channel_id : "reason" }
@@ -183,13 +188,6 @@ class ClockBot(commands.Bot):
             self.db.client.close()
         await super().close()
 
-    # # somehow pyright is certain that return type will be MacLak
-    # async def get_context(self, msg, cls = None):
-    #     if not cls:
-    #         cls = GMacLak if msg.guild else MacLak
-    #     return super().get_context(msg, cls=cls)
-
-    # overriding process_commands instead
     async def process_commands(self, msg: discord.Message):
         if msg.author.bot:
             return
@@ -198,12 +196,15 @@ class ClockBot(commands.Bot):
         ctx = await self.get_context(msg, cls=cls)
         await self.invoke(ctx)
 
-        # TODO: when mentioned
-        # if self.user.id in msg.raw_mentions and ctx.command==None:
-        #     ...
-
     async def owner_or_admin(self, user: discord.Member) -> bool:
         return await self.is_owner(user) or user.guild_permissions.administrator
+
+    @property
+    def invite(self) -> str:
+        """
+        Bot invite link with required permissions
+        """
+        return discord.utils.oauth_url(str(self.user.id), self.perms)
 
     async def get_webhook(self, channel: discord.TextChannel) -> discord.Webhook:
         """
@@ -298,7 +299,7 @@ class ClockBot(commands.Bot):
 
         elif isinstance(error, commands.CommandOnCooldown):
             t = error.retry_after
-            content = f"**명령어 쿨타임에 걸렸습니다!** 남은시간 {t:.2}초"
+            content = f"**명령어 쿨타임에 걸렸습니다!** 남은시간 {t:.1f}초"
             delete_after = min(t, 3)
             try:
                 await ctx.reply(content=content, delete_after=delete_after)

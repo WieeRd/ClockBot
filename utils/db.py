@@ -18,7 +18,7 @@ class DictDB:
         await self.col.update_one({"_id": _id}, {"$set": values}, upsert=True)
 
     async def inc(self, _id: Any, field: str, amount: float):
-        await self.col.update_one({"_id": _id}, {"$inc": {field: amount}})
+        await self.col.update_one({"_id": _id}, {"$inc": {field: amount}}, upsert=True)
 
     async def push(self, _id: Any, field: str, value: Any):
         await self.col.update_one({"_id": _id}, {"$push": {field: value}})
@@ -35,7 +35,7 @@ class DictDB:
 
 class NullDB(DictDB):
     """
-    Same interface as MongoDict but does nothing
+    Same interface as DictDB but does nothing
     """
 
     def __init__(self, *args, **kwargs):

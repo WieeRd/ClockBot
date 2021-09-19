@@ -113,6 +113,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
     def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
         self.icon = "\N{PINE DECORATION}"
+
         self.showcase = [
             self._forest,
             self._ban,
@@ -121,6 +122,11 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             self.config,
             self.inspect,
         ]
+
+        self.perms = discord.Permissions(
+            manage_channels=True,
+            manage_messages=True,
+        )
 
         self.forests: Dict[discord.Guild, Forest] = {}
         self.dm_links: Dict[discord.User, DMlink] = {}

@@ -9,12 +9,13 @@ from utils.chatfilter import txt2emoji
 
 class Tools(clockbot.Cog, name="도구"):
     """
-    단순하지만 대단히 편리한 명령어들
+    간단하고 흔하고 편리한 기능들
     """
 
     def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
         self.icon = "\N{WRENCH}"  # Wrench
+
         self.showcase = [
             self.user_avatar,
             self.server_avatar,
@@ -24,10 +25,15 @@ class Tools(clockbot.Cog, name="도구"):
             self.purge,
         ]
 
+        self.perms = discord.Permissions(
+            read_message_history=True,
+            manage_messages=True,
+        )
+
     @commands.command(name="프사", usage="닉네임/@멘션")
     async def user_avatar(self, ctx: MacLak, user: SelectMember):
         """
-        해당 유저의 프로필 사진을 띄운다
+        유저 프로필 사진을 띄운다
         멘션 대신 닉네임으로도 선택 가능하다
         (제작자에겐 멘션에 발작하는 친구가 있다)
         """
@@ -35,7 +41,7 @@ class Tools(clockbot.Cog, name="도구"):
         embed = discord.Embed(
             color=self.bot.color,
             title=str(user),
-            description=f"[원본 링크]({url}, '{url}')"
+            description=f"[원본 링크]({url}, '{url}')",
         )
         embed.set_image(url=url)
         await ctx.send(embed=embed)
@@ -44,13 +50,13 @@ class Tools(clockbot.Cog, name="도구"):
     @commands.guild_only()
     async def server_avatar(self, ctx: GMacLak):
         """
-        현재 서버의 프로필 사진을 띄운다
+        서버 프로필 사진을 띄운다
         """
         url = str(ctx.guild.icon_url)
         embed = discord.Embed(
             color=self.bot.color,
             title=ctx.guild.name,
-            description=f"[원본 링크]({url}, '{url}')"
+            description=f"[원본 링크]({url}, '{url}')",
         )
         embed.set_image(url=url)
         await ctx.send(embed=embed)
@@ -99,7 +105,7 @@ class Tools(clockbot.Cog, name="도구"):
     @commands.command(name="추첨", usage="A B C")
     async def choose(self, ctx, *, arg: str):
         """
-        결정장애 해결사
+        돌려돌려~ 돌림판
         제작자의 점심 메뉴를 고르기 위해 만들어졌으나
         생각해보니 난 기숙사에 살아서 선택권이 없다
         """
@@ -113,11 +119,11 @@ class Tools(clockbot.Cog, name="도구"):
 
     # TODO: negative N - print whitespace
     @commands.command(name="청소", usage="<N>")
-    @clockbot.owner_or_admin()  # change to manage_messages
+    @clockbot.owner_or_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True, read_message_history=True)
     async def purge(self, ctx: GMacLak, amount: int):
         """
-        채팅창 청소. 가장 최근의 챗 N개를 지운다
+        가장 최근의 챗 N개를 지운다
         """
         try:
             await ctx.channel.purge(limit=amount)

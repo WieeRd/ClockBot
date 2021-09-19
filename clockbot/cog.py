@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 from typing import List
 
@@ -5,7 +6,7 @@ from .bot import ClockBot
 
 # from .core import Command
 
-__all__ = ("ExtensionRequireDB", "Cog")
+__all__ = ("ExtensionRequireDB", "Cog", "InfoCog")
 
 
 class ExtensionRequireDB(Exception):
@@ -31,12 +32,14 @@ class Cog(commands.Cog):
     icon       : Emoji used as icon in help command
     showcase   : Commands to be shown in cog help
     require_db : If this cog uses bot.db (False by default)
+    perms: Permissions required to use Cog commands
     """
 
     bot: ClockBot
     icon: str  # unicode emoji
     showcase: List[commands.Command]
     require_db: bool = False  # TODO: require level (+ 'wanted')
+    perms: discord.Permissions = discord.Permissions(0)
 
     def get_commands(self) -> List[commands.Command]:
         """
@@ -55,7 +58,22 @@ class Cog(commands.Cog):
         just add 'setup = cog.setup' at the end.
         __init__ should take single parameter 'bot'
         """
+
         if cls.require_db and not bot.db:
             raise ExtensionRequireDB(cls.__name__)
+
         cog = cls(bot)
+        bot.perms.value |= cog.perms.value
         bot.add_cog(cog)
+
+
+class InfoCog(Cog):
+    """
+    Embed Info page in HelpCommand
+    """
+
+    def info(self, msg: discord.Message) -> discord.Embed:
+        """
+        Override this function to customize Cog help page
+        """
+        raise NotImplementedError

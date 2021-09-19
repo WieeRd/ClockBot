@@ -15,3 +15,6 @@ send help when mentioned
 magic
 
 Make HelpCommand ClockBot-only
+chaos filter
+mirror filter
+English alias for everything

@@ -123,7 +123,7 @@ class EmbedHelp(commands.HelpCommand):
     def bot_page(self, mapping: Dict[str, Cog]) -> discord.Embed:
         embed = self.Embed()
 
-        embed.title = self.title
+        embed.title = f"**{self.title}**"
         embed.description = f"`{self.help_usage}`"
         embed.set_thumbnail(url=self.thumbnail or str(self.bot.user.avatar_url))
 
@@ -152,13 +152,14 @@ class EmbedHelp(commands.HelpCommand):
             return cog.info(self.context.message)
 
         embed = self.Embed()
-        embed.title = f"{self.get_icon(cog)} {cog.qualified_name} 카테고리"
-        embed.description = f"**{cog.description or NO_HELP}**"
+        embed.title = f"{self.get_icon(cog)} **{cog.qualified_name} 카테고리**"
+        embed.description = cog.description or NO_HELP
 
         for cmd in cog.get_commands():
             embed.add_field(
-                name=self.cmd_name(cmd),
-                value=f"`{cmd.short_doc or NO_HELP}`",
+                name=f"**{self.cmd_name(cmd)}**",
+                value=f"```{cmd.short_doc or NO_HELP}```", # readability
+                # value=f"`{cmd.short_doc or NO_HELP}`",   # vs compact
                 inline=False
             )
 

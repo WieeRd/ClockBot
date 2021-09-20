@@ -47,13 +47,15 @@ class EmbedMenu(EmbedHelp):
 
     def bot_page(self, mapping: Dict[str, Cog]) -> discord.Embed:
         embed = self.Embed()
+        embed.url = discord.Embed.Empty
         embed.title = f"**{self.title}**"
 
         for icon, cog in mapping.items():
             desc = cog.description or NO_HELP
-            hover = hoverlink("커서 올려보기", self.invite, desc)
             embed.add_field(
-                name=f"{icon} {cog.qualified_name}", value=hover, inline=True
+                name=f"{icon} **{cog.qualified_name}**",
+                value=hoverlink("커서 올려보기", self.invite, desc),
+                inline=True,
             )
 
         return embed

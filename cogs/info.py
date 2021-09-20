@@ -23,6 +23,7 @@ TIPS = [
     "봇 여기서만 쓰지 말고 다른 서버에도 초대를 좀...",
     "엥 진짜로 유용한 정보를 기대한거야?",
     "명령어에서 닉네임 일부만으로도 유저 선택이 가능합니다",
+    "시계봇 TTS 기능의 음성은 구글 번역기 목소리입니다"
 ]
 
 
@@ -78,31 +79,37 @@ class Info(clockbot.InfoCog, name="정보"):
         prefix = self.primary_prefix()
 
         embed.set_thumbnail(url=str(self.bot.user.avatar_url))
-        embed.title = "시계봇입니다."  # replace with time
+        embed.title = "**시계봇입니다.**"  # replace with time
         embed.description = "반가워요!"
 
         embed.add_field(
-            name="제작자",
+            name="**제작자**",
             value=f"[`{self.owner}`](https://github.com/WieeRd 'GitHub 프로필')",
         )
 
         embed.add_field(
-            name="봇 초대하기",
+            name="**봇 초대하기**",
             value=f"[`여기를 클릭`]({self.bot.invite} '봇 초대링크')",
         )
 
-        top5 = "\n".join(prefix + cmd[0] for cmd in self.popular_commands()[:5])
-        embed.add_field(  # TODO: add usage count
-            name="인기 명령어 TOP5", value="```" + top5 + "```", inline=False
+        top5 = "\n".join(
+            f"{i+1}. {prefix}{name} ({usage}회)"
+            for i, (name, usage) in enumerate(self.popular_commands()[:5])
         )
 
         embed.add_field(
-            name="도움말",
+            name="**인기 명령어 TOP5**",
+            value=f"```{top5}```",
+            inline=False,
+        )
+
+        embed.add_field(
+            name="**도움말**",
             value=f"`{prefix}도움`",
         )
 
         embed.add_field(
-            name="유저/서버",
+            name="**유저/서버**",
             value=f"`{len(self.bot.users)}/{len(self.bot.guilds)}`",
         )
 
@@ -116,7 +123,7 @@ class Info(clockbot.InfoCog, name="정보"):
         """
         명령어 사용량 순위
         """
-        cmds = self.popular_commands()[:5]
+        cmds = self.popular_commands()
         embed = discord.Embed(
             color=self.bot.color,
             title="명령어 사용량",

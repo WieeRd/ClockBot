@@ -152,7 +152,10 @@ class EmbedMenu(EmbedHelp):
                     await self.msg.add_reaction(emoji)
 
     async def timeout_handler(self):
-        await self.msg.clear_reactions()
+        try:
+            await self.msg.clear_reactions()
+        except:
+            pass
         if isinstance(self.cursor, clockbot.InfoCog):
             return
 

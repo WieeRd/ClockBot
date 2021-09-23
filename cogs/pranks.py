@@ -32,6 +32,7 @@ from wand.image import Image
 
 BONK = Image(filename="assets/image/bonk.png")
 
+
 class Pranks(clockbot.Cog, name="장난"):
     """
     참신하고 장난치기 좋은 기능들
@@ -93,7 +94,9 @@ class Pranks(clockbot.Cog, name="장난"):
         이를 우회하는 간단한 꼼수(버그)가 있지만
         제작자도 애용하는 기술이기에 고치지 않는다 ;)
         """
-        msg = await ctx.mimic(user, txt, wait=True)
+        msg = await ctx.mimic(
+            user, txt, wait=True, allowed_mentions=discord.AllowedMentions.none()
+        )
         assert msg != None
 
         await self.imperDB.insert_one(
@@ -225,8 +228,10 @@ class Pranks(clockbot.Cog, name="장난"):
             return
 
         if t := self.filters.get((msg.channel.guild.id, msg.author.id)):
-            try: await msg.delete()
-            except: pass
+            try:
+                await msg.delete()
+            except:
+                pass
             content = emojis.decode(msg.content)
             if not strObject.match(content):
                 content = t[0](content)

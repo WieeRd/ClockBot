@@ -60,6 +60,10 @@ class Forest:
             await msg.channel.send(embed=embed)
             return
 
+        if len(msg.content)>=50:
+            await msg.channel.send("```에러: 50자 초과 (도배 방지)```")
+            return
+
         content = f"{self.prefix} {msg.content}"
         files: List[discord.File] = []
         for att in msg.attachments:
@@ -69,7 +73,9 @@ class Forest:
             files.append(file)
 
         # message sent to guild forest channel
-        ret = await self.channel.send(content, files=files)
+        ret = await self.channel.send(
+            content, files=files, allowed_mentions=discord.AllowedMentions.none()
+        )
 
         # for dm links, attachments are sent as url
         if len(files) == 1 and (not msg.content):

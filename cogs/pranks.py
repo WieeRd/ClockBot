@@ -235,7 +235,9 @@ class Pranks(clockbot.Cog, name="장난"):
             content = emojis.decode(msg.content)
             if not strObject.match(content):
                 content = t[0](content)
-            await self.bot.mimic(msg.channel, msg.author, content)
+            await self.bot.mimic(
+                msg.channel, msg.author, content, allowed_mentions=discord.AllowedMentions.none()
+            )
 
     @commands.Cog.listener()
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):

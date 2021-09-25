@@ -113,7 +113,6 @@ class Pranks(clockbot.Cog, name="장난"):
             await ctx.send(converted)
         else:
             await ctx.code("에러: 지원되는 문자: 영어/숫자/?!")
-            # await ctx.send_help(self.yell)
 
     @clockbot.alias_as_arg(name="필터", aliases=list(SPECIAL_LANGS), usage="닉네임/@멘션")
     @commands.bot_has_permissions(manage_messages=True, manage_webhooks=True)
@@ -155,10 +154,11 @@ class Pranks(clockbot.Cog, name="장난"):
 
     @commands.command(name="필터해제", usage="닉네임/@멘션")
     @commands.guild_only()
-    async def rm_filter(self, ctx: GMacLak, target: SelectMember):
+    async def rm_filter(self, ctx: GMacLak, user: SelectMember = None):
         """
         적용된 필터를 제거한다
         """
+        target = user or ctx.author
         by_admin = await self.bot.owner_or_admin(ctx.author)
 
         query = (target.guild.id, target.id)
@@ -186,14 +186,11 @@ class Pranks(clockbot.Cog, name="장난"):
 
         if user == self.bot.user:
             file = discord.File("assets/memes/time2stop.jpg")
-            msg = await ctx.send(file=file)
-
             embed = discord.Embed(color=self.bot.color)
             embed.title = "__***시계 혐오를 멈춰주세요***__"
-            embed.set_image(url=msg.attachments[0].proxy_url)
+            embed.set_image(url="attachment://time2stop.jpg")
 
-            await ctx.send(embed=embed)
-            await msg.delete()
+            await ctx.send(embed=embed, file=file)
             return
 
         avatar = BytesIO()
@@ -210,15 +207,12 @@ class Pranks(clockbot.Cog, name="장난"):
             img.save(result)
             result.seek(0)
 
-        file = discord.File(result, filename=f"{user}.png")
-        msg = await ctx.send(file=file)
-
+        file = discord.File(result, filename="bonk.png")
         embed = discord.Embed(color=self.bot.color)
         embed.title = f"{user.display_name} << 퍽퍽"
-        embed.set_image(url=msg.attachments[0].proxy_url)
+        embed.set_image(url=f"attachment://bonk.png")
 
-        await ctx.send(embed=embed)
-        await msg.delete()
+        await ctx.send(embed=embed, file=file)
 
     @commands.Cog.listener()
     async def on_message(self, msg: discord.Message):
@@ -241,7 +235,6 @@ class Pranks(clockbot.Cog, name="장난"):
 
     @commands.Cog.listener()
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
-        # TODO: delete the doc after this
         if query := await self.imperDB.get(payload.message_id):
             channel = self.bot.get_channel(payload.channel_id)
             if isinstance(channel, discord.TextChannel):
@@ -250,6 +243,7 @@ class Pranks(clockbot.Cog, name="장난"):
                     await mimic.delete()
                 except:
                     pass
+            await self.imperDB.remove(payload.message_id)
 
 
 setup = Pranks.setup

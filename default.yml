@@ -18,13 +18,11 @@ help: # kwargs for HelpCommand
     contact: "하지마"
     menu: # cogs shown in main(bot) menu
         - "대나무숲"
-        - "고급멘션"
         - "TTS"
+        - "고급멘션"
         - "장난"
         - "도구"
-    tips: # random tips shown in embed footer
-        - "디스코드 그만 보고 현생을 사세요"
-        - "버그가 아니라 기능입니다. 그렇다면 그런 줄 알아."
+        - "정보"
     timeout: 60
     inactive: 0x99aab5
 mongodb: # kwargs for AsyncIOMotorClient

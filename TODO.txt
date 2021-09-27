@@ -1,20 +1,36 @@
-cogs.mention - easier expr
- + Converters, Fuzzy search
-cogs.portal - new
+<new>
+cogs.portal - Link channels using webhook
 cogs.game - chess, TicTacTo
+cogs.custom - custom command(%tip) for each server
+cogs.help - reload help in runtime
+
+MagicConch command
+Mention shield, karma
+
+<fix>
+cogs.mention - easier expr, Converters, Fuzzy search
 cogs.voice - improve
-cogs.custom - custom command for each server
- -> %tip command
-cogs.babel - NyanChat, Hawawa
+cogs.pranks - filter: NyanChat, Hawawa, Chaos, Mirror(vertical, horizontal)
+cogs.info - Send help when mentioned
 
-help cog - part of cogs.owner - runtime import
-null DB
-setup logging
-on_context event
-send help when mentioned
-magic
-
-Make HelpCommand ClockBot-only
-chaos filter
-mirror filter
+<misc>
+NullDB / JsonDB - continue without DB
+Setup logging
 English alias for everything
+
+<New Project>
+ReadTheFuzzyDocs: Search ANY rtfd.io docs
+
+?doc add <alias> <name>/[lang]/[version]
+?doc add <alias> <url>
+?doc refresh <alias>
+
+?doc default <alias>
+?doc global <alias>
+
+?rtfm [alias] <search>
+?py [lang] <search>
+
+Statistic.Cog: Command usage, Guild/User network
+
+

@@ -33,4 +33,5 @@ ReadTheFuzzyDocs: Search ANY rtfd.io docs
 
 Statistic.Cog: Command usage, Guild/User network
 
-
+<future>
+v1.7.3 is already being deprecated

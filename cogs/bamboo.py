@@ -52,17 +52,15 @@ class Forest:
     allow_media: bool
     # record: bool
 
-    async def send(self, msg: discord.Message) -> Optional[discord.Message]:
+    async def send(self, msg: discord.Message) -> discord.Message:
         if not self.allow_media and is_media(msg):
             embed = discord.Embed(color=COLOR)
             embed.set_author(name="이미지/URL 전송이 제한되어 있습니다")
             embed.description = "제한을 풀려면 `대숲 설정` 명령어를 이용하세요"
-            await msg.channel.send(embed=embed)
-            return
+            return await msg.channel.send(embed=embed)
 
         if len(msg.content)>=50:
-            await msg.channel.send("```에러: 50자 초과 (도배 방지)```")
-            return
+            return await msg.channel.send("```에러: 50자 초과 (도배 방지)```")
 
         content = f"{self.prefix} {msg.content}"
         files: List[discord.File] = []
@@ -558,10 +556,6 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             if forest and forest.channel == channel:
 
                 if msg.author.id in forest.banned:
-                    # await msg.author.send(
-                    #     "**대나무숲에서 차단되셨습니다!**\n"
-                    #     "서버 관리자에게 문의하세요"
-                    # )
                     return
 
                 try:
@@ -572,13 +566,28 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
 
                 sent = await forest.send(msg)
 
+                # DM link feature promotion
+                if "익명" in msg.content:
+                    p = await self.bot.get_prefix(msg)
+                    if isinstance(p, list):
+                        p = p[0]
+                    embed = discord.Embed(color=COLOR)
+                    embed.set_author(name="\N{WARNING SIGN} 완전한 익명은 아닙니다!")
+                    embed.description = (
+                        "삭제되기 전 찰나동안 원본 메세지가 보이며,\n"
+                        "모바일 알림에는 삭제된 메세지도 드러납니다.\n"
+                        "완전한 익명을 위해서는 DM을 통해 메세지를\n"
+                        f"전송하는 명령어 **{p}대숲 연결**을 이용하세요"
+                    )
+                    await sent.reply(embed=embed, delete_after=15)
+
         elif isinstance(channel, discord.DMChannel):
             if link := self.dm_links.get(channel.recipient):
                 link.recent = max(time.time(), link.recent)
                 sent = await link.forest.send(msg)
 
         if sent:
-            self.logs.insert_one(
+            await self.logs.insert_one(
                 {
                     "_id": {"channel": sent.channel.id, "message": sent.id},
                     "author": msg.author.id,

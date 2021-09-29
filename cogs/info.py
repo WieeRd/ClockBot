@@ -58,6 +58,13 @@ class Info(clockbot.InfoCog, name="정보"):
         if await self.bot.is_owner(ctx.author):
             return
 
+        content = ctx.message.content
+        user = str(ctx.author)
+        if isinstance(ctx.channel, discord.TextChannel):
+            print(f"[{ctx.guild}] #{ctx.channel.name} @{user} {content}")
+        else:
+            print(f"[DM] @{user} {content}")
+
         cmd = ctx.command.root_parent or ctx.command
         self.cmd_usage[cmd.name] = self.cmd_usage.get(cmd.name, 0) + 1
         await self.cmd_usage_db.inc(cmd.name, "usage", 1)

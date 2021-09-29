@@ -9,8 +9,11 @@ Mention shield, karma
 
 <fix>
 cogs.mention - easier expr, Converters, Fuzzy search
-cogs.voice - improve
-cogs.pranks - filter: NyanChat, Hawawa, Chaos, Mirror(vertical, horizontal)
+cogs.voice - improve (voice overlapping)
+cogs.pranks
+ - filter: NyanChat, Hawawa, Chaos, Mirror(vertical, horizontal)
+ - translator
+ - textobj (emoji, mention)
 cogs.info - Send help when mentioned
 
 <misc>
@@ -34,4 +37,4 @@ ReadTheFuzzyDocs: Search ANY rtfd.io docs
 Statistic.Cog: Command usage, Guild/User network
 
 <future>
-v1.7.3 is already being deprecated
+v1.7.3 is already being deprecated (I need display_avatar)

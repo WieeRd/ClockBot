@@ -42,7 +42,7 @@ class EmbedMenu(EmbedHelp):
         embed = discord.Embed()
         embed.color = self.color
         embed.url = self.invite
-        embed.set_footer(text="하단 버튼(반응)을 눌러보세요")
+        embed.set_footer(text="하단 이모지를 눌러보세요 (명령어 시전자만 가능)")
         return embed
 
     def bot_page(self, mapping: Dict[str, Cog]) -> discord.Embed:

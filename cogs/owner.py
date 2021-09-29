@@ -93,12 +93,13 @@ class Owner(clockbot.Cog, name="제작자"):
             await ctx.tick(False)
             return
 
-        if len(code) < 2000:
-            await ctx.code(code, lang="python")
-        else:
-            raw = code.encode(encoding="utf8")
-            fname = target.__name__ + ".py"
-            await ctx.send(file=discord.File(io.BytesIO(raw), filename=fname))
+        # if len(code) < 2000:
+        #     code.replace("`", r"\`")
+        #     await ctx.code(code, lang="python")
+
+        raw = code.encode(encoding="utf8")
+        fname = target.__name__ + ".py"
+        await ctx.send(file=discord.File(io.BytesIO(raw), filename=fname))
 
     @commands.command(name="서버목록")
     @commands.is_owner()

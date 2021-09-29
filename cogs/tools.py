@@ -19,6 +19,7 @@ class Tools(clockbot.Cog, name="도구"):
         self.showcase = [
             self.user_avatar,
             self.server_avatar,
+            self.get_emoji,
             self.coin,
             self.dice,
             self.choose,
@@ -60,6 +61,15 @@ class Tools(clockbot.Cog, name="도구"):
         )
         embed.set_image(url=url)
         await ctx.send(embed=embed)
+
+    @commands.command(name="이모지", aliases=["이모티콘"], usage=":thonk:")
+    async def get_emoji(self, ctx: MacLak, emoji: discord.PartialEmoji):
+        """
+        커스텀 이모티콘 원본 짤을 출력한다
+        번쩍거리는 이모지에 사용해서 발작을 유발하거나,
+        이모티콘 원본 이미지를 다운받는데 사용할 수 있다.
+        """
+        await ctx.send(emoji.url)
 
     @commands.command(name="동전")
     async def coin(self, ctx: MacLak):
@@ -117,18 +127,27 @@ class Tools(clockbot.Cog, name="도구"):
         else:
             await ctx.send(f"{random.choice(argv)} 당첨")
 
-    # TODO: negative N - print whitespace
+    # TODO: reply - delete upto that message
     @commands.command(name="청소", usage="<N>")
     @clockbot.owner_or_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True, read_message_history=True)
     async def purge(self, ctx: GMacLak, amount: int):
         """
-        가장 최근의 챗 N개를 지운다
+        최근 챗 N개 삭제 | 공백 -N줄 출력 (N<0)
         """
+        if amount<0:
+            if (2 - amount) > 2000:
+                await ctx.tick(False)
+                return
+
+            content = "\u200b" + "\n"*(-amount) + "\u200b"
+            await ctx.send(content)
+            return
+
         try:
             await ctx.channel.purge(limit=amount)
         except:
-            pass  # spamming this causes error by trying to delete deleted message
+            pass
 
     @commands.command(name="여긴어디")
     async def where(self, ctx: MacLak):

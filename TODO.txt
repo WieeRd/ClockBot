@@ -7,6 +7,9 @@ cogs.help - reload help in runtime
 MagicConch command
 Mention shield, karma
 
+EmbedMenu should only support clockbot
+- clockbot.command: multiple usage, i8n
+
 <fix>
 cogs.mention - easier expr, Converters, Fuzzy search
 cogs.voice - improve (voice overlapping)

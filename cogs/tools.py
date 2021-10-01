@@ -127,27 +127,35 @@ class Tools(clockbot.Cog, name="도구"):
         else:
             await ctx.send(f"{random.choice(argv)} 당첨")
 
-    # TODO: reply - delete upto that message
-    @commands.command(name="청소", usage="<N>")
+    @commands.command(name="청소", usage="<N> or (메세지에 답장하며)")
     @clockbot.owner_or_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True, read_message_history=True)
-    async def purge(self, ctx: GMacLak, amount: int):
+    async def purge(self, ctx: GMacLak, amount: int = None):
         """
         최근 챗 N개 삭제 | 공백 -N줄 출력 (N<0)
+        메세지에 답장하며 사용하면 그 메세지와
+        이후의 모든 메세지가 삭제된다.
         """
-        if amount<0:
-            if (2 - amount) > 2000:
-                await ctx.tick(False)
+        if amount == None:
+            ref = ctx.message.reference
+            if ref and isinstance(ref.resolved, discord.Message):
+                await ctx.channel.purge(after=ref.resolved)
+                await ref.resolved.delete()
+                return
+            else:
+                await ctx.send_help(self.purge)
                 return
 
-            content = "\u200b" + "\n"*(-amount) + "\u200b"
-            await ctx.send(content)
-            return
+        if amount<0:
+            amount = -amount
+            if amount > 1000:
+                await ctx.tick(False)
+                return
+            else:
+                await ctx.send("\u200b\n"*amount)
+                return
 
-        try:
-            await ctx.channel.purge(limit=amount)
-        except:
-            pass
+        await ctx.channel.purge(limit=amount)
 
     @commands.command(name="여긴어디")
     async def where(self, ctx: MacLak):

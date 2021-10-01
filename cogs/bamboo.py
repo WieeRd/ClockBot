@@ -436,7 +436,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         else:
             await ctx.code("에러: 서버에 대나무숲이 설치되지 않았습니다")
 
-    @bamboo.command(name="열람", usage="(익명 메세지에 답장하며)")
+    @bamboo.command(name="열람", usage="(메세지에 답장하며)")
     @clockbot.owner_or_admin()
     @commands.guild_only()
     async def inspect(self, ctx: GMacLak):

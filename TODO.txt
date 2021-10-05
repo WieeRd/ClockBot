@@ -5,10 +5,13 @@ cogs.custom - custom command(%tip) for each server
 cogs.help - reload help in runtime
 
 MagicConch command
+SelfMute command
 Mention shield, karma
+Anti Raid / Spam (R. Danny)
 
 EmbedMenu should only support clockbot
 - clockbot.command: multiple usage, i8n
+- get_locale: ctx.invoked_with, voice region, DB
 
 <fix>
 cogs.mention - easier expr, Converters, Fuzzy search
@@ -17,12 +20,14 @@ cogs.pranks
  - filter: NyanChat, Hawawa, Chaos, Mirror(vertical, horizontal)
  - translator
  - textobj (emoji, mention)
+ - bonk: more variants, support file attachments
 cogs.info - Send help when mentioned
 
 <misc>
 NullDB / JsonDB - continue without DB
 Setup logging
 English alias for everything
+TODO.txt -> TODO.md
 
 <New Project>
 ReadTheFuzzyDocs: Search ANY rtfd.io docs
@@ -39,5 +44,11 @@ ReadTheFuzzyDocs: Search ANY rtfd.io docs
 
 Statistic.Cog: Command usage, Guild/User network
 
-<future>
-v1.7.3 is already being deprecated (I need display_avatar)
+<2.0>
+- asset (icon, avatar, emoji)
+- missing_perms -> missing_permissions
+- pos/keyword only args (bot.invite)
+- command.extras
+- stage channel support
+- sticker support
+- dropdown menu help

@@ -28,6 +28,7 @@ class Text2Speech(aiogtts.aiogTTS):
 
 
 TTS_PREFIX = ";"
+TTS_MAX_LEN = 50
 
 # TODO: can't read multiple chats at once
 # TODO: use other TTS engine
@@ -106,15 +107,11 @@ class Voice(clockbot.Cog, name="TTS"):
         """
         connected = ctx.voice_client
         requested = ctx.author.voice
-        if (
-            connected == None
-            or requested == None
-            or connected.channel != requested.channel
-        ):
-            await ctx.code("에러: 봇과 같은 음성 채널에 접속해있지 않습니다")
-        else:
+
+        if connected and requested and connected.channel == requested.channel:
             await connected.disconnect(force=False)
-            await ctx.send("바이바이")
+        else:
+            await ctx.code("에러: 봇과 같은 음성 채널에 접속해있지 않습니다")
 
     async def disconnect_all(self):
         for vc in self.bot.voice_clients:
@@ -124,23 +121,27 @@ class Voice(clockbot.Cog, name="TTS"):
         loop = asyncio.get_event_loop()
         loop.create_task(self.disconnect_all())
 
-    @commands.Cog.listener(name="on_voice_state_update")
-    async def update(self, who: discord.Member, before: VoiceState, after: VoiceState):
+    @commands.Cog.listener()
+    async def on_voice_state_update(
+        self, who: discord.Member, before: VoiceState, after: VoiceState
+    ):
         vc = who.guild.voice_client
-        if (
-            vc
-            and isinstance(vc.channel, discord.VoiceChannel)
-            and before.channel == vc.channel
-            and before.channel != after.channel
-        ):
-            # when bot is kicked
-            if who == self.bot.user and after.channel == None:
-                del self.tts_link[who.guild.id]
+        print(bool(vc), who.name, str(before.channel), (after.channel))
 
-            # when everyone has left except the bot
-            elif len(vc.channel.members) == 1:
-                await vc.disconnect(force=False)
-                del self.tts_link[who.guild.id]
+        # bot is currently connected
+        if vc and isinstance(vc.channel, discord.VoiceChannel):
+
+            # someone left/moved
+            if before.channel != after.channel:
+
+                # bot is alone in the voice channel
+                if len(vc.channel.members) == 1:
+                    await vc.disconnect(force=False)
+
+        # bot quit voice channel
+        elif who == self.bot.user:
+            del self.tts_link[who.guild.id]
+            print("Bai") # TODO: send bai
 
     @commands.Cog.listener(name="on_message")
     async def send_tts(self, msg: discord.Message):
@@ -151,8 +152,8 @@ class Voice(clockbot.Cog, name="TTS"):
             and self.tts_link.get(msg.guild.id) == msg.channel.id
         ):
 
-            if len(msg.content) >= 30:
-                await msg.reply("```에러: 30자 제한 (음성 도배 방지)```")
+            if len(msg.content) >= TTS_MAX_LEN:
+                await msg.reply(f"```에러: {TTS_MAX_LEN}자 제한 (음성 도배 방지)```")
                 return
 
             try:

@@ -55,7 +55,7 @@ class Voice(clockbot.Cog, name="TTS"):
         )
 
         self.engine = Text2Speech(bot.session)
-        self.tts_link: Dict[int, int] = dict()  # guild.id : channel.id
+        self.tts_link: Dict[discord.Guild, discord.TextChannel] = {}
         self.count = 0
 
     # migration
@@ -89,7 +89,7 @@ class Voice(clockbot.Cog, name="TTS"):
             except asyncio.TimeoutError:
                 await ctx.send(f"에러: {requested.channel.mention}에 연결할 수 없습니다")
                 return
-            self.tts_link[ctx.guild.id] = ctx.channel.id
+            self.tts_link[ctx.guild] = ctx.channel
             chat = ctx.channel.mention
             voice = requested.channel.mention
             await ctx.send(
@@ -126,7 +126,7 @@ class Voice(clockbot.Cog, name="TTS"):
         self, who: discord.Member, before: VoiceState, after: VoiceState
     ):
         vc = who.guild.voice_client
-        print(bool(vc), who.name, str(before.channel), (after.channel))
+        # print(bool(vc), who.name, str(before.channel), (after.channel))
 
         # bot is currently connected
         if vc and isinstance(vc.channel, discord.VoiceChannel):
@@ -140,8 +140,8 @@ class Voice(clockbot.Cog, name="TTS"):
 
         # bot quit voice channel
         elif who == self.bot.user:
-            del self.tts_link[who.guild.id]
-            print("Bai") # TODO: send bai
+            chat = self.tts_link.pop(who.guild)
+            await chat.send("바이바이")
 
     @commands.Cog.listener(name="on_message")
     async def send_tts(self, msg: discord.Message):
@@ -149,7 +149,7 @@ class Voice(clockbot.Cog, name="TTS"):
             not msg.author.bot
             and msg.content.startswith(TTS_PREFIX)
             and msg.guild != None
-            and self.tts_link.get(msg.guild.id) == msg.channel.id
+            and self.tts_link.get(msg.guild) == msg.channel
         ):
 
             if len(msg.content) >= TTS_MAX_LEN:

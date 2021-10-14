@@ -38,6 +38,7 @@ class Clock(clockbot.Cog):
 
         self.liveClock.start()
 
+    # TODO: time converter
     @commands.command(name="시계", usage="HH:MM")
     async def drawclock(self, ctx: MacLak, hh_mm: str):
         """
@@ -70,7 +71,7 @@ class Clock(clockbot.Cog):
         await ctx.tick(True)
 
     @tasks.loop()
-    async def liveClock(self):
+    async def liveClock(self):  # TODO: better delay mechanic
         await self.bot.wait_until_ready()
         tm = time.localtime()
         hh, mm, ss = tm.tm_hour, tm.tm_min, tm.tm_sec

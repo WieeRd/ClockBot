@@ -8,6 +8,8 @@ MagicConch command
 SelfMute command
 Mention shield, karma
 Anti Raid / Spam (R. Danny)
+QRcode command
+Starboard feature
 
 EmbedMenu should only support clockbot
 - clockbot.command: multiple usage, i8n
@@ -22,12 +24,14 @@ cogs.pranks
  - textobj (emoji, mention)
  - bonk: more variants, support file attachments
 cogs.info - Send help when mentioned
+cogs.clock - better delay mechanic
 
 <misc>
 NullDB / JsonDB - continue without DB
 Setup logging
 English alias for everything
 TODO.txt -> TODO.md
+Time converter (HH:MM)
 
 <New Project>
 ReadTheFuzzyDocs: Search ANY rtfd.io docs

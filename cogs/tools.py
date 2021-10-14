@@ -14,7 +14,7 @@ class Tools(clockbot.Cog, name="도구"):
 
     def __init__(self, bot: clockbot.ClockBot):
         self.bot = bot
-        self.icon = "\N{WRENCH}"  # Wrench
+        self.icon = "\N{WRENCH}"
 
         self.showcase = [
             self.user_avatar,
@@ -38,7 +38,8 @@ class Tools(clockbot.Cog, name="도구"):
         멘션 대신 닉네임으로도 선택 가능하다
         (제작자에겐 멘션에 발작하는 친구가 있다)
         """
-        url = str(user.avatar_url)
+        url = user.display_avatar.url
+        discord.Asset
         embed = discord.Embed(
             color=self.bot.color,
             title=str(user),
@@ -53,7 +54,7 @@ class Tools(clockbot.Cog, name="도구"):
         """
         서버 프로필 사진을 띄운다
         """
-        url = str(ctx.guild.icon_url)
+        url = str(ctx.guild.icon)
         embed = discord.Embed(
             color=self.bot.color,
             title=ctx.guild.name,

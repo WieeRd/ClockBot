@@ -157,7 +157,6 @@ class Voice(clockbot.Cog, name="TTS"):
                 return
 
             try:
-                # TODO: these tmp files doesn't get deleted sometimes
                 filename = f"tts{self.count}.tmp"
                 self.count = (self.count + 1) % 4096
                 await self.engine.save(msg.content[1:], filename, lang="ko")

@@ -15,7 +15,7 @@ from utils.db import DictDB
 
 MENTION = r"(<[\w@!&#:]+\d+>)"
 EMOJI = r"(:\w+:)"
-strObject = re.compile(f"(({MENTION}|{EMOJI})\s*)+$")
+strObject = re.compile(f"(({MENTION}|{EMOJI})\s*)+$")  # type: ignore
 
 Translator = Callable[[str], str]
 SPECIAL_LANGS: Dict[str, Translator] = {
@@ -86,8 +86,8 @@ class Pranks(clockbot.Cog, name="장난"):
         msg = await ctx.mimic(
             user, txt, wait=True, allowed_mentions=discord.AllowedMentions.none()
         )
-        assert msg != None
 
+        assert msg != None
         await self.imperDB.insert_one(
             {"_id": ctx.message.id, "mimic": msg.id}
         )  # message id is not globally unique, but chance of collision is still low
@@ -187,7 +187,7 @@ class Pranks(clockbot.Cog, name="장난"):
         avatar = BytesIO()
         result = BytesIO()
 
-        asset = user.avatar_url_as(format="png", static_format="png", size=512)
+        asset = user.display_avatar.replace(size=512, format="png")
         await asset.save(avatar, seek_begin=True)
 
         with Image(file=avatar) as img:
@@ -221,7 +221,10 @@ class Pranks(clockbot.Cog, name="장난"):
             if not strObject.match(content):
                 content = t[0](content)
             await self.bot.mimic(
-                msg.channel, msg.author, content, allowed_mentions=discord.AllowedMentions.none()
+                msg.channel,
+                msg.author,
+                content,
+                allowed_mentions=discord.AllowedMentions.none(),
             )
 
     @commands.Cog.listener()

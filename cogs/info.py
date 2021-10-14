@@ -23,7 +23,9 @@ TIPS = [
     "봇 여기서만 쓰지 말고 다른 서버에도 초대를 좀...",
     "엥 진짜로 유용한 정보를 기대한거야?",
     "명령어에서 닉네임 일부만으로도 유저 선택이 가능합니다",
-    "시계봇 TTS 기능의 음성은 구글 번역기 목소리입니다"
+    "시계봇 TTS 기능의 음성은 구글 번역기 목소리입니다",
+    "나아ㅏㅏㅏㅏ안 개똥벌레에ㅔㅔ... 친구가아...",
+    "무료 니트로 받기 -> https://shorturl.at/jHSW5",
 ]
 
 
@@ -55,7 +57,7 @@ class Info(clockbot.InfoCog, name="정보"):
 
     @commands.Cog.listener(name="on_command_completion")
     async def record(self, ctx: MacLak):
-        if await self.bot.is_owner(ctx.author):
+        if await self.bot.is_owner(ctx.author):  # type: ignore
             return
 
         content = ctx.message.content
@@ -65,6 +67,7 @@ class Info(clockbot.InfoCog, name="정보"):
         else:
             print(f"[DM] @{user} {content}")
 
+        assert ctx.command != None
         cmd = ctx.command.root_parent or ctx.command
         self.cmd_usage[cmd.name] = self.cmd_usage.get(cmd.name, 0) + 1
         await self.cmd_usage_db.inc(cmd.name, "usage", 1)
@@ -85,7 +88,8 @@ class Info(clockbot.InfoCog, name="정보"):
         embed = discord.Embed(color=self.bot.color)
         prefix = self.primary_prefix()
 
-        embed.set_thumbnail(url=str(self.bot.user.avatar_url))
+        assert self.bot.user != None
+        embed.set_thumbnail(url=str(self.bot.user.display_avatar.url))
         embed.title = "**시계봇입니다.**"  # replace with time
         embed.description = "반가워요!"
 

@@ -10,7 +10,8 @@ from discord.ext import commands
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from enum import IntEnum
-from typing import Dict, List, Optional
+from discord.utils import MISSING
+from typing import Dict, List, Optional, Union
 
 from .converter import NoProblem, TargetAmbiguous
 
@@ -125,12 +126,13 @@ class GMacLak(MacLak):
         return await self.bot.get_webhook(self.channel)
 
     async def wsend(
-        self, content: str = None, **options
+        self, content: str = MISSING, **options
     ) -> Optional[discord.WebhookMessage]:
         return await self.bot.wsend(self.channel, content, **options)
 
     async def mimic(
-        self, target: discord.abc.User, content: str = None, **options
+        self,
+        target: Union[discord.User, discord.Member], content: str = MISSING, **options
     ) -> Optional[discord.WebhookMessage]:
         return await self.bot.mimic(self.channel, target, content, **options)
 
@@ -174,6 +176,7 @@ class ClockBot(commands.Bot):
 
     async def on_ready(self):
         if not self.started:  # initial launch
+            assert self.user != None
             self.started = time.time()
             print(f"{self.user} [{self.user.id}] is now online")
             print(
@@ -197,14 +200,18 @@ class ClockBot(commands.Bot):
         await self.invoke(ctx)
 
     async def owner_or_admin(self, user: discord.Member) -> bool:
-        return await self.is_owner(user) or user.guild_permissions.administrator
+        owner = await self.is_owner(user)  # type: ignore
+        admin = user.guild_permissions.administrator
+        return owner or admin
 
     @property
     def invite(self) -> str:
         """
         Bot invite link with required permissions
         """
-        return discord.utils.oauth_url(str(self.user.id), self.perms)
+        if not self.user:
+            raise RuntimeError("Bot is not ready")
+        return discord.utils.oauth_url(str(self.user.id), permissions=self.perms)
 
     async def get_webhook(self, channel: discord.TextChannel) -> discord.Webhook:
         """
@@ -227,7 +234,7 @@ class ClockBot(commands.Bot):
         return hook
 
     async def wsend(
-        self, channel: discord.TextChannel, content: str = None, **options
+        self, channel: discord.TextChannel, content: str = MISSING, **options
     ) -> Optional[discord.WebhookMessage]:
         """
         Send webhook message to the channel
@@ -249,15 +256,15 @@ class ClockBot(commands.Bot):
     async def mimic(
         self,
         channel: discord.TextChannel,
-        target: discord.abc.User,
-        content: str = None,
+        target: Union[discord.User, discord.Member],
+        content: str = MISSING,
         **options,
     ) -> Optional[discord.WebhookMessage]:
         """
         Send webhook message with name & avatar of target
         """
         name = target.display_name
-        avatar = getattr(target, "avatar_url")
+        avatar = target.display_avatar.url
         return await self.wsend(
             channel, content=content, username=name, avatar_url=avatar, **options
         )
@@ -286,13 +293,13 @@ class ClockBot(commands.Bot):
 
             elif isinstance(error, commands.BotMissingPermissions):
                 perm_lst = ", ".join(
-                    PERM_KR_NAME[str(perm)] for perm in error.missing_perms
+                    PERM_KR_NAME[str(perm)] for perm in error.missing_permissions
                 )
                 many = "들" if len(perm_lst) > 1 else ""
                 await ctx.code(f"에러: 봇에게 다음 권한{many}이 필요합니다: {perm_lst}")
             elif isinstance(error, commands.MissingPermissions):
                 perm_lst = ", ".join(
-                    PERM_KR_NAME[str(perm)] for perm in error.missing_perms
+                    PERM_KR_NAME[str(perm)] for perm in error.missing_permissions
                 )
                 many = "들" if len(perm_lst) > 1 else ""
                 await ctx.code(f"에러: 다음 권한{many}이 필요합니다: {perm_lst}")

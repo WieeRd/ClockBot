@@ -11,6 +11,7 @@ import io
 import subprocess
 import time
 
+
 def run_cmd(cmd, timeout=None):
     proc = subprocess.Popen(
         cmd,

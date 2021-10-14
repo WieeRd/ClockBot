@@ -8,6 +8,7 @@ from typing import Dict, List
 
 NO_HELP = "도움말이 작성되지 않았습니다"
 
+
 def hoverlink(text: str, url: str, hover: str = "") -> str:
     return f"[{text}]({url} '{hover}')"
 
@@ -45,6 +46,10 @@ class EmbedHelp(commands.HelpCommand):
     @property
     def bot(self) -> Bot:
         return self.context.bot
+
+    @property
+    def clean_prefix(self) -> str:
+        return self.context.clean_prefix
 
     @property
     def help_usage(self) -> str:
@@ -121,11 +126,11 @@ class EmbedHelp(commands.HelpCommand):
         return mapping
 
     def bot_page(self, mapping: Dict[str, Cog]) -> discord.Embed:
+        assert self.bot.user != None
         embed = self.Embed()
-
         embed.title = f"**{self.title}**"
         embed.description = f"`{self.help_usage}`"
-        embed.set_thumbnail(url=self.thumbnail or str(self.bot.user.avatar_url))
+        embed.set_thumbnail(url=self.thumbnail or self.bot.user.display_avatar.url)
 
         if self.tips:
             tip = random.choice(self.tips)
@@ -158,9 +163,9 @@ class EmbedHelp(commands.HelpCommand):
         for cmd in cog.get_commands():
             embed.add_field(
                 name=f"**{self.cmd_name(cmd)}**",
-                value=f"```{cmd.short_doc or NO_HELP}```", # readability
+                value=f"```{cmd.short_doc or NO_HELP}```",  # readability
                 # value=f"`{cmd.short_doc or NO_HELP}`",   # vs compact
-                inline=False
+                inline=False,
             )
 
         return embed

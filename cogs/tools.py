@@ -147,13 +147,13 @@ class Tools(clockbot.Cog, name="도구"):
                 await ctx.send_help(self.purge)
                 return
 
-        if amount<0:
+        if amount < 0:
             amount = -amount
             if amount > 1000:
                 await ctx.tick(False)
                 return
             else:
-                await ctx.send("\u200b\n"*amount)
+                await ctx.send("\u200b\n" * amount)
                 return
 
         await ctx.channel.purge(limit=amount)

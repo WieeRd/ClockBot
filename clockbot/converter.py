@@ -31,7 +31,7 @@ def bestmatch(key: str, doors: Iterable[T], lock: Callable[[T], str]) -> Optiona
     or multiple equally good matches exist
     """
     if key == "":
-        return
+        return None
 
     # 'smartcase': ignorecase if key is all lowercase
     if re.match(r"^[^A-Z]+$", key):
@@ -57,6 +57,8 @@ def bestmatch(key: str, doors: Iterable[T], lock: Callable[[T], str]) -> Optiona
 
     if not ambiguous:
         return bestDoor
+
+    return None
 
 
 def bestmatches(key: str, doors: Iterable[T], lock: Callable[[T], str]) -> Set[T]:

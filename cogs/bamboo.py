@@ -59,7 +59,7 @@ class Forest:
             embed.description = "제한을 풀려면 `대숲 설정` 명령어를 이용하세요"
             return await msg.channel.send(embed=embed)
 
-        if len(msg.content)>=50:
+        if len(msg.content) >= 50:
             return await msg.channel.send("```에러: 50자 초과 (도배 방지)```")
 
         content = f"{self.prefix} {msg.content}"

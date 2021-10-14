@@ -77,7 +77,7 @@ perms = discord.Permissions(
 intents = discord.Intents.all()
 activity = discord.Game(STATUS or "Hello World")
 
-bot = ClockBot( # maybe I should restrict allowed_mentions
+bot = ClockBot(  # maybe I should restrict allowed_mentions
     db=db,
     perms=perms,
     color=COLOR,

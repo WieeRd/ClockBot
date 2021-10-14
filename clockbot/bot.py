@@ -132,7 +132,9 @@ class GMacLak(MacLak):
 
     async def mimic(
         self,
-        target: Union[discord.User, discord.Member], content: str = MISSING, **options
+        target: Union[discord.User, discord.Member],
+        content: str = MISSING,
+        **options,
     ) -> Optional[discord.WebhookMessage]:
         return await self.bot.mimic(self.channel, target, content, **options)
 

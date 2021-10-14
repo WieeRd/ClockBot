@@ -37,6 +37,7 @@ ALIASES = {
 
 MAX_RESULTS = 8
 
+
 def finder(text: str, collection: Iterable[T], key: Callable[[T], str]) -> List[T]:
     suggestions = []
     text = str(text)

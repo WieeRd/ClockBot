@@ -218,9 +218,9 @@ class RTFM(clockbot.Cog):
         ref = ctx.message.reference
         if ref and isinstance(ref.resolved, discord.Message):
             reference = ref.resolved.to_reference()
+            await ctx.send(embed=embed, reference=reference)
         else:
-            reference = discord.utils.MISSING
-        await ctx.send(embed=embed, reference=reference)
+            await ctx.send(embed=embed)
 
     @commands.command(name="purge-doc", usage="<doc>")
     @commands.is_owner()

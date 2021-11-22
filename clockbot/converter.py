@@ -2,9 +2,14 @@ import discord
 import asyncio
 import re
 from discord.ext import commands
-from typing import Iterable, Callable, Optional, Set, TypeVar
+from typing import Iterable, Callable, List, Optional, TypeVar
 
 # TODO: too much duplicate codes
+
+# <@[!]1234>
+# user#0000
+# nickname
+# username
 
 __all__ = (
     "bestmatch",
@@ -61,12 +66,12 @@ def bestmatch(key: str, doors: Iterable[T], lock: Callable[[T], str]) -> Optiona
     return None
 
 
-def bestmatches(key: str, doors: Iterable[T], lock: Callable[[T], str]) -> Set[T]:
+def bestmatches(key: str, doors: Iterable[T], lock: Callable[[T], str]) -> List[T]:
     """
     Return set of exact or best partial matches
     """
     if key == "":
-        return set()
+        return list()
 
     # 'smartcase': ignorecase if key is all lowercase
     if re.match(r"^[^A-Z]+$", key):
@@ -74,7 +79,7 @@ def bestmatches(key: str, doors: Iterable[T], lock: Callable[[T], str]) -> Set[T
         lock = lambda d: original(d).lower()
 
     bestIndex = float("INF")
-    candidates = set()
+    candidates = list()
 
     for door in doors:
         target = lock(door)
@@ -83,12 +88,54 @@ def bestmatches(key: str, doors: Iterable[T], lock: Callable[[T], str]) -> Set[T
             if len(key) == len(target):  # exact match
                 index = -1
             if bestIndex == index:  # equally good match
-                candidates.add(door)
+                candidates.append(door)
             elif bestIndex > index:  # better match
-                candidates = {door}
+                candidates = [door]
                 bestIndex = index
 
     return candidates
+
+
+def fuzzysearch(
+    text: str, collection: Iterable[T], key: Callable[[T], str] = str
+) -> List[T]:
+    """
+    filtered by:
+        - starting pos of match
+
+    sorted by:
+        1. longest distance between partial matches
+        2. length of whole match
+        3. alphabetical order
+
+    Return list of filtered & sorted fuzzy matches
+    """
+    suggestions = []
+    pat = "(.*?)".join(map(re.escape, text))
+    regex = re.compile(pat, flags=re.IGNORECASE)
+    min_start = float("INF")
+
+    for item in collection:
+        target = key(item)
+        if m := regex.search(target):
+            start = m.start()
+            # if len(text) == len(target):
+            #     start = -1
+            if start > min_start:  # 'worse' match
+                continue
+            if start < min_start:  # 'better' match
+                min_start = start
+                suggestions = []
+
+            # longest distance between partial matches
+            maxdist = max((len(s) for s in m.groups()), default=0)
+            # length of whole match
+            length = len(m.group())
+            # alphabetical order (item itself)
+            suggestions.append((item, maxdist, length, target))
+
+    sort_key = lambda tup: tup[1:]
+    return [t[0] for t in sorted(suggestions, key=sort_key)]
 
 
 class MemberType(discord.Member):
@@ -112,18 +159,18 @@ class NoProblem(Exception):
 
 
 class TargetAmbiguous(commands.BadArgument):
-    def __init__(self, arg: str, candidates: set):
+    def __init__(self, arg: str, candidates: list):
         self.arg = arg
         self.candidates = candidates
         super().__init__(f'"arg" is ambiguous ({len(candidates)} candidates)')
 
 
 class MemberAmbiguous(TargetAmbiguous):
-    candidates: Set[discord.Member]
+    candidates: List[discord.Member]
 
 
 class RoleAmbiguous(TargetAmbiguous):
-    candidates: Set[discord.Role]
+    candidates: List[discord.Role]
 
 
 # TODO: read members from channel not entire guild

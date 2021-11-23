@@ -2,7 +2,7 @@ import discord
 import asyncio
 import re
 from discord.ext import commands
-from typing import Iterable, Callable, List, Optional, TypeVar
+from typing import Iterable, Callable, List, TypeVar
 
 # TODO: too much duplicate codes
 
@@ -12,8 +12,7 @@ from typing import Iterable, Callable, List, Optional, TypeVar
 # username
 
 __all__ = (
-    "bestmatch",
-    "bestmatches",
+    "partialsearch",
     "NoProblem",
     "TargetAmbiguous",
     "MemberAmbiguous",
@@ -29,76 +28,39 @@ __all__ = (
 T = TypeVar("T")
 
 
-def bestmatch(key: str, doors: Iterable[T], lock: Callable[[T], str]) -> Optional[T]:
+def partialsearch(text: str, pool: Iterable[T], key: Callable[[T], str]) -> List[T]:
     """
-    Return exact or best partial match
-    None if no partial match was found
-    or multiple equally good matches exist
+    Return list of best partial matches.
+    'best' is defined as 'minimum match starting index'
+    Starting index of exact match is considered -1
     """
-    if key == "":
-        return None
-
-    # 'smartcase': ignorecase if key is all lowercase
-    if re.match(r"^[^A-Z]+$", key):
-        original = lock  # prevent recursion
-        lock = lambda d: original(d).lower()
-
-    bestDoor = None
-    bestIndex = float("INF")
-    ambiguous = False
-
-    for door in doors:
-        target = lock(door)
-        index = target.find(key)
-        if index != -1:
-            if len(key) == len(target):  # exact match
-                return door
-            if bestIndex == index:
-                ambiguous = True
-            elif bestIndex > index:  # better partial match
-                bestDoor = door
-                bestIndex = index
-                ambiguous = False
-
-    if not ambiguous:
-        return bestDoor
-
-    return None
-
-
-def bestmatches(key: str, doors: Iterable[T], lock: Callable[[T], str]) -> List[T]:
-    """
-    Return set of exact or best partial matches
-    """
-    if key == "":
+    if text == "":
         return list()
 
-    # 'smartcase': ignorecase if key is all lowercase
-    if re.match(r"^[^A-Z]+$", key):
-        original = lock  # prevent recursion
-        lock = lambda d: original(d).lower()
+    # 'smartcase': ignorecase if text is all lowercase
+    if re.match(r"^[^A-Z]+$", text):
+        original = key  # prevent recursion
+        key = lambda d: original(d).lower()
 
-    bestIndex = float("INF")
-    candidates = list()
+    minIndex = float("INF")
+    candidates = []
 
-    for door in doors:
-        target = lock(door)
-        index = target.find(key)
+    for item in pool:
+        target = key(item)
+        index = target.find(text)
         if index != -1:
-            if len(key) == len(target):  # exact match
+            if len(text) == len(target):  # exact match
                 index = -1
-            if bestIndex == index:  # equally good match
-                candidates.append(door)
-            elif bestIndex > index:  # better match
-                candidates = [door]
-                bestIndex = index
+            if index == minIndex:  # equally good match
+                candidates.append(item)
+            elif index < minIndex:  # better match
+                candidates = [item]
+                minIndex = index
 
     return candidates
 
 
-def fuzzysearch(
-    text: str, collection: Iterable[T], key: Callable[[T], str] = str
-) -> List[T]:
+def fuzzysearch(text: str, pool: Iterable[T], key: Callable[[T], str]) -> List[T]:
     """
     filtered by:
         - starting pos of match
@@ -115,7 +77,7 @@ def fuzzysearch(
     regex = re.compile(pat, flags=re.IGNORECASE)
     min_start = float("INF")
 
-    for item in collection:
+    for item in pool:
         target = key(item)
         if m := regex.search(target):
             start = m.start()
@@ -175,7 +137,7 @@ class RoleAmbiguous(TargetAmbiguous):
 
 # TODO: read members from channel not entire guild
 def search_member(arg: str, guild: discord.Guild) -> discord.Member:
-    members = bestmatches(arg, guild.members, lambda m: m.display_name)
+    members = partialsearch(arg, guild.members, lambda m: m.display_name)
     if len(members) == 0:
         raise commands.MemberNotFound(arg)
     if len(members) >= 2:
@@ -184,7 +146,7 @@ def search_member(arg: str, guild: discord.Guild) -> discord.Member:
 
 
 def search_role(arg: str, guild: discord.Guild) -> discord.Role:
-    roles = bestmatches(arg, guild.roles, lambda m: m.name)
+    roles = partialsearch(arg, guild.roles, lambda m: m.name)
     if len(roles) == 0:
         raise commands.RoleNotFound(arg)
     if len(roles) >= 2:

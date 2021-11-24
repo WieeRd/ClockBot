@@ -13,7 +13,7 @@ from enum import IntEnum
 from discord.utils import MISSING
 from typing import Dict, List, Optional, Union
 
-from .converter import NoProblem, TargetAmbiguous
+from .converter import NoProblem
 
 __all__ = (
     "PERM_KR_NAME",
@@ -151,6 +151,17 @@ class DMacLak(MacLak):
 
 
 class ClockBot(commands.Bot):
+    """
+     _________
+    |   12    |
+    |    |    |
+    |9  _|   3|
+    |         |
+    |____6____|
+
+    Time is gold. In minecraft, gold is quite useless.
+    """
+
     def __init__(
         self,
         db: AsyncIOMotorDatabase,
@@ -279,8 +290,6 @@ class ClockBot(commands.Bot):
         elif isinstance(error, commands.UserInputError):
             if isinstance(error, (commands.UserNotFound, commands.MemberNotFound)):
                 await ctx.code(f'에러: 유저 "{error.argument}"을(를) 찾을 수 없습니다')
-            elif isinstance(error, TargetAmbiguous):
-                await ctx.code(f'에러: "{error.arg}"에 해당하는 대상이 너무 많습니다')
             else:
                 await ctx.send_help(ctx.command)
 

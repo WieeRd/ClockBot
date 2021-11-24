@@ -25,6 +25,7 @@ cogs.pranks
  - bonk: more variants, support file attachments
 cogs.info - Send help when mentioned
 cogs.clock - better delay mechanic
+on_error handler
 
 <misc>
 NullDB / JsonDB - continue without DB

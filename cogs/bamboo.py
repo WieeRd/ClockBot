@@ -357,7 +357,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         한번 연결하고 DM 알림을 꺼두면 언제나
         완벽한 익명의 대나무숲을 바로 이용할 수 있다.
         """
-        if await self.add_link(ctx, server=server):
+        if await self.add_link(ctx, server=server):  # type: ignore
             self.dm_links[ctx.author].recent = float("INF")
 
     @bamboo.command(name="연결해제")
@@ -563,6 +563,8 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
                 except discord.Forbidden:
                     await msg.channel.send("```에러: 봇에게 메세지 관리 권한이 필요합니다```")
                     return
+                except discord.NotFound:  # already deleted by something else
+                    pass  # probably by chat filter feature
 
                 sent = await forest.send(msg)
 
@@ -582,6 +584,7 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
                     await sent.reply(embed=embed, delete_after=15)
 
         elif isinstance(channel, discord.DMChannel):
+            assert channel.recipient != None
             if link := self.dm_links.get(channel.recipient):
                 link.recent = max(time.time(), link.recent)
                 sent = await link.forest.send(msg)

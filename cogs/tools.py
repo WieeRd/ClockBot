@@ -3,7 +3,7 @@ import random
 from discord.ext import commands
 
 import clockbot
-from clockbot import MacLak, GMacLak, SelectMember
+from clockbot import MacLak, GMacLak, FuzzyMember
 from utils.chatfilter import txt2emoji
 
 
@@ -31,8 +31,31 @@ class Tools(clockbot.Cog, name="도구"):
             manage_messages=True,
         )
 
+    @commands.command(name="유저", usage="닉네임/@멘션")
+    @commands.guild_only()
+    async def userinfo(self, ctx: commands.Context, *, target: FuzzyMember = None):
+        assert isinstance(ctx.author, discord.Member) and ctx.guild
+        member = target or ctx.author
+        created = int(member.created_at.timestamp())
+        joined = int(member.joined_at.timestamp())  # type: ignore
+        roles = reversed(member.roles[1:])
+
+        embed = discord.Embed(title=f"{member.name}님의 정보", color=self.bot.color)
+        embed.set_thumbnail(url=member.display_avatar.url)
+
+        embed.add_field(name="닉네임", value=member.mention)
+        embed.add_field(name="아이디", value=f"`{member.id}`")
+        embed.add_field(name="계정 종류", value="봇 계정" if member.bot else "유저 계정")
+        embed.add_field(
+            name="역할", value="\n".join(role.mention for role in roles) or "\u200b"
+        )
+        embed.add_field(name="계정 생성일", value=f"<t:{created}:D>")
+        embed.add_field(name="서버 참가일", value=f"<t:{joined}:D>")
+
+        await ctx.send(embed=embed)
+
     @commands.command(name="프사", usage="닉네임/@멘션")
-    async def user_avatar(self, ctx: MacLak, user: SelectMember):
+    async def user_avatar(self, ctx: MacLak, *, user: FuzzyMember):
         """
         유저 프로필 사진을 띄운다
         멘션 대신 닉네임으로도 선택 가능하다

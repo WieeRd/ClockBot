@@ -10,6 +10,7 @@ Mention shield, karma
 Anti Raid / Spam (R. Danny)
 QRcode command
 Starboard feature
+i8n feature
 
 EmbedMenu should only support clockbot
 - clockbot.command: multiple usage, i8n

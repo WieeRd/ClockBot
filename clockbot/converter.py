@@ -9,7 +9,8 @@ __all__ = (
     "partialsearch",
     "fuzzysearch",
     "NoProblem",
-    "SelectMember",
+    "PartialMember",
+    "FuzzyMember",
 )
 
 T = TypeVar("T")
@@ -107,7 +108,7 @@ class MemberType(discord.Member):
         pass
 
 
-class SelectMember(commands.MemberConverter, MemberType):
+class PartialMember(commands.MemberConverter, MemberType):
     """
     Fuzzy search member's nickname with a given string
     When there are multiple matches, open selection menu
@@ -120,26 +121,13 @@ class SelectMember(commands.MemberConverter, MemberType):
             pass
 
         assert isinstance(ctx.guild, discord.Guild)
+        members = partialsearch(arg, ctx.guild.members, lambda m: m.display_name)
 
-        # decomposite Hangul for flexible fuzzy search
-        # ex) "ㅅㄱㅂ" -> "시계봇"
-
-        # TODO: Problem of decomposing Hangul
-        # When searching for "봇", "베타봇" and "시계봇" should be equal match.
-        # But because of 'ㅂ' in '베', "베타봇" has match starting index of 0.
-        # Found better method -> https://taegon.kim/archives/9919
-
-        text = j2hcj(h2j(arg))
-        key = lambda m: j2hcj(h2j(m.display_name))
-
-        # TODO: performance test & add timeout (for massive servers)
-        members = fuzzysearch(text, ctx.guild.members, key)
         if len(members) == 0:
             raise commands.MemberNotFound(arg)
         if len(members) == 1:
             return members[0]
 
-        # TODO: use dropdown menu feature
         options = "\n".join(
             f" {i+1} : '{m.display_name}' ({m})" for (i, m) in enumerate(members)
         )
@@ -178,3 +166,56 @@ class SelectMember(commands.MemberConverter, MemberType):
 
         await question.delete()
         return members[int(answer.content) - 1]
+
+
+class MemberSelect(discord.ui.View):
+    def __init__(self, members: List[discord.Member], owner: discord.Member):
+        self.index = 0
+        self.owner = owner
+
+    async def interaction_check(self, inter: discord.Interaction) -> bool:
+        return inter.user == self.owner
+
+class MemberMenu(discord.ui.Select):
+    def __init__(self, members: List[discord.Member]):
+        for i, member in enumerate(members):
+            self.add_option(
+                label=member.display_name,
+                description=str(member),
+                value=str(i)
+            )
+
+class FuzzyMember(commands.MemberConverter, MemberType):
+    """
+    Member converter that supports fuzzy matching
+    When there are multiple matches, open selection menu
+    """
+
+    async def convert(self, ctx: commands.Context, arg: str) -> discord.Member:
+        try:
+            return await super().convert(ctx, arg)
+        except commands.MemberNotFound:
+            pass
+
+        assert isinstance(ctx.guild, discord.Guild)
+
+        # decomposite Hangul for flexible fuzzy search
+        # ex) "ㅅㄱㅂ" -> "시계봇"
+
+        # TODO: Problem of decomposing Hangul
+        # When searching for "봇", "베타봇" and "시계봇" should be equal match.
+        # But because of 'ㅂ' in '베', "베타봇" has match starting index of 0.
+        # Found better method -> https://taegon.kim/archives/9919
+
+        text = j2hcj(h2j(arg))
+        key = lambda m: j2hcj(h2j(m.display_name))
+
+        # TODO: performance test & add timeout (for massive servers)
+        members = fuzzysearch(text, ctx.guild.members, key)
+        if len(members) == 0:
+            raise commands.MemberNotFound(arg)
+        if len(members) == 1:
+            return members[0]
+
+        # TODO: dropdown menu
+        raise NotImplementedError

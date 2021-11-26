@@ -3,7 +3,7 @@ import random
 from discord.ext import commands
 
 import clockbot
-from clockbot import MacLak, GMacLak, SelectMember
+from clockbot import MacLak, GMacLak, FuzzyMember
 from utils.chatfilter import txt2emoji
 
 
@@ -32,7 +32,7 @@ class Tools(clockbot.Cog, name="도구"):
         )
 
     @commands.command(name="프사", usage="닉네임/@멘션")
-    async def user_avatar(self, ctx: MacLak, user: SelectMember):
+    async def user_avatar(self, ctx: MacLak, *, user: FuzzyMember):
         """
         유저 프로필 사진을 띄운다
         멘션 대신 닉네임으로도 선택 가능하다

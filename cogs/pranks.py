@@ -6,7 +6,7 @@ from discord.ext import commands, tasks
 from typing import Callable, Dict, Tuple
 
 import clockbot
-from clockbot import GMacLak, MacLak, SelectMember
+from clockbot import GMacLak, MacLak, FuzzyMember
 from utils.chatfilter import *
 from utils.db import DictDB
 
@@ -76,7 +76,7 @@ class Pranks(clockbot.Cog, name="장난"):
 
     @commands.command(name="사칭", usage="닉네임/@멘션 <선동&날조>")
     @commands.bot_has_permissions(manage_webhooks=True, manage_messages=True)
-    async def impersonate(self, ctx: GMacLak, user: SelectMember, *, txt):
+    async def impersonate(self, ctx: GMacLak, user: FuzzyMember, *, txt):
         """
         다른 사람이 보낸 듯한 가짜 메세지를 보낸다
         명령어를 삭제하면 가짜 메세지도 자동 삭제된다.
@@ -106,7 +106,7 @@ class Pranks(clockbot.Cog, name="장난"):
     @clockbot.alias_as_arg(name="필터", aliases=list(SPECIAL_LANGS), usage="닉네임/@멘션")
     @commands.bot_has_permissions(manage_messages=True, manage_webhooks=True)
     @commands.guild_only()
-    async def add_filter(self, ctx: GMacLak, target: SelectMember):
+    async def add_filter(self, ctx: GMacLak, *, target: FuzzyMember):
         """
         채팅에 필터(말투변환기)를 적용한다
         관리자가 적용한 필터는 관리자만 해제할 수 있으며,
@@ -143,7 +143,7 @@ class Pranks(clockbot.Cog, name="장난"):
 
     @commands.command(name="필터해제", usage="닉네임/@멘션")
     @commands.guild_only()
-    async def rm_filter(self, ctx: GMacLak, user: SelectMember = None):
+    async def rm_filter(self, ctx: GMacLak, *, user: FuzzyMember = None):
         """
         적용된 필터를 제거한다
         """
@@ -168,7 +168,7 @@ class Pranks(clockbot.Cog, name="장난"):
     # TODO: more avatar memes (smack, F, patpat)
     @commands.command(name="퍽", usage="닉네임/@멘션", cooldown_after_parsing=True)
     @commands.cooldown(rate=1, per=15, type=commands.BucketType.user)
-    async def bonk(self, ctx: MacLak, user: SelectMember):
+    async def bonk(self, ctx: MacLak, *, user: FuzzyMember):
         """
         사람을 이유없이 때린다
         연타는 너무하므로 쿨타임 15초

@@ -95,9 +95,6 @@ class NoProblem(Exception):
     raise this to 'give up' conversion
     """
 
-    def __init__(self):
-        super().__init__("This is fine")
-
 
 class MemberType(discord.Member):
     """
@@ -146,7 +143,7 @@ class PartialMember(commands.MemberConverter, MemberType):
             )
 
         try:
-            answer = await ctx.bot.wait_for("message", check=check, timeout=15)
+            answer = await ctx.bot.wait_for("message", check=check, timeout=20.0)
         except asyncio.TimeoutError:
             embed = discord.Embed()
             embed.set_author(name="선택지 시간제한 초과")
@@ -168,22 +165,35 @@ class PartialMember(commands.MemberConverter, MemberType):
         return members[int(answer.content) - 1]
 
 
-class MemberSelect(discord.ui.View):
+class MemberSelect(discord.ui.Select):
+    view: "MemberMenu"
+
+    def __init__(self, members: List[discord.Member]):
+        super().__init__()
+        for i, member in enumerate(members):
+            self.add_option(
+                label=member.display_name,
+                value=str(i),
+                description=str(member),
+                emoji="\N{ROBOT FACE}" if member.bot else "\N{BUST IN SILHOUETTE}",
+            )
+
+    async def callback(self, _: discord.Interaction):
+        self.view.index = int(self.values[0])
+        self.view.stop()
+
+
+class MemberMenu(discord.ui.View):
     def __init__(self, members: List[discord.Member], owner: discord.Member):
+        super().__init__(timeout=20.0)
         self.index = 0
         self.owner = owner
+        self.menu = MemberSelect(members)
+        self.add_item(self.menu)
 
     async def interaction_check(self, inter: discord.Interaction) -> bool:
         return inter.user == self.owner
 
-class MemberMenu(discord.ui.Select):
-    def __init__(self, members: List[discord.Member]):
-        for i, member in enumerate(members):
-            self.add_option(
-                label=member.display_name,
-                description=str(member),
-                value=str(i)
-            )
 
 class FuzzyMember(commands.MemberConverter, MemberType):
     """
@@ -198,6 +208,7 @@ class FuzzyMember(commands.MemberConverter, MemberType):
             pass
 
         assert isinstance(ctx.guild, discord.Guild)
+        assert isinstance(ctx.author, discord.Member)
 
         # decomposite Hangul for flexible fuzzy search
         # ex) "ㅅㄱㅂ" -> "시계봇"
@@ -217,5 +228,28 @@ class FuzzyMember(commands.MemberConverter, MemberType):
         if len(members) == 1:
             return members[0]
 
-        # TODO: dropdown menu
-        raise NotImplementedError
+        embed = discord.Embed()
+        embed.set_author(name=f'"{arg}" 에 대한 검색 결과 {len(members)}건')
+        embed.description = "의도했던 대상을 선택해주세요"
+
+        reference = ctx.message.to_reference()
+        view = MemberMenu(members, ctx.author)
+        msg = await ctx.send(
+            embed=embed,
+            reference=reference,
+            view=view,
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
+
+        if await view.wait():  # timed out
+            view.menu.placeholder = "시간제한 초과"
+            view.menu.disabled = True
+            await msg.edit(view=view)
+            raise NoProblem("MemberMenu timed out")
+        else:
+            try:
+                await msg.delete()
+            except discord.NotFound:
+                pass  # already got deleted somehow
+
+        return members[view.index]

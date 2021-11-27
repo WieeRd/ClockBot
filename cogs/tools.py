@@ -17,8 +17,9 @@ class Tools(clockbot.Cog, name="도구"):
         self.icon = "\N{WRENCH}"
 
         self.showcase = [
+            self.userinfo,
             self.user_avatar,
-            self.server_avatar,
+            # self.server_avatar,
             self.get_emoji,
             self.coin,
             self.dice,
@@ -34,18 +35,25 @@ class Tools(clockbot.Cog, name="도구"):
     @commands.command(name="유저", usage="닉네임/@멘션")
     @commands.guild_only()
     async def userinfo(self, ctx: commands.Context, *, target: FuzzyMember = None):
+        """
+        해당 유저의 계정 정보를 출력한다
+        """
         assert isinstance(ctx.author, discord.Member) and ctx.guild
         member = target or ctx.author
         created = int(member.created_at.timestamp())
         joined = int(member.joined_at.timestamp())  # type: ignore
         roles = reversed(member.roles[1:])
+        color = member.color or discord.Color(0xFFFFFF)
 
-        embed = discord.Embed(title=f"{member.name}님의 정보", color=self.bot.color)
+        embed = discord.Embed(title=f"{member.name}님의 정보", color=color)
         embed.set_thumbnail(url=member.display_avatar.url)
 
         embed.add_field(name="닉네임", value=member.mention)
         embed.add_field(name="아이디", value=f"`{member.id}`")
-        embed.add_field(name="계정 종류", value="봇 계정" if member.bot else "유저 계정")
+        embed.add_field(
+            name="계정 종류",
+            value=f"\N{ROBOT FACE} 봇" if member.bot else f"\N{BUST IN SILHOUETTE} 유저",
+        )
         embed.add_field(
             name="역할", value="\n".join(role.mention for role in roles) or "\u200b"
         )

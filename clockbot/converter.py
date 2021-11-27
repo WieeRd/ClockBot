@@ -16,7 +16,9 @@ __all__ = (
 T = TypeVar("T")
 
 
-def partialsearch(text: str, pool: Iterable[T], key: Callable[[T], str]) -> List[T]:
+def partialsearch(
+    text: str, pool: Iterable[T], key: Callable[[T], str], limit: int = 0
+) -> List[T]:
     """
     Return list of best partial matches.
     'best' is defined as 'minimum match starting index'
@@ -42,6 +44,8 @@ def partialsearch(text: str, pool: Iterable[T], key: Callable[[T], str]) -> List
                 index = -1
             if index == minIndex:  # equally good match
                 candidates.append(item)
+                if len(candidates) == limit:
+                    break
             elif index < minIndex:  # better match
                 candidates = [item]
                 minIndex = index
@@ -49,7 +53,9 @@ def partialsearch(text: str, pool: Iterable[T], key: Callable[[T], str]) -> List
     return candidates
 
 
-def fuzzysearch(text: str, pool: Iterable[T], key: Callable[[T], str]) -> List[T]:
+def fuzzysearch(
+    text: str, pool: Iterable[T], key: Callable[[T], str], limit: int = 0
+) -> List[T]:
     """
     filtered by:
         - starting pos of match
@@ -84,6 +90,9 @@ def fuzzysearch(text: str, pool: Iterable[T], key: Callable[[T], str]) -> List[T
             length = len(m.group())
             # alphabetical order (item itself)
             suggestions.append((item, maxdist, length, target))
+
+            if len(suggestions) == limit:
+                break
 
     sort_key = lambda tup: tup[1:]
     return [t[0] for t in sorted(suggestions, key=sort_key)]
@@ -201,6 +210,8 @@ class FuzzyMember(commands.MemberConverter, MemberType):
     When there are multiple matches, open selection menu
     """
 
+    MENU_LIMIT = 25 + 1  # max items select menu component can hold
+
     async def convert(self, ctx: commands.Context, arg: str) -> discord.Member:
         try:
             return await super().convert(ctx, arg)
@@ -222,17 +233,25 @@ class FuzzyMember(commands.MemberConverter, MemberType):
         key = lambda m: j2hcj(h2j(m.display_name))
 
         # TODO: performance test & add timeout (for massive servers)
-        members = fuzzysearch(text, ctx.guild.members, key)
+        # computing maxdist might be slow...
+        members = fuzzysearch(text, ctx.guild.members, key, limit=self.MENU_LIMIT)
         if len(members) == 0:
             raise commands.MemberNotFound(arg)
         if len(members) == 1:
             return members[0]
 
-        embed = discord.Embed()
+        embed = discord.Embed(color=0x7289DA)
+        reference = ctx.message.to_reference()
+
+        if len(members) == self.MENU_LIMIT:
+            embed.set_author(name=f'"{arg}" 에 일치하는 대상이 너무 많습니다')
+            embed.description = "더 구체적인 검색어를 넣어주세요"
+            await ctx.send(embed=embed, reference=reference)
+            raise NoProblem("Too many results")
+
         embed.set_author(name=f'"{arg}" 에 대한 검색 결과 {len(members)}건')
         embed.description = "의도했던 대상을 선택해주세요"
 
-        reference = ctx.message.to_reference()
         view = MemberMenu(members, ctx.author)
         msg = await ctx.send(
             embed=embed,

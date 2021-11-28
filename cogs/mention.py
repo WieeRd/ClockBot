@@ -6,10 +6,9 @@ import clockbot
 from clockbot import GMacLak, MacLak
 import utils.MemberFilter as MemberFilter
 
-# TODO: used embed
-# TODO: usage command
-# TODO: easier expr
-# TODO: fuzzy match
+# TODO: use embed, usage command, easier expr
+
+
 class Mention(clockbot.Cog, name="고급멘션"):
     """
     사용법이 어렵다고 해서 뜯어고치는 중
@@ -103,7 +102,7 @@ class Mention(clockbot.Cog, name="고급멘션"):
         (난 최대한 쉽게 만든건데...)
         언젠가 개선할 계획
         """
-        # TODO: use module docstring maybe?
+        # use module docstring maybe?
         await ctx.send("미안하지만 이젠 나도 잘 모르겠어\n" " - 제작자 - ")
 
 

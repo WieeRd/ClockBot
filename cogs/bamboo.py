@@ -252,7 +252,6 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         msg = await ctx.send(embed=embed)
         await msg.pin()
 
-    # TODO: removing forest shouldn't require permissions
     async def rm_forest(self, ctx: GMacLak, exist: Optional[Forest]):
         if (not exist) or (exist.channel != ctx.channel):
             # await ctx.send("대나무숲으로 설정된 채널이 아닙니다")

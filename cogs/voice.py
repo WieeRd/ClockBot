@@ -30,10 +30,6 @@ class Text2Speech(aiogtts.aiogTTS):
 TTS_PREFIX = ";"
 TTS_MAX_LEN = 50
 
-# TODO: can't read multiple chats at once
-# TODO: use other TTS engine
-# TODO: choose voice option
-
 
 class Voice(clockbot.Cog, name="TTS"):
     """

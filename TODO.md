@@ -1,6 +1,9 @@
 # WieeRd's TODO note
 
+Oh my god there is so much things to do
+
 ## 0. Priority Tasks
+
 1. Game module
 2. Dropdown Help command
 3. Setup Logging
@@ -10,6 +13,7 @@
 ## 1. New Stuff
 
 ### 1.1. New Module
+
 * Game 
     - Chess
     - TicTacToe
@@ -25,6 +29,7 @@
         + pyvis is inefficient as hell, gotta code myself
 
 ### 1.2. New Command
+
 * Tools
     - QRcode generator
     - Starboard
@@ -34,8 +39,13 @@
 * Pranks
     - MagicConch
     - Mention shield, karma
+* Owner
+    - Update announcement
+    - Send feedback
+    - Bot profile editing
 
 ### 1.3. New Feature
+
 * Help command
     - Dropdown Help command
     - Dump as markdown document (README.md)
@@ -43,10 +53,10 @@
 * Logging
     - seperate stdout/stderr
     - on_error() Handler
-* Feedback
-    - Update announcement
-    - Feedback command
 * Converter
+    - Fuzzy search
+        + improve performance
+        + add timeout
     - Time (HH:MM)
     - Guild (fuzzy, mutual)
 * Internationalization
@@ -56,7 +66,7 @@
         + locale decorator
     - get_locale()
         + prefered locale (community guild)
-        + `ctx.invoked_with`
+        + ctx.invoked_with
         + DB (per guild / user)
 * Database
     - Should have used MariaDB tbh
@@ -64,6 +74,7 @@
 
 
 ## 2. Improvements
+
 * Mention
     - easier expression
 * Voice
@@ -78,17 +89,23 @@
         + voice overlapping
     - stage channel support
 * Pranks
-    - preserve text objects (mention, emoji, ...)
-    - new filters
+    - Custom message for each filter
+    - Preserve text objects (mention, emoji, ...)
+    - New filters
         + Chaos
         + Mirror (vertical & horizontal)
         + NyanChat
         + Hawawa
-    - bonk
+    - Bonk
         + more variants (kkang, RIP, triggered)
         + support file attachments
+    - Revive google translation feature
 * Clock
-    - better delay mechanic
+    - Better delay mechanic
+* Bamboo
+    - Usage count
+    - Logging on/off
+    - Guardian feature
 
 ## 3. Ideas
 

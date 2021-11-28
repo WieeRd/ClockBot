@@ -210,7 +210,7 @@ class FuzzyMember(commands.MemberConverter, MemberType):
     When there are multiple matches, open selection menu
     """
 
-    MENU_LIMIT = 25 + 1  # max items select menu component can hold
+    MENU_LIMIT = 10 + 1
 
     async def convert(self, ctx: commands.Context, arg: str) -> discord.Member:
         try:

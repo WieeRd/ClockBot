@@ -40,23 +40,22 @@ class Tools(clockbot.Cog, name="도구"):
         """
         assert isinstance(ctx.author, discord.Member) and ctx.guild
         member = target or ctx.author
-        created = int(member.created_at.timestamp())
-        joined = int(member.joined_at.timestamp())  # type: ignore
+        color = member.color.value or 0xFFFFFF
+        _type = "\N{ROBOT FACE} 봇" if member.bot else "\N{BUST IN SILHOUETTE} 유저"
+        if await self.bot.is_owner(member):  # type: ignore [reportGeneralTypeIssue]
+            _type = "\N{WHITE MEDIUM STAR} 제작자"
         roles = reversed(member.roles[1:])
-        color = member.color or discord.Color(0xFFFFFF)
+        roles = "\n".join(role.mention for role in roles) or "\u200b"
+        created = int(member.created_at.timestamp())
+        joined = int(member.joined_at.timestamp())  # type: ignore [reportOptionalMemerAccess]
 
         embed = discord.Embed(title=f"{member.name}님의 정보", color=color)
         embed.set_thumbnail(url=member.display_avatar.url)
 
         embed.add_field(name="닉네임", value=member.mention)
         embed.add_field(name="아이디", value=f"`{member.id}`")
-        embed.add_field(
-            name="계정 종류",
-            value=f"\N{ROBOT FACE} 봇" if member.bot else f"\N{BUST IN SILHOUETTE} 유저",
-        )
-        embed.add_field(
-            name="역할", value="\n".join(role.mention for role in roles) or "\u200b"
-        )
+        embed.add_field(name="계정 종류", value=_type)
+        embed.add_field(name="역할", value=roles)
         embed.add_field(name="계정 생성일", value=f"<t:{created}:D>")
         embed.add_field(name="서버 참가일", value=f"<t:{joined}:D>")
 

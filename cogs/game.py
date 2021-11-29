@@ -2,123 +2,96 @@ import discord
 from discord.ext import commands
 
 import clockbot
-from clockbot import MacLak, GMacLak, FuzzyMember
+from clockbot import GMacLak, FuzzyMember
 
+import enum
 from typing import List, Optional
 
-# Tic Tac Toe implementation from discord.py's ui.View example codes
-# https://github.com/Rapptz/discord.py/blob/master/examples/views/tic_tac_toe.py
+
+class Mark(enum.IntEnum):
+    X = -1
+    O = +1
+    none = 0
+
+    def style(self) -> discord.ButtonStyle:
+        if self == 0:
+            return discord.ButtonStyle.grey
+        elif self == -1:
+            return discord.ButtonStyle.red
+        elif self == +1:
+            return discord.ButtonStyle.green
+        else:
+            raise ValueError
 
 
-class TicTacToeButton(discord.ui.Button["TicTacToe"]):
+class TicTacToeButton(discord.ui.Button):
+    view: "TicTacToe"
+
     def __init__(self, x: int, y: int):
-        super().__init__(style=discord.ButtonStyle.secondary, label="\u200b", row=y)
+        super().__init__(style=discord.ButtonStyle.grey, label="\u200b", row=y)
         self.x = x
         self.y = y
 
-    async def callback(self, interaction: discord.Interaction):
-        assert self.view is not None
-        view: TicTacToe = self.view
-        state = view.board[self.y][self.x]
-
-        # already occupied square
-        if state in (view.X, view.O):
-            return
-
-        if view.current_player == view.X:
-            self.style = discord.ButtonStyle.danger
-            self.label = "X"
-            # self.disabled = True
-            view.board[self.y][self.x] = view.X
-            view.current_player = view.O
-            content = "It is now O's turn"
-        else:
-            self.style = discord.ButtonStyle.success
-            self.label = "O"
-            # self.disabled = True
-            view.board[self.y][self.x] = view.O
-            view.current_player = view.X
-            content = "It is now X's turn"
-
-        winner = view.check_board_winner()
-        if winner != None:
-            if winner == view.X:
-                content = "X won!"
-            elif winner == view.O:
-                content = "O won!"
-            else:
-                content = "It's a tie!"
-
-            for child in view.children:
-                child.disabled = True
-
-            view.stop()
-
-        await interaction.response.edit_message(content=content, view=view)
+    async def callback(self, it: discord.Interaction):
+        await self.view.on_press(self, it)
 
 
 class TicTacToe(discord.ui.View):
     children: List[TicTacToeButton]
-    X = -1
-    O = +1
-    TIE = 0
 
-    def __init__(self):
-        super().__init__()
-        self.current_player = self.X
-        self.board = [
-            [0, 0, 0],
-            [0, 0, 0],
-            [0, 0, 0],
-        ]
+    def __init__(
+        self,
+        playerX: discord.Member,
+        playerO: discord.Member,
+        size: int = 3,
+        timeout: float = 60,
+    ):
+        assert (1 <= size) and (size <= 5)
+        super().__init__(timeout=timeout)
 
-        for x in range(3):
-            for y in range(3):
+        for y in range(size):
+            for x in range(size):
                 self.add_item(TicTacToeButton(x, y))
 
-    async def interaction_check(self, inter: discord.Interaction) -> bool:
-        ...
+        self.board: List[List[Mark]] = []
+        for _ in range(size):
+            self.board.append([Mark.none] * size)
 
-    def check_board_winner(self) -> Optional[int]:
-        """
-        Checks for the board winner
-        used by the TicTacToeButton
-        """
+        self.players = {
+            playerX: Mark.X,
+            playerO: Mark.O,
+        }
+        self.turn = Mark.X
+        self.solo = playerX is playerO
 
-        # Check horizontal
-        for across in self.board:
-            value = sum(across)
-            if value == 3:
-                return self.O
-            elif value == -3:
-                return self.X
+    async def interaction_check(self, it: discord.Interaction) -> bool:
+        return it.user in self.players
 
-        # Check vertical
-        for line in range(3):
-            value = self.board[0][line] + self.board[1][line] + self.board[2][line]
-            if value == 3:
-                return self.O
-            elif value == -3:
-                return self.X
+    async def on_press(self, button: TicTacToeButton, it: discord.Interaction):
+        who = it.user
+        assert isinstance(who, discord.Member)
 
-        # Check diagonals
-        diag = self.board[0][2] + self.board[1][1] + self.board[2][0]
-        if diag == 3:
-            return self.O
-        elif diag == -3:
-            return self.X
+        # not the user's turn
+        if self.players[it.user] != self.turn:  # type: ignore [reportGeneralTypeIssue]
+            if not self.solo:
+                return
 
-        diag = self.board[0][0] + self.board[1][1] + self.board[2][2]
-        if diag == 3:
-            return self.O
-        elif diag == -3:
-            return self.X
+        x = button.x
+        y = button.y
 
-        # Check if it's a tie
-        if all(i != 0 for row in self.board for i in row):
-            return self.TIE
+        # already occupied square
+        if self.board[y][x] != Mark.none:
+            return
 
-        return None
+        self.board[y][x] = self.turn
+        button.style = self.turn.style()
+        button.label = self.turn.name
+        self.turn = Mark(-self.turn)
+
+        await it.response.edit_message(view=self)
+
+    async def on_timeout(self):
+        raise NotImplementedError
 
 
 class Game(clockbot.Cog, name="게임"):
@@ -133,14 +106,58 @@ class Game(clockbot.Cog, name="게임"):
             self.tictactoe,
         ]
 
-    @commands.command(name="틱택토", usage="닉네임/@멘션")
+    @commands.command(name="틱택토", aliases=["삼목"], usage="@도전상대")
     @commands.guild_only()
     async def tictactoe(self, ctx: GMacLak, *, target: FuzzyMember):
         """
-        상대에게 틱택토 대결을 신청한다
+        상대에게 틱택토(Tic-Tac-Toe) 대결을 신청한다
+        언제나 도전받은 사람이 우선권을 가지며,
         번갈아 O/X를 그려서 먼저 한 줄을 만들면 이긴다.
         """
-        await ctx.send(content="Test", view=TicTacToe())
+        playerX = target
+        playerO = ctx.author
+
+        embed = discord.Embed(color=self.bot.color)
+        embed.title = f"{playerX.display_name} (X) vs {playerO.display_name} (O)"
+
+        view = TicTacToe(playerX, playerO)
+        await ctx.send(embed=embed, view=view)
 
 
 setup = Game.setup
+
+def check_board_winner(self) -> Optional[int]:
+    # Check horizontal
+    for across in self.board:
+        value = sum(across)
+        if value == 3:
+            return self.O
+        elif value == -3:
+            return self.X
+
+    # Check vertical
+    for line in range(3):
+        value = self.board[0][line] + self.board[1][line] + self.board[2][line]
+        if value == 3:
+            return self.O
+        elif value == -3:
+            return self.X
+
+    # Check diagonals
+    diag = self.board[0][2] + self.board[1][1] + self.board[2][0]
+    if diag == 3:
+        return self.O
+    elif diag == -3:
+        return self.X
+
+    diag = self.board[0][0] + self.board[1][1] + self.board[2][2]
+    if diag == 3:
+        return self.O
+    elif diag == -3:
+        return self.X
+
+    # Check if it's a tie
+    if all(i != 0 for row in self.board for i in row):
+        return self.TIE
+
+    return None

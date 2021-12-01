@@ -97,6 +97,7 @@ Oh my god there is so much things to do
         + NyanChat
         + Hawawa
     - Bonk
+        + more distortion per "bonk"
         + more variants (kkang, RIP, triggered)
         + support file attachments
     - Revive google translation feature

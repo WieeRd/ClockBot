@@ -114,12 +114,12 @@ class Pranks(clockbot.Cog, name="장난"):
         해제 명령어는 '필터해제 @유저'
         """
         assert isinstance(ctx.invoked_with, str)
-        by_admin = await self.bot.owner_or_admin(ctx.author)
+        by_admin = ctx.author.guild_permissions.administrator
 
         query = (target.guild.id, target.id)
         if t := self.filters.get(query):
             if t[1] and not by_admin:
-                await ctx.code("에러: 관리자에 의해 다른 필터가 걸려있습니다\n" "(팁: 평소에 처신을 잘하세요)")
+                await ctx.code("에러: 관리자에 의해 다른 필터가 걸려있습니다\n(팁: 평소에 처신을 잘하세요)")
                 return
 
         if ctx.author != target and not by_admin:

@@ -5,6 +5,7 @@ import clockbot
 from clockbot import GMacLak, FuzzyMember
 
 import enum
+from contextlib import suppress
 from typing import List
 
 ZERMELO_RULE = "https://namu.wiki/w/%EC%B2%B4%EB%A5%B4%EB%A9%9C%EB%A1%9C%20%EC%A0%95%EB%A6%AC"  # fmt: off
@@ -211,6 +212,7 @@ class Game(clockbot.Cog, name="게임"):
         상대에게 N*N 틱택토(Tic-Tac-Toe) 대결을 신청한다
         언제나 도전받은 사람이 우선권을 가지며,
         번갈아 O/X를 그려서 먼저 한 줄을 만들면 이긴다.
+        (쉽게 말해 서양식 미니 오목이다)
         """
         if (size < 1) or (5 < size):
             await ctx.code("에러: 게임 크기는 1~5 범위 내여야 합니다")
@@ -234,11 +236,17 @@ class Game(clockbot.Cog, name="게임"):
         embed = view.embed
         msg = await ctx.send(embed=embed, view=view)
 
+        # # components doesn't show up in thread for some reason
+        # with suppress(discord.Forbidden):
+        #     await msg.create_thread(name=embed.title)
+
         if await view.wait():  # timed out
             embed.set_footer(text="시간제한 초과")
             for button in view.children:
                 button.disabled = True
-            return await msg.edit(embed=embed, view=view)
+            with suppress(Exception):
+                await msg.edit(embed=embed, view=view,)
+            return
 
         # TODO: different lines depending on the result
 

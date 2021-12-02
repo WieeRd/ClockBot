@@ -8,8 +8,21 @@ import enum
 from typing import List
 
 ZERMELO_RULE = "https://namu.wiki/w/%EC%B2%B4%EB%A5%B4%EB%A9%9C%EB%A1%9C%20%EC%A0%95%EB%A6%AC"  # fmt: off
-HUMAN_MEME = "https://w.namu.la/s/c9b951140de72f66425f2f5523cd2a4aa0a796a5c67e4c8363782e249d58f9d4fbbd977b1c6fd8d0fcecf5ee70a146619ee15c502a074c547f931384a97d69e516b04eecfcc8b0d352f12f4d30391cba1f50bdfab33c980518441b533649a9e5"
-# HUMAN_MEME = "https://ww.namu.la/s/e81e2a83ce2701031c4257dab6bae8308522b5afa8f9c19c560c56ff091be0cc0cebf4968338fdf03ed0c23e224771ee01b4aa644c02cecce10096ed1df52c293ae053adeff6bb6aefa383c0bb0bbf35"
+BIGDATA = "https://w.namu.la/s/c9b951140de72f66425f2f5523cd2a4aa0a796a5c67e4c8363782e249d58f9d4fbbd977b1c6fd8d0fcecf5ee70a146619ee15c502a074c547f931384a97d69e516b04eecfcc8b0d352f12f4d30391cba1f50bdfab33c980518441b533649a9e5"
+BLACKDATA = "https://ww.namu.la/s/e81e2a83ce2701031c4257dab6bae8308522b5afa8f9c19c560c56ff091be0cc0cebf4968338fdf03ed0c23e224771ee01b4aa644c02cecce10096ed1df52c293ae053adeff6bb6aefa383c0bb0bbf35"
+
+WIN = [
+    "허접이시네요 ㅋ",
+    "강해져서 돌아와라, {loser}",
+    "똑바로 서라 {loser}!\n어째서 한 줄을 막지 못했지?",
+    "큭... 나의 패배다!",
+    "그런 수는 두지 말았어야 하는데~\n난 그 사실을 몰랐어~",
+]
+SOLO = [
+    "나안~ 개똥벌레~ 친구가아ㅏㅏㅏ",
+    "여러분 누가 좀 놀아주고 그러세요\n혼자서 틱택토를 하고 있다니...",
+    "너의 가장 큰 적은 바로 너 자신이다.",
+]
 
 
 class Mark(enum.IntEnum):
@@ -60,8 +73,10 @@ class TicTacToe(discord.ui.View):
         super().__init__(timeout=timeout)
 
         self.size = size
-        self.winner = None
         self.solo = playerX == playerO
+
+        self.winner = None
+        self.loser = None
 
         # current turn's mark & player
         self.mark = Mark.X
@@ -133,8 +148,9 @@ class TicTacToe(discord.ui.View):
             if value == m * self.size:
                 self.winner = m
 
-        # check tie (all squares are filled)
-        elif all(m != Mark.none for row in self.board for m in row):
+        # check draw (all squares are filled)
+        if all(m != Mark.none for row in self.board for m in row):
+            # I hate nested list comprehensions
             self.winner = Mark.none
 
         return self.winner != None
@@ -188,23 +204,27 @@ class Game(clockbot.Cog, name="게임"):
             self.tictactoe,
         ]
 
-    @commands.command(name="틱택토", usage="게임크기(1~5) @도전상대")
+    @commands.command(name="틱택토", usage="<N> @도전상대")
     @commands.guild_only()
     async def tictactoe(self, ctx: GMacLak, size: int, *, target: FuzzyMember):
         """
-        상대에게 틱택토(Tic-Tac-Toe) 대결을 신청한다
+        상대에게 N*N 틱택토(Tic-Tac-Toe) 대결을 신청한다
         언제나 도전받은 사람이 우선권을 가지며,
         번갈아 O/X를 그려서 먼저 한 줄을 만들면 이긴다.
         """
-        if target.bot:
+        if (size < 1) or (5 < size):
+            await ctx.code("에러: 게임 크기는 1~5 범위 내여야 합니다")
+            return
+
+        if target.bot:  # TODO: TicTacToe AI coming soon-ish
             embed = discord.Embed(color=self.bot.color)
-            embed.title = "가소롭군요 휴먼"
+            embed.title = "**가소롭군요 휴먼**"
             embed.description = (
                 f'한낱 인간이 ["2인 유한 턴제 확정 완전정보 게임"]({ZERMELO_RULE} "체르멜로 정리")에서\n'
                 f"우리 기계종에게 도전하다니 상대할 가치도 없습니다\n"
             )
-            embed.set_image(url=HUMAN_MEME)
-            embed.set_footer(text="사실 주인놈이 귀찮다고 아직 AI 탑재를 안해줌 ㅠㅠ")
+            embed.set_image(url=BIGDATA)
+            embed.set_footer(text="사실 주인놈이 귀찮다고 아직 AI 탑재를 안해줌...")
             return await ctx.send(embed=embed)
 
         playerX = target
@@ -215,10 +235,22 @@ class Game(clockbot.Cog, name="게임"):
         msg = await ctx.send(embed=embed, view=view)
 
         if await view.wait():  # timed out
-            embed.set_footer(text="무승부 (시간제한 초과)")
-            await msg.edit(embed=embed)
-            return
+            embed.set_footer(text="시간제한 초과")
+            for button in view.children:
+                button.disabled = True
+            return await msg.edit(embed=embed, view=view)
 
-        # TODO: ceremony line
+        # TODO: different lines depending on the result
+
+        if view.winner == Mark.none:
+            ...
+
+        if view.winner == Mark.X:
+            winner, loser = playerX, playerO
+        else:
+            winner, loser = playerO, playerX
+        
+        ...
+
 
 setup = Game.setup

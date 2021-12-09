@@ -150,7 +150,7 @@ class TicTacToe(discord.ui.View):
                 self.winner = m
 
         # check draw (all squares are filled)
-        if all(m != Mark.none for row in self.board for m in row):
+        elif all(m != Mark.none for row in self.board for m in row):
             # I hate nested list comprehensions
             self.winner = Mark.none
 

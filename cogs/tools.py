@@ -59,6 +59,12 @@ class Tools(clockbot.Cog, name="도구"):
         embed.add_field(name="계정 생성일", value=f"<t:{created}:D>")
         embed.add_field(name="서버 참가일", value=f"<t:{joined}:D>")
 
+        user = await self.bot.fetch_user(member.id)
+        if user.banner != None:
+            embed.set_image(url=user.banner.url)
+
+        # TODO: activity
+
         await ctx.send(embed=embed)
 
     @commands.command(name="프사", usage="닉네임/@멘션")

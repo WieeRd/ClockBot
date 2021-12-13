@@ -6,7 +6,7 @@ from clockbot import GMacLak, FuzzyMember
 
 import enum
 from contextlib import suppress
-from typing import List
+from typing import List, Optional
 
 ZERMELO_RULE = "https://namu.wiki/w/%EC%B2%B4%EB%A5%B4%EB%A9%9C%EB%A1%9C%20%EC%A0%95%EB%A6%AC"  # fmt: off
 BIGDATA = "https://w.namu.la/s/c9b951140de72f66425f2f5523cd2a4aa0a796a5c67e4c8363782e249d58f9d4fbbd977b1c6fd8d0fcecf5ee70a146619ee15c502a074c547f931384a97d69e516b04eecfcc8b0d352f12f4d30391cba1f50bdfab33c980518441b533649a9e5"
@@ -118,43 +118,42 @@ class TicTacToe(discord.ui.View):
     async def interaction_check(self, it: discord.Interaction) -> bool:
         return it.user == self.player
 
-    def is_game_over(self, m: Mark, x: int, y: int) -> bool:
+    def is_game_over(self, m: Mark, x: int, y: int) -> Optional[Mark]:
         """
-        When a new mark m is drawn on (x, y),
-        check if that mark has ended the game.
-        winner's mark is assigned to self.winner
+        Called when a new mark m is drawn on (x, y).
+        If the game has ended, returns mark of winner
         """
         # check horizontal
         if sum(self.board[y]) == m * self.size:
-            self.winner = m
+            return m
 
         # check vertical
-        elif sum(row[x] for row in self.board) == m * self.size:
-            self.winner = m
+        if sum(row[x] for row in self.board) == m * self.size:
+            return m
 
         # check diagonal (0,0) -> (size-1,size-1)
-        elif x == y:
+        if x == y:
             value = 0
             for i in range(self.size):
                 value += self.board[i][i]
             if value == m * self.size:
-                self.winner = m
+                return m
 
         # check diagonal (0,size-1) -> (size-1,0)
-        elif (x + y) == (self.size - 1):
+        if (x + y) == (self.size - 1):
             value = 0
             for i in range(self.size):
                 j = self.size - i - 1
                 value += self.board[j][i]
             if value == m * self.size:
-                self.winner = m
+                return m
 
         # check draw (all squares are filled)
-        elif all(m != Mark.none for row in self.board for m in row):
+        if all(m != Mark.none for row in self.board for m in row):
             # I hate nested list comprehensions
-            self.winner = Mark.none
+            return Mark.none
 
-        return self.winner != None
+        return None
 
     async def on_press(self, button: TicTacToeButton, it: discord.Interaction):
         assert isinstance(it.user, discord.Member)
@@ -169,16 +168,18 @@ class TicTacToe(discord.ui.View):
         self.board[y][x] = self.mark
         button.style = self.mark.style
         button.label = self.mark.name
+        self.winner = self.is_game_over(self.mark, x, y)
 
-        if self.is_game_over(self.mark, x, y):
-            if self.winner != Mark.none:
+        if self.winner != None:
+            if self.winner == Mark.none:
+                self.embed.set_footer(text="무승부 (아 재미없어)")
+            else:
                 self.embed.set_footer(
                     text=f"{self.player.display_name}님의 승리!",
                     icon_url=self.player.display_avatar.url,
                 )
-            else:
-                self.embed.set_footer(text="무승부 (아 재미없어)")
             self.stop()
+
         else:
             self.mark = self.mark.switch()
             self.player = self.whosnext[self.player]
@@ -245,7 +246,10 @@ class Game(clockbot.Cog, name="게임"):
             for button in view.children:
                 button.disabled = True
             with suppress(Exception):
-                await msg.edit(embed=embed, view=view,)
+                await msg.edit(
+                    embed=embed,
+                    view=view,
+                )
             return
 
         # TODO: different lines depending on the result
@@ -257,7 +261,7 @@ class Game(clockbot.Cog, name="게임"):
             winner, loser = playerX, playerO
         else:
             winner, loser = playerO, playerX
-        
+
         ...
 
 

@@ -143,11 +143,23 @@ class Tools(clockbot.Cog, name="도구"):
         else:
             roll = random.randint(1, rng)
             txt = txt2emoji(str(roll))
-            if set(arg) == {"2"}:
-                msg = await ctx.send(txt + "\n" + txt)
-                await msg.add_reaction("2️⃣")
-            else:
-                await ctx.send(txt)
+
+            try:
+                if set(arg) == {"2"}:
+                    msg = await ctx.send(txt + "\n" + txt)
+                    await msg.add_reaction("2️⃣")
+                else:
+                    await ctx.send(txt)
+            except discord.HTTPException:
+                embed = discord.Embed(color=self.bot.color)
+                embed.title = "에러: 이미 누가 시도한 트롤입니다"
+                embed.description = "글자수 제한 따위로 나는 무너지지 않습니다 휴우먼"
+                embed.set_image(url="attachment://human.jpg")
+                embed.set_footer(text="개발자 피곤하니까 버그 고만 찾고 가서 현생을 사십시오")
+                file = discord.File("assets/memes/human.jpg")
+                await ctx.send(embed=embed, file=file)
+            except Exception:
+                pass
 
     @commands.command(name="추첨", usage="A B C")
     async def choose(self, ctx, *, arg: str):
@@ -160,7 +172,7 @@ class Tools(clockbot.Cog, name="도구"):
         argc = len(set(argv))
 
         if argc < 2:
-            await ctx.send("대체 뭘 기대하는 겁니까")
+            await ctx.send("대체 뭘 기대하는 겁니까 휴먼")
         else:
             await ctx.send(f"{random.choice(argv)} 당첨")
 

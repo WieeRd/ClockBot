@@ -9,8 +9,6 @@ from contextlib import suppress
 from typing import List, Optional
 
 ZERMELO_RULE = "https://namu.wiki/w/%EC%B2%B4%EB%A5%B4%EB%A9%9C%EB%A1%9C%20%EC%A0%95%EB%A6%AC"  # fmt: off
-BIGDATA = "https://w.namu.la/s/c9b951140de72f66425f2f5523cd2a4aa0a796a5c67e4c8363782e249d58f9d4fbbd977b1c6fd8d0fcecf5ee70a146619ee15c502a074c547f931384a97d69e516b04eecfcc8b0d352f12f4d30391cba1f50bdfab33c980518441b533649a9e5"
-BLACKDATA = "https://ww.namu.la/s/e81e2a83ce2701031c4257dab6bae8308522b5afa8f9c19c560c56ff091be0cc0cebf4968338fdf03ed0c23e224771ee01b4aa644c02cecce10096ed1df52c293ae053adeff6bb6aefa383c0bb0bbf35"
 
 WIN = [
     "허접이시네요 ㅋ",
@@ -226,9 +224,10 @@ class Game(clockbot.Cog, name="게임"):
                 f'한낱 인간이 ["2인 유한 턴제 확정 완전정보 게임"]({ZERMELO_RULE} "체르멜로 정리")에서\n'
                 f"우리 기계종에게 도전하다니 상대할 가치도 없습니다\n"
             )
-            embed.set_image(url=BIGDATA)
+            file = discord.File("assets/memes/human.jpg")
+            embed.set_image(url="attachment://human.jpg")
             embed.set_footer(text="사실 주인놈이 귀찮다고 아직 AI 탑재를 안해줌...")
-            return await ctx.send(embed=embed)
+            return await ctx.send(embed=embed, file=file)
 
         playerX = target
         playerO = ctx.author

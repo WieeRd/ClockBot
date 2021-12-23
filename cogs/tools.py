@@ -1,10 +1,12 @@
 import discord
 import random
-from discord.ext import commands
-
+import emojis
 import clockbot
+
+from discord.ext import commands
 from clockbot import MacLak, GMacLak, FuzzyMember
 from utils.chatfilter import txt2emoji
+from typing import Union
 
 
 class Tools(clockbot.Cog, name="도구"):
@@ -100,13 +102,23 @@ class Tools(clockbot.Cog, name="도구"):
         await ctx.send(embed=embed)
 
     @commands.command(name="이모지", aliases=["이모티콘"], usage=":thonk:")
-    async def get_emoji(self, ctx: MacLak, emoji: discord.PartialEmoji):
+    async def get_emoji(self, ctx: MacLak, emoji: Union[discord.PartialEmoji, str]):
         """
-        커스텀 이모티콘 원본 짤을 출력한다
+        이모티콘 원본 이미지를 출력한다
         번쩍거리는 이모지에 사용해서 발작을 유발하거나,
-        이모티콘 원본 이미지를 다운받는데 사용할 수 있다.
+        다운받아서 다른 서버로 옮길 수도 있다.
         """
-        await ctx.send(emoji.url)
+        if isinstance(emoji, discord.PartialEmoji):
+            await ctx.send(emoji.url)
+            return
+        
+        try:
+            e = next(emojis.iter(emoji))
+        except StopIteration:
+            await ctx.send_help(self.get_emoji)
+            return
+
+        await ctx.send(f"https://twemoji.maxcdn.com/2/72x72/{ord(e[:1]):x}.png")
 
     @commands.command(name="동전")
     async def coin(self, ctx: MacLak):

@@ -1,4 +1,41 @@
-# 이용약관 (Terms Of Service)
+[English](#terms-of-service) [한국어](#이용약관)
+
+# Terms Of Service
+
+**Thank you for using ClockBot**  
+
+As this bot started as my personal tool for pranks,  
+it contains many confusing and abusable features  
+such as anonymous chat, fake chat, etc.  
+
+Although I implemented a safety features in most cases,  
+do read the warnings before entering my devil's workshop.  
+I do not take any responsibility for incidents these features.
+
+# Privacy Policy
+
+### What data are stored?
+
+`Message ID : Author ID` pairs of anonymous messages are stored in DB.
+
+### For what purpose?
+
+To prevent abusing anonymous text channel with inappropriate contents,  
+enabling optional logging feature will record authors of anonymous messages.
+
+### Who can inspect the stored data?
+
+Server admins can reveal the author of anonymous messages using command.  
+Nobody else, including the bot developer, cannot inspect the anonymous messages.
+
+### When does the data get discarded?
+
+All data will be discarded instantly when:
+- The anonymous text channel gets deleted
+- Logging feature gets disabled using a command
+
+
+# 이용약관
 
 **시계봇을 이용해주셔서 감사합니다!**  
 
@@ -10,7 +47,7 @@
 경고 메세지들을 잘 읽고 설정하여 사용하시기 바랍니다.  
 제작자는 버그가 아닌 명시되어 있는 기능으로 발생한 문제에 대한 책임은 지지 않습니다.
 
-# 개인정보 처리방침 (Privacy Policy)
+# 개인정보 처리방침
 
 ### 개인정보 처리 목적
 

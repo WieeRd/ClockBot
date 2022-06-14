@@ -10,7 +10,7 @@ such as anonymous chat, fake chat, etc.
 
 Although I implemented a safety features in most cases,  
 do read the warnings before entering my devil's workshop.  
-I do not take any responsibility for incidents these features.
+I do not take any responsibility for incidents caused by these features.
 
 # Privacy Policy
 

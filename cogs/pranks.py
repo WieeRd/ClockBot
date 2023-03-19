@@ -10,6 +10,8 @@ from clockbot import GMacLak, MacLak, FuzzyMember
 from utils.chatfilter import *
 from utils.db import DictDB
 
+from petpetgif import petpet
+
 # TODO: google_trans_new is broken, find alternative
 # TODO: custom emojis from other servers aren't available to bot
 
@@ -202,6 +204,48 @@ class Pranks(clockbot.Cog, name="장난"):
         embed = discord.Embed(color=self.bot.color)
         embed.title = f"{user.display_name} << 퍽퍽"
         embed.set_image(url=f"attachment://bonk.png")
+
+        await ctx.send(embed=embed, file=file)
+
+    @commands.command(name="쓰담", usage="닉네임/@멘션", cooldown_after_parsing=True)
+    @commands.cooldown(rate=1, per=15, type=commands.BucketType.user)
+    async def pet(self, ctx: MacLak, *, user: FuzzyMember):
+        """
+        해당 유저를 상냥하게 쓰다듬어준다
+        너무 오냐오냐하면 버릇없어지므로
+        쿨타임 15초
+        """
+
+        source = BytesIO()
+        result = BytesIO()
+
+        asset = user.display_avatar.replace(size=512, format="png")
+        await asset.save(source, seek_begin=True)
+
+        petpet.make(source, result)
+        result.seek(0)
+
+        file = discord.File(result, filename="petpet.gif")
+        embed = discord.Embed(color=self.bot.color)
+        embed.title = random.choice(
+            [
+                "쓰담쓰담쓰담쓰담",
+                "옳지옳지옳지옳지",
+                "요시요시요시요시",
+                f"PET THE {user.display_name.upper()}",
+            ]
+        )
+        embed.set_footer(
+            text=random.choice(
+                [
+                    "호감도 +1",
+                    "말랑함 +1",
+                    "만족감 +1",
+                ]
+            )
+        ) 
+
+        embed.set_image(url=f"attachment://petpet.gif")
 
         await ctx.send(embed=embed, file=file)
 

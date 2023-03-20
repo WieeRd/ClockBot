@@ -11,6 +11,7 @@ from utils.chatfilter import *
 from utils.db import DictDB
 
 from petpetgif import petpet
+petpet.resolution = (512, 512)
 
 # TODO: google_trans_new is broken, find alternative
 # TODO: custom emojis from other servers aren't available to bot
@@ -47,6 +48,7 @@ class Pranks(clockbot.Cog, name="장난"):
 
         self.showcase = [
             self.bonk,
+            self.pet,
             self.impersonate,
             self.yell,
             self.add_filter,
@@ -241,6 +243,7 @@ class Pranks(clockbot.Cog, name="장난"):
                     "호감도 +1",
                     "말랑함 +1",
                     "만족감 +1",
+                    "귀여움 +1",
                 ]
             )
         ) 

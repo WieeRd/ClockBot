@@ -217,6 +217,7 @@ class Pranks(clockbot.Cog, name="장난"):
         너무 오냐오냐하면 버릇없어지므로
         쿨타임 15초
         """
+        await ctx.trigger_typing()
 
         source = BytesIO()
         result = BytesIO()

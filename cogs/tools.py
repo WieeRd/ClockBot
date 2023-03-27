@@ -1,5 +1,7 @@
+import asyncio
 import discord
 import random
+import datetime
 import emojis
 import clockbot
 
@@ -7,6 +9,106 @@ from discord.ext import commands
 from clockbot import MacLak, GMacLak, FuzzyMember
 from utils.chatfilter import txt2emoji
 from typing import Union
+
+CONCH_POSITIVE = [
+    "YES YES YES YES!",
+    "`true`",
+    "heck yes.",
+    "ㄱㄱ",
+    "ㅆㄱㄴ",
+    "ㅇㅇ",
+    "각이다.",
+    "괜찮네 그거.",
+    "괜찮다 그거.",
+    "그래.",
+    "그러하다.",
+    "기가 막힌 생각인데?",
+    "나라면 한다.",
+    "당장 하자.",
+    "될 것 같은데?",
+    "맞아.",
+    "물론이지.",
+    "생각보다 괜찮은데...?",
+    "오..! 희망이..!",
+    "해.",
+    "해도 좋다.",
+    "허가한다.",
+    "희망이 보인다.",
+]
+
+CONCH_NEGATIVE = [
+    "NO NO NO NO!",
+    "`false`",
+    "heck no.",
+    "nope.avi",
+    "ㄴㄴ",
+    "ㅂㄱㄴ",
+    "가망이 없다.",
+    "각하.",
+    "그건.. 좀..",
+    "그걸 말이라고.",
+    "그게 되겠냐고.",
+    "그게 맞아? 그게 정말 맞는 행동이야? 그게 진짜로 떠올릴 수 있는 최선이었어? 진짜로?",
+    "그런거 하는거 아니다.",
+    "그만둬.",
+    "기각.",
+    "나라면 그만두겠어.",
+    "당장 그만둬!",
+    "되겠냐?",
+    "된... 다고 할 줄 알았냐? 되겠냐? 상식적으로 말이 되냐?",
+    "멈춰!",
+    "별로인듯.",
+    "아니 그건좀...",
+    "아니.",
+    "아니오.",
+    "아아아안돼애애",
+    "아이고...",
+    "안된다.",
+    "으이그...",
+    "이 메세지를 본다면 희망을 버려라.",
+    "이렇게 바보같은 생각은 정말 오랜만이군.",
+    "이젠 가망이 없어",
+    "잠이나 자라.",
+    "포기해라.",
+    "하지마. 제발 하지마.",
+    "하지마라.",
+    "해봐야 소용없다.",
+    "허나 거절한다.",
+    "한심한 생각이군.",
+    "`치명적인 오류가 발생습니다. (에러코드 0xSTUP1D)`",
+]
+
+CONCH_AMBIGUOUS = [
+    "....",
+    "ㅁ?ㄹ",
+    "그건 모르겠고 난 그냥 좀 쉬고싶은데.",
+    "글쎄.",
+    "글쎄다?",
+    "네니오.",
+    "다시 한번 물어봐.",
+    "되...지 않을까? 아님 말고.",
+    "몰라.",
+    "무야호",
+    "묻지마 그런거.",
+    "뭐라고?",
+    "뭔소린지 잘 모르겠는데.",
+    "소라고동은 생각하는 것을 그만두었다.",
+    "아무것도 하지 마",
+    "애매하네.",
+    "어...",
+    "어음...",
+    "엄",
+    "예측 불가.",
+    "오...",
+    "와... 정말...",
+    "음...",
+    "이런 생각은 대체 어디서 나오는 걸까.",
+    "이젠 나도 모르겠다.",
+    "참으로 딱하구나.",
+    "훌륭한 질문이야. 나도 잘 모르겠다.",
+    "흠...",
+    r"¯\_(ツ)_/¯",
+]
 
 
 class Tools(clockbot.Cog, name="도구"):
@@ -26,6 +128,7 @@ class Tools(clockbot.Cog, name="도구"):
             self.coin,
             self.dice,
             self.choose,
+            self.magic_conch,
             self.purge,
         ]
 
@@ -111,7 +214,7 @@ class Tools(clockbot.Cog, name="도구"):
         if isinstance(emoji, discord.PartialEmoji):
             await ctx.send(emoji.url)
             return
-        
+
         try:
             e = next(emojis.iter(emoji))
         except StopIteration:
@@ -217,6 +320,46 @@ class Tools(clockbot.Cog, name="도구"):
                 return
 
         await ctx.channel.purge(limit=amount)
+
+    @commands.command(name="소라고동님", aliases=["소라고둥님"], usage="<질문>")
+    async def magic_conch(self, ctx: MacLak, *, what: str):
+        """
+        100‰ 신뢰 가능한 답변을 얻는다
+        결정은 전적으로 마법의 소라고둥님의 의지이며
+        제작자는 여러분의 코인 매수에 책임을 지지 않는다
+        """
+        if not ctx.message.content.endswith("?"):
+            return await ctx.code("에러: 질문은 (굳이) 물음표로 끝나야 합니다?")
+
+        ANSWER_LIST = (CONCH_POSITIVE, CONCH_NEGATIVE, CONCH_AMBIGUOUS)
+        ANSWER_PRIME = 997  # prime number used to determine answer type
+        DELAY_PRIME = 1009  # prime number used to determine delay length
+        MAX_DELAY = 0.75  # how long the bot can hesitate
+
+        # generate pseudo random integer based on the context
+        who = ctx.author.id
+        when = datetime.date.today()
+        # where = ctx.guild.id if ctx.guild else ctx.author.id
+        destiny = abs(hash((who, what, when)))
+
+        # hesitate for no real reason
+        delay = (destiny % DELAY_PRIME / DELAY_PRIME) * MAX_DELAY
+        await ctx.trigger_typing()
+        await asyncio.sleep(delay)
+
+        # choose answer type
+        if (destiny % ANSWER_PRIME) < (ANSWER_PRIME // 5):
+            # ambiguous ~20%
+            answer_type = 2
+        else:
+            # positive/negative ~40% each
+            answer_type = destiny % 2
+
+        # choose answer variant
+        variant_count = len(ANSWER_LIST[answer_type])
+        answer = ANSWER_LIST[answer_type][destiny % variant_count]
+
+        await ctx.message.reply(answer, mention_author=False)
 
     @commands.command(name="여긴어디")
     async def where(self, ctx: MacLak):

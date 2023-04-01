@@ -359,7 +359,10 @@ class Tools(clockbot.Cog, name="도구"):
         variant_count = len(ANSWER_LIST[answer_type])
         answer = ANSWER_LIST[answer_type][destiny % variant_count]
 
-        await ctx.message.reply(answer, mention_author=False)
+        try:
+            await ctx.message.reply(answer, mention_author=False)
+        except:
+            await ctx.channel.send(answer)
 
     @commands.command(name="여긴어디")
     async def where(self, ctx: MacLak):

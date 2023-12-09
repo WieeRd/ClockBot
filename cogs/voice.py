@@ -126,10 +126,8 @@ class Voice(clockbot.Cog, name="TTS"):
 
         # bot is currently connected
         if vc and isinstance(vc.channel, discord.VoiceChannel):
-
             # someone left/moved
             if before.channel != after.channel:
-
                 # bot is alone in the voice channel
                 if len(vc.channel.members) == 1:
                     await vc.disconnect(force=False)
@@ -147,7 +145,6 @@ class Voice(clockbot.Cog, name="TTS"):
             and msg.guild != None
             and self.tts_link.get(msg.guild) == msg.channel
         ):
-
             if len(msg.content) >= TTS_MAX_LEN:
                 await msg.reply(f"```에러: {TTS_MAX_LEN}자 제한 (음성 도배 방지)```")
                 return

@@ -83,7 +83,7 @@ bot = ClockBot(  # maybe I should restrict allowed_mentions
     color=COLOR,
     command_prefix=PREFIX,
     intents=intents,
-    activity=activity,
+    # activity=activity,
     help_command=help_command,
     heartbeat_timeout=60,
 )

@@ -33,6 +33,7 @@ from io import BytesIO
 from wand.image import Image
 
 BONK = Image(filename="assets/image/bonk.png")
+CLOCK = open("assets/avatar.png", "rb").read()
 
 
 class Pranks(clockbot.Cog, name="장난"):
@@ -222,8 +223,12 @@ class Pranks(clockbot.Cog, name="장난"):
         source = BytesIO()
         result = BytesIO()
 
-        asset = user.display_avatar.replace(size=512, format="png")
-        await asset.save(source, seek_begin=True)
+        if user == self.bot.user:
+            source.write(CLOCK)
+            source.seek(0)
+        else:
+            asset = user.display_avatar.replace(size=512, format="png")
+            await asset.save(source, seek_begin=True)
 
         petpet.make(source, result)
         result.seek(0)

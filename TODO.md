@@ -65,7 +65,7 @@ Oh my god there is so much things to do
         + different attrs per locale
         + locale decorator
     - get_locale()
-        + prefered locale (community guild)
+        + preferred locale (community guild)
         + ctx.invoked_with
         + DB (per guild / user)
 * Database
@@ -117,3 +117,6 @@ Oh my god there is so much things to do
     - Date (YY-MM-DD)
 
 * Cry in the corner
+
+* DiscordDB
+* Asset server 

@@ -8,6 +8,7 @@ discord = "~=2.3.2"
 jishaku = "~=2.5.2"
 
 [dev-packages]
+ruff = "*"
 
 [requires]
 python_version = "3.11"

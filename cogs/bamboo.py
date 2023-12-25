@@ -417,7 +417,8 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         embed = discord.Embed(color=COLOR)
         embed.title = "대나무숲 밴"
         embed.description = (
-            f"{user.mention}가 대나무숲에서 차단됬습니다.\n" f"`{p}대숲 사면` 받기 전까지 익명성이 박탈됩니다."
+            f"{user.mention}가 대나무숲에서 차단됬습니다.\n"
+            f"`{p}대숲 사면` 받기 전까지 익명성이 박탈됩니다."
         )
         await ctx.send(embed=embed)
 
@@ -527,7 +528,9 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
             return
 
         embed = discord.Embed(
-            color=COLOR, title="대나무숲 설정", description=f"이미지/URL 전송이 {value}되었습니다"
+            color=COLOR,
+            title="대나무숲 설정",
+            description=f"이미지/URL 전송이 {value}되었습니다",
         )
         await ctx.send(embed=embed)
         forest.allow_media = allow
@@ -553,14 +556,15 @@ class Bamboo(clockbot.Cog, name="대나무숲"):
         if isinstance(channel, discord.TextChannel):
             forest = self.forests.get(channel.guild)
             if forest and forest.channel == channel:
-
                 if msg.author.id in forest.banned:
                     return
 
                 try:
                     await msg.delete()
                 except discord.Forbidden:
-                    await msg.channel.send("```에러: 봇에게 메세지 관리 권한이 필요합니다```")
+                    await msg.channel.send(
+                        "```에러: 봇에게 메세지 관리 권한이 필요합니다```"
+                    )
                     return
                 except discord.NotFound:  # already deleted by something else
                     pass  # probably by chat filter feature

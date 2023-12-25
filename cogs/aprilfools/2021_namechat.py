@@ -100,7 +100,9 @@ class Meme(commands.Cog):
 
         perm = ctx.channel.permissions_for(ctx.guild.me)
         if not (perm.manage_messages and perm.manage_channels and perm.manage_webhooks):
-            await ctx.send("에러: 봇에게 해당 채널의 채널/메세지/웹훅 관리 권한이 필요합니다")
+            await ctx.send(
+                "에러: 봇에게 해당 채널의 채널/메세지/웹훅 관리 권한이 필요합니다"
+            )
             return
 
         if ctx.guild.id in poggers:

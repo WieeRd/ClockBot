@@ -23,7 +23,6 @@ CONCH_POSITIVE = [
     "물론이지.",
     "오..! 희망이..!",
     "희망이 보인다.",
-
     # do it
     "ㄱㄱ",
     "ㅆㄱㄴ",
@@ -66,7 +65,6 @@ CONCH_NEGATIVE = [
     "잠이나 자라.",
     "한심한 생각이군.",
     "`치명적인 오류가 발생습니다. (에러코드 0xSTUP1D)`",
-
     # don't
     "그게 되겠냐고.",
     "그게 맞아? 그게 정말 맞는 행동이야? 그게 진짜로 떠올릴 수 있는 최선이었어? 진짜로?",
@@ -277,7 +275,9 @@ class Tools(clockbot.Cog, name="도구"):
                 embed.title = "에러: 이미 누가 시도한 트롤입니다"
                 embed.description = "글자수 제한 따위로 나는 무너지지 않습니다 휴우먼"
                 embed.set_image(url="attachment://human.jpg")
-                embed.set_footer(text="개발자 피곤하니까 버그 고만 찾고 가서 현생을 사십시오")
+                embed.set_footer(
+                    text="개발자 피곤하니까 버그 고만 찾고 가서 현생을 사십시오"
+                )
                 file = discord.File("assets/memes/human.jpg")
                 await ctx.send(embed=embed, file=file)
             except Exception:

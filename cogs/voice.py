@@ -83,7 +83,9 @@ class Voice(clockbot.Cog, name="TTS"):
             try:
                 await requested.channel.connect(timeout=3, reconnect=False)
             except asyncio.TimeoutError:
-                await ctx.send(f"에러: {requested.channel.mention}에 연결할 수 없습니다")
+                await ctx.send(
+                    f"에러: {requested.channel.mention}에 연결할 수 없습니다"
+                )
                 return
             self.tts_link[ctx.guild] = ctx.channel
             chat = ctx.channel.mention

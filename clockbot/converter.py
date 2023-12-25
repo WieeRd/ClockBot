@@ -141,7 +141,9 @@ class PartialMember(commands.MemberConverter, MemberType):
 
         embed = discord.Embed()
         embed.set_author(name=f'"{arg}"의 의도가 분명하지 않습니다')
-        embed.description = f"선택할 유저 번호를 입력하고 엔터```prolog\n{options}\n c : 취소```"
+        embed.description = (
+            f"선택할 유저 번호를 입력하고 엔터```prolog\n{options}\n c : 취소```"
+        )
         question = await ctx.send(embed=embed)
 
         def check(msg: discord.Message) -> bool:

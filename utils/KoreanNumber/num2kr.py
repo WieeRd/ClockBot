@@ -21,6 +21,7 @@ unit_10k = [
     "무량대수",
 ]
 
+
 # (1234, 100) -> [34, 12]
 def split_digit(num: int, div: int = 10) -> list:
     ret = []

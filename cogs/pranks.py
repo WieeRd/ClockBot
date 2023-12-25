@@ -11,6 +11,7 @@ from utils.chatfilter import *
 from utils.db import DictDB
 
 from petpetgif import petpet
+
 petpet.resolution = (512, 512)
 
 # TODO: google_trans_new is broken, find alternative
@@ -108,7 +109,9 @@ class Pranks(clockbot.Cog, name="장난"):
         else:
             await ctx.code("에러: 지원되는 문자: 영어/숫자/?!")
 
-    @clockbot.alias_as_arg(name="필터", aliases=list(SPECIAL_LANGS), usage="닉네임/@멘션")
+    @clockbot.alias_as_arg(
+        name="필터", aliases=list(SPECIAL_LANGS), usage="닉네임/@멘션"
+    )
     @commands.bot_has_permissions(manage_messages=True, manage_webhooks=True)
     @commands.guild_only()
     async def add_filter(self, ctx: GMacLak, *, target: FuzzyMember):
@@ -124,7 +127,9 @@ class Pranks(clockbot.Cog, name="장난"):
         query = (target.guild.id, target.id)
         if t := self.filters.get(query):
             if t[1] and not by_admin:
-                await ctx.code("에러: 관리자에 의해 다른 필터가 걸려있습니다\n(팁: 평소에 처신을 잘하세요)")
+                await ctx.code(
+                    "에러: 관리자에 의해 다른 필터가 걸려있습니다\n(팁: 평소에 처신을 잘하세요)"
+                )
                 return
 
         if ctx.author != target and not by_admin:
@@ -158,7 +163,9 @@ class Pranks(clockbot.Cog, name="장난"):
         query = (target.guild.id, target.id)
         if t := self.filters.get(query):
             if t[1] and not by_admin:
-                await ctx.code("에러: 관리자가 적용한 필터는 관리자만 해제할 수 있습니다\n(팁: 평소에 처신을 잘하세요)")
+                await ctx.code(
+                    "에러: 관리자가 적용한 필터는 관리자만 해제할 수 있습니다\n(팁: 평소에 처신을 잘하세요)"
+                )
             else:
                 del self.filters[query]
                 await self.filterDB.remove(
@@ -252,7 +259,7 @@ class Pranks(clockbot.Cog, name="장난"):
                     "귀여움 +1",
                 ]
             )
-        ) 
+        )
 
         embed.set_image(url=f"attachment://petpet.gif")
 

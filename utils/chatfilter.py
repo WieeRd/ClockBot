@@ -21,6 +21,7 @@ NUM_NAMES = [
     "nine",
 ]
 
+
 # TODO: option to keep unconverted contents
 def txt2emoji(txt: str, keep=False) -> str:
     txt = txt.lower()

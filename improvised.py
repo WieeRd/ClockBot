@@ -67,4 +67,9 @@ async def gotcha(ctx: commands.Context):
         await ctx.send("무승부!")
 
 
-bot.run(os.environ["TOKEN"])
+async def main():
+    async with bot:
+        await bot.load_extension("jishaku")
+        await bot.start(os.environ["TOKEN"])
+
+asyncio.run(main())

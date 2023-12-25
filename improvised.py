@@ -2,12 +2,14 @@ import asyncio
 import os
 import random
 import re
+import logging
 
 import discord
 from discord.ext import commands
 
 GOTCHA_FORMAT = re.compile(r"(\d+)/(\d+)\s*([+-]\d+)?")
 
+discord.utils.setup_logging(level=logging.INFO)
 bot = commands.Bot(
     command_prefix=commands.when_mentioned_or("%"),
     intents=discord.Intents.all(),

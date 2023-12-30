@@ -51,7 +51,7 @@ qt = quote
 
 def mdformat(txt, *func, **kwargs):
     for f in func:
-        if (f == codeln) and (kwargs["lang"] != None):
+        if (f == codeline) and (kwargs["lang"] is not None):
             txt = f(txt, kwargs["lang"])
         else:
             txt = f(txt)

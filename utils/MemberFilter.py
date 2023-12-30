@@ -13,7 +13,6 @@ MemberFilter.parse(expression: str, guild: discord.Guild)
 # LookupError if user/role is not found     (msg, searched_type, name)
 
 import discord
-import asyncio
 import shlex
 from typing import Iterable, Callable, Any, Set, List
 
@@ -51,26 +50,32 @@ def get_target(token: str, guild: discord.Guild) -> Set[discord.Member]:
         if name == "everyone":
             return set(guild.members)
         elif name == "here":
-            is_active = lambda x: x.status != discord.Status.offline
+
+            def is_active(x):
+                return x.status != discord.Status.offline
+
             return set(filter(is_active, guild.members))
         elif name == "":
-            no_role = lambda x: len(x.roles) == 1
+
+            def no_role(x):
+                return len(x.roles) == 1
+
             return set(filter(no_role, guild.members))
         else:
             role = bestmatch(name, guild.roles, lambda r: r.name)
-            if role != None:
+            if role is not None:
                 return set(role.members)
             else:
                 raise LookupError(f"Role '{name}' was not found", "role", token)
     elif quote == "'":
         user = bestmatch(name, guild.members, lambda m: m.display_name)
-        if user != None:
+        if user is not None:
             return {user}
         else:
             raise LookupError(f"User '{name}' was not found", "user", token)
     elif quote == "`":
         user = guild.get_member_named(name)
-        if user != None:
+        if user is not None:
             return {user}
         else:
             raise LookupError(f"User '{name}' was not found", "user", token)

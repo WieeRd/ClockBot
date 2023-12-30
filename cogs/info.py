@@ -1,12 +1,12 @@
+import random
+from typing import Dict, List, Tuple
+
 import discord
 from discord.ext import commands, tasks
 
 import clockbot
 from clockbot import ClockBot, MacLak
 from utils.db import DictDB
-
-import random
-from typing import Dict, List, Tuple
 
 TIPS = [
     "디스코드 그만 보고 현생을 사세요",

@@ -1,9 +1,10 @@
-import discord
 import asyncio
 import re
+from typing import Callable, Iterable, List, TypeVar
+
+import discord
 from discord.ext import commands
 from jamo import h2j, j2hcj
-from typing import Iterable, Callable, List, TypeVar
 
 __all__ = (
     "partialsearch",

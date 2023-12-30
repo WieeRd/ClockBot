@@ -1,15 +1,14 @@
+import inspect
+import io
+import subprocess
+import textwrap
+import time
+
 import discord
 from discord.ext import commands
 
 import clockbot
-from clockbot import ClockBot, MacLak, ExitOpt
-
-import inspect
-import textwrap
-import io
-
-import subprocess
-import time
+from clockbot import ClockBot, ExitOpt, MacLak
 
 
 def run_cmd(cmd, timeout=None):

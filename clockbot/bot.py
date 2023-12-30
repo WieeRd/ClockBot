@@ -1,17 +1,16 @@
 """
 ClockBot, MacLak (Bot, Context)
 """
-import discord
-import aiohttp
 import time
 import traceback
-
-from discord.ext import commands
-from motor.motor_asyncio import AsyncIOMotorDatabase
-
 from enum import IntEnum
-from discord.utils import MISSING
 from typing import Dict, List, Optional, Union
+
+import aiohttp
+import discord
+from discord.ext import commands
+from discord.utils import MISSING
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from .converter import NoProblem
 

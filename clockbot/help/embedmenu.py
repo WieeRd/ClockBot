@@ -1,11 +1,12 @@
-import discord
-import clockbot
 import asyncio
-
-from discord.ext.commands import Cog, Group, Command
 from typing import Dict, Union
 
-from .embedhelp import EmbedHelp, NO_HELP, hoverlink
+import discord
+from discord.ext.commands import Cog, Command, Group
+
+import clockbot
+
+from .embedhelp import NO_HELP, EmbedHelp, hoverlink
 
 HelpOBJ = Union[None, Cog, Group, Command]
 

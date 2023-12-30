@@ -1,8 +1,8 @@
-import discord
-from discord.ext import commands
-
 from contextlib import contextmanager
 from typing import List, Union
+
+import discord
+from discord.ext import commands
 
 # this is unused legacy code to be honest
 # maybe I'll update it to fit in new clockbot features

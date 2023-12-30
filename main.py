@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-import discord
 import asyncio
 import os.path
 import shutil
-import yaml
 
+import discord
+import yaml
 from discord.ext import commands
-from clockbot import ClockBot, ExitOpt, EmbedMenu
 from motor.motor_asyncio import AsyncIOMotorClient
+
+from clockbot import ClockBot, EmbedMenu, ExitOpt
 
 if not os.path.exists("config.yml"):
     print("Error: config.yml is missing, copying default.yml")

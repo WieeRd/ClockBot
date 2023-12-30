@@ -5,15 +5,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 # Original RTFM feature from https://github.com/Rapptz/RoboDanny
 
-import discord
-import clockbot
-from discord.ext import commands
-
 import io
 import os
 import re
 import zlib
 from typing import Callable, Dict, Iterable, List, TypeVar
+
+import discord
+from discord.ext import commands
+
+import clockbot
 
 T = TypeVar("T")
 

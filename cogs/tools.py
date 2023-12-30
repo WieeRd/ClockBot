@@ -1,14 +1,15 @@
 import asyncio
-import discord
-import random
 import datetime
-import emojis
-import clockbot
-
-from discord.ext import commands
-from clockbot import MacLak, GMacLak, FuzzyMember
-from utils.chatfilter import txt2emoji
+import random
 from typing import Union
+
+import discord
+import emojis
+from discord.ext import commands
+
+import clockbot
+from clockbot import FuzzyMember, GMacLak, MacLak
+from utils.chatfilter import txt2emoji
 
 CONCH_POSITIVE = [
     # yes

@@ -1,16 +1,15 @@
-import discord
-import emojis
 import re
-
-from discord.ext import commands, tasks
 from typing import Callable, Dict, Tuple
 
+import discord
+import emojis
+from discord.ext import commands, tasks
+from petpetgif import petpet
+
 import clockbot
-from clockbot import GMacLak, MacLak, FuzzyMember
+from clockbot import FuzzyMember, GMacLak, MacLak
 from utils.chatfilter import *
 from utils.db import DictDB
-
-from petpetgif import petpet
 
 petpet.resolution = (512, 512)
 
@@ -31,6 +30,7 @@ SPECIAL_LANGS: Dict[str, Translator] = {
 }
 
 from io import BytesIO
+
 from wand.image import Image
 
 BONK = Image(filename="assets/image/bonk.png")

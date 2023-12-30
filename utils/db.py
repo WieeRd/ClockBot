@@ -1,5 +1,6 @@
-import motor.motor_asyncio as motor
 from typing import Any, Dict, Optional
+
+import motor.motor_asyncio as motor
 
 
 class DictDB:

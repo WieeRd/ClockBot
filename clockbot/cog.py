@@ -1,6 +1,7 @@
+from typing import List
+
 import discord
 from discord.ext import commands
-from typing import List
 
 from .bot import ClockBot
 

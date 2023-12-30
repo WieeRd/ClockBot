@@ -1,8 +1,8 @@
 import asyncio
+import logging
 import os
 import random
 import re
-import logging
 
 import discord
 from discord.ext import commands

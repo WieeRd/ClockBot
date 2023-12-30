@@ -1,12 +1,12 @@
+import enum
+from contextlib import suppress
+from typing import List, Optional
+
 import discord
 from discord.ext import commands
 
 import clockbot
-from clockbot import GMacLak, FuzzyMember
-
-import enum
-from contextlib import suppress
-from typing import List, Optional
+from clockbot import FuzzyMember, GMacLak
 
 ZERMELO_RULE = "https://namu.wiki/w/%EC%B2%B4%EB%A5%B4%EB%A9%9C%EB%A1%9C%20%EC%A0%95%EB%A6%AC"  # fmt: off
 

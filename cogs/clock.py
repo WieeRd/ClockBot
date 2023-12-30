@@ -1,15 +1,14 @@
+import asyncio
+import re
+import time
+from io import BytesIO
+
 import discord
 from discord.ext import commands, tasks
+from PIL import Image
 
 import clockbot
 from clockbot import ClockBot, MacLak
-
-import re
-import time
-import asyncio
-from PIL import Image
-from io import BytesIO
-
 from utils.drawclock import DrawClock
 
 IMG_DIR = "assets/clock"

@@ -1,12 +1,12 @@
-import discord
 import asyncio
 import json
 import random
-from discord.ext import commands
 from typing import Dict
 
 import aiohttp
-from discord import Webhook, AsyncWebhookAdapter
+import discord
+from discord import AsyncWebhookAdapter, Webhook
+from discord.ext import commands
 
 # def doggoslate(txt: str) -> str:
 #     bark_variants = "멍컹왈왕"

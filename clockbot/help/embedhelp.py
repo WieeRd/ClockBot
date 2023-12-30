@@ -1,10 +1,11 @@
-import discord
 import random
-import clockbot
-
-from discord.ext import commands
-from discord.ext.commands import Bot, Cog, Group, Command
 from typing import Dict, List
+
+import discord
+from discord.ext import commands
+from discord.ext.commands import Bot, Cog, Command, Group
+
+import clockbot
 
 NO_HELP = "도움말이 작성되지 않았습니다"
 

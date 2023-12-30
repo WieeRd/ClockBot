@@ -1,9 +1,8 @@
 import random
+from typing import Optional
 
 from google_trans_new import google_translator
 from google_trans_new.constant import LANGUAGES
-
-from typing import Optional
 
 LANG_LIST = list(LANGUAGES)
 LANG_DICT = dict((value, key) for key, value in LANGUAGES.items())

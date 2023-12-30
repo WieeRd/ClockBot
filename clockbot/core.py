@@ -1,5 +1,6 @@
-from discord.ext import commands
 from typing import Callable, List, Type, TypeVar
+
+from discord.ext import commands
 
 # hooked_wrapped_callback = commands.core.hooked_wrapped_callback
 hooked_wrapped_callback = getattr(commands.core, "hooked_wrapped_callback")

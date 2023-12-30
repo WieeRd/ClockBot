@@ -1,10 +1,11 @@
-import discord
 import asyncio
+
+import discord
 from discord.ext import commands
 
 import clockbot
-from clockbot import GMacLak, MacLak
 import utils.MemberFilter as MemberFilter
+from clockbot import GMacLak, MacLak
 
 # TODO: use embed, usage command, easier expr
 

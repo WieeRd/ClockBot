@@ -8,7 +8,6 @@ from wand.image import Image
 
 import clockbot
 
-
 FAKE_PING = Image(filename="assets/fakeping.png")
 FAKE_PING.resize(512, 512)
 

@@ -12,9 +12,10 @@ MemberFilter.parse(expression: str, guild: discord.Guild)
 # TypeError on invalid token                (msg, expected_type, token)
 # LookupError if user/role is not found     (msg, searched_type, name)
 
-import discord
 import shlex
-from typing import Iterable, Callable, Any, Set, List
+from typing import Any, Callable, Iterable, List, Set
+
+import discord
 
 
 def bestmatch(key: str, doors: Iterable, lock: Callable = lambda x: x) -> Any:

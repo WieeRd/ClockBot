@@ -1,8 +1,9 @@
+import time
+
 import discord
 from discord.ext import commands
 
-import time
-from utils.KoreanNumber import num2kr, kr2num
+from utils.KoreanNumber import kr2num, num2kr
 
 
 @commands.command(name="시계", aliases=["닉값"])

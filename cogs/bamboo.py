@@ -1,16 +1,16 @@
-import discord
 import asyncio
-import time
-import re
 import io
-
-from discord.ext import commands, tasks
-from datetime import datetime
+import re
+import time
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Dict, List, Optional, Set, TypedDict
 
+import discord
+from discord.ext import commands, tasks
+
 import clockbot
-from clockbot import MacLak, GMacLak, DMacLak
+from clockbot import DMacLak, GMacLak, MacLak
 from utils.db import DictDB
 
 CONTAIN_URL = re.compile(r"http[s]?://")

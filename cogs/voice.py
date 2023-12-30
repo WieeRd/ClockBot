@@ -1,15 +1,15 @@
-import discord
 import asyncio
-from discord.ext import commands
-from discord import VoiceState, FFmpegPCMAudio
-
-import aiohttp
-import aiogtts
 import os
+from typing import Dict
+
+import aiogtts
+import aiohttp
+import discord
+from discord import FFmpegPCMAudio, VoiceState
+from discord.ext import commands
 
 import clockbot
 from clockbot import GMacLak, MacLak
-from typing import Dict
 
 
 class Text2Speech(aiogtts.aiogTTS):

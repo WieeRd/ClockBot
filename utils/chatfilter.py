@@ -1,8 +1,8 @@
 import random
 import re
+from typing import Callable
 
 from jamo import h2j, j2h, j2hcj
-from typing import Callable
 
 # TODO: tokenize & exclude text objects
 ChatFilter = Callable[[str], str]

@@ -2,11 +2,22 @@
 import asyncio
 import logging
 import os
+import sys
 
 import discord
 from discord.ext import commands
 
-logging.basicConfig(level=logging.INFO)
+logging.addLevelName(logging.WARNING, "WARN")
+logging.addLevelName(logging.CRITICAL, "FATAL")
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="{levelname:<5} {asctime} [{name}] {message}",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    style="{",
+    # FEAT: write to daily rotated log files and view with `tailspin`
+    stream=sys.stdout,
+)
 
 bot = commands.Bot(
     command_prefix=commands.when_mentioned_or("%"),

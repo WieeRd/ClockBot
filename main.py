@@ -14,7 +14,6 @@ from discord.ext import commands
 
 logging.addLevelName(logging.WARNING, "WARN")
 logging.addLevelName(logging.CRITICAL, "FATAL")
-
 logging.basicConfig(
     # FEAT: set log level from command line arguments
     level=logging.INFO,
@@ -25,25 +24,32 @@ logging.basicConfig(
     stream=sys.stdout,
 )
 
-bot = commands.Bot(
-    command_prefix=commands.when_mentioned_or("%"),
-    intents=discord.Intents.all(),
-    status=discord.Status.do_not_disturb,
-    activity=discord.Game("코드 갈아엎기"),
-    help_command=commands.DefaultHelpCommand(),
-)
-
 
 async def main():
+    try:
+        TOKEN = os.environ["TOKEN"]
+        PREFIX = os.environ["PREFIX"]
+    except KeyError as e:
+        env: str = e.args[0]
+        logging.critical(f"Environment variable ${env} is missing")
+        sys.exit(1)
+
+    bot = commands.Bot(
+        command_prefix=commands.when_mentioned_or(PREFIX),
+        intents=discord.Intents.all(),
+        status=discord.Status.do_not_disturb,
+        activity=discord.Game("코드 갈아엎기"),
+        help_command=commands.DefaultHelpCommand(),
+    )
+
     async with bot:
         await bot.load_extension("jishaku")
 
         try:
-            await bot.start(os.environ["TOKEN"])
-        except KeyError:
-            logging.critical("Environment variable `TOKEN` is missing")
+            await bot.start(TOKEN)
         except discord.LoginFailure:
             logging.critical("Invalid bot token; Client login failed")
+            sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,28 @@
+[project]
+name = "ClockBot"
+version = "0.0.0"
+dependencies = []
+
+# NOTE: I am using pyproject.toml merely as a config for ruff/pyright
+# | dependencies and important stuffs are all specified in the Pipfile
+
+[tool.ruff]
+extend-exclude = [
+	# FIX: rewrite and bring back legacy cogs written in dpy v1.7
+	"cogs/legacy",
+	# FIX: LATER: april fools modules are even more outdated ~2024-03-31
+	"cogs/aprilfools",
+]
+ignore = [
+	# allows wildcard imports (`from module import *`)
+	# excuse: I will only be using them with `__all__` in `__init__.py`
+	"F403"
+]
+output-format = "grouped"
+
+[tool.pyright]
+ignore = ["cogs/legacy", "cogs/aprilfools"] # see `tool.ruff.extend-exclude`
+pythonVersion = "3.11"
+
+# venvPath = "."
+# venv = ".venv"

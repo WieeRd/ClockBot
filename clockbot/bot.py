@@ -1,33 +1,31 @@
 """
-ClockBot, MacLak (Bot, Context)
+Fun fact: The name "ClockBot" was actually my first nickname on the internet.
+I lost my name to my own creation and became "WieeRd" few years ago,
+But my old friends and even some IRL friends still call me Clock.
+I guess it makes sense that Clock the nerd made ClockBot the droid.
+
+> But "Clock", why are you writing random stories in a module docstring?
+
+Well because I can, and I will keep doing it, cry about it.
 """
-import time
-import traceback
-from enum import IntEnum
-from typing import Dict, List, Optional, Union
 
-import aiohttp
-import discord
+__all__ = ["PERM_NAME_KR", "ClockBot"]
+
+import datetime
+import logging
+
+# import discord
 from discord.ext import commands
-from discord.utils import MISSING
-from motor.motor_asyncio import AsyncIOMotorDatabase
 
-from .converter import NoProblem
+log = logging.getLogger(__name__)
 
-__all__ = (
-    "PERM_KR_NAME",
-    "ExitOpt",
-    "MacLak",
-    "GMacLak",
-    "DMacLak",
-    "ClockBot",
-)
 
-PERM_KR_NAME: Dict[str, str] = {
+# FIX: translation required on newly added permissions
+PERM_NAME_KR: dict[str, str] = {
     "add_reactions": "반응 추가",
     "administrator": "관리자",
     "attach_files": "파일 첨부",
-    "ban_members": "멤버 차단",
+    "ban_members": "멤버 추방",
     "change_nickname": "별명 변경",
     "connect": "음성채널 참가",
     "create_instant_invite": "초대코드 생성",
@@ -63,92 +61,6 @@ PERM_KR_NAME: Dict[str, str] = {
 }
 
 
-class ExitOpt(IntEnum):
-    ERROR = -1
-    QUIT = 0
-    UNSET = 1
-    RESTART = 2
-    UPDATE = 3
-    SHUTDOWN = 4
-    REBOOT = 5
-
-
-class MacLak(commands.Context):
-    """
-    Custom commands.Context class used by ClockBot
-
-    "SangHwang MacLak is very important"
-     ~ Literature Teacher
-    """
-
-    bot: "ClockBot"
-
-    async def code(self, content: str, lang: str = "") -> discord.Message:
-        """
-        wrap content with codeblock markdown
-        """
-        return await self.send(f"```{lang}\n{content}\n```")
-
-    async def tick(self, value: bool) -> bool:
-        """
-        Add reaction (True: check, False: cross)
-        Return if the operation was successful or not
-        """
-        emoji = "\N{WHITE HEAVY CHECK MARK}" if value else "\N{CROSS MARK}"
-        try:
-            await self.message.add_reaction(emoji)
-        except:
-            return False
-        else:
-            return True
-
-    async def error(self, content: str) -> discord.Message:
-        """
-        ctx.tick(False) + ctx.code(content)
-        """
-        await self.tick(False)
-        return await self.code(content)
-
-
-class GMacLak(MacLak):
-    """
-    MacLak but with guild-only features
-    and fixed type hints for attributes
-    """
-
-    guild: discord.Guild
-    channel: discord.TextChannel
-    author: discord.Member
-    me: discord.Member
-
-    async def webhook(self) -> discord.Webhook:
-        return await self.bot.get_webhook(self.channel)
-
-    async def wsend(
-        self, content: str = MISSING, **options
-    ) -> Optional[discord.WebhookMessage]:
-        return await self.bot.wsend(self.channel, content, **options)
-
-    async def mimic(
-        self,
-        target: Union[discord.User, discord.Member],
-        content: str = MISSING,
-        **options,
-    ) -> Optional[discord.WebhookMessage]:
-        return await self.bot.mimic(self.channel, target, content, **options)
-
-
-class DMacLak(MacLak):
-    """
-    MacLak but with type hints for DM
-    """
-
-    guild: None
-    channel: discord.DMChannel
-    author: discord.User
-    me: discord.ClientUser
-
-
 class ClockBot(commands.Bot):
     """
      _________
@@ -158,185 +70,30 @@ class ClockBot(commands.Bot):
     |         |
     |____6____|
 
-    Time is gold. In minecraft, gold is quite useless.
     """
 
-    def __init__(
-        self,
-        db: AsyncIOMotorDatabase,
-        color: int = 0x000000,
-        perms: discord.Permissions = discord.Permissions(0),
-        **options,
-    ):
-        super().__init__(**options)
-        self.started: float = 0
-        self.exitopt = ExitOpt.UNSET
-        self.session = aiohttp.ClientSession(loop=self.loop)
+    started: datetime.datetime | None
 
-        # mongodb database
-        self.db = db
-        # default embed color
-        self.color = color
-        # required permissions
-        self.perms = perms
-        # cached webhook
-        self.webhooks: Dict[int, discord.Webhook] = {}
-        # special channels (ex: bamboo forest) { channel_id : "reason" }
-        self.specials: Dict[int, str] = {}
-        # dumped context objects for debugging
-        self.dumped: List[MacLak] = []
+    def __init__(self, **options):
+        super().__init__(**options)
+        self.started = None
 
     async def on_ready(self):
-        if not self.started:  # initial launch
-            assert self.user != None
-            self.started = time.time()
-            print(f"{self.user} [{self.user.id}] is now online")
-            print(
-                f"Connected to {len(self.guilds)} servers and {len(self.users)} users"
-            )
-
-    async def close(self):
-        await self.session.close()
-        for vc in self.voice_clients:
-            await vc.disconnect(force=False)
-        if self.db != None:
-            self.db.client.close()
-        await super().close()
-
-    async def process_commands(self, msg: discord.Message):
-        if msg.author.bot:
+        # `on_ready()` may be invoked multiple times due to reconnects
+        if self.started is not None:
             return
+        self.started = datetime.datetime.now().astimezone()
 
-        cls = GMacLak if msg.guild else MacLak
-        ctx = await self.get_context(msg, cls=cls)
-        await self.invoke(ctx)
-
-    async def owner_or_admin(self, user: discord.Member) -> bool:
-        owner = await self.is_owner(user)  # type: ignore
-        admin = user.guild_permissions.administrator
-        return owner or admin
-
-    @property
-    def invite(self) -> str:
-        """
-        Bot invite link with required permissions
-        """
-        if not self.user:
-            raise RuntimeError("Bot is not ready")
-        return discord.utils.oauth_url(str(self.user.id), permissions=self.perms)
-
-    async def get_webhook(self, channel: discord.TextChannel) -> discord.Webhook:
-        """
-        Returns channel's webhook owned by Bot
-        Creates new one if there isn't any
-        raise discord.Forbidden if missing permissions
-        """
-        if hook := self.webhooks.get(channel.id):
-            return hook
-
-        hooks = await channel.webhooks()
-        for hook in hooks:
-            if hook.user == self.user:
-                self.webhooks[channel.id] = hook
-                return hook
-
-        with open("assets/avatar.png", "rb") as f:
-            hook = await channel.create_webhook(name="ClockBot", avatar=f.read())
-            self.webhooks[channel.id] = hook
-        return hook
-
-    async def wsend(
-        self, channel: discord.TextChannel, content: str = MISSING, **options
-    ) -> Optional[discord.WebhookMessage]:
-        """
-        Send webhook message to the channel
-        ctx.channel has to be TextChannel
-        Returns the message that was sent
-        or None if missing permission
-        """
-        try:
-            hook = await self.get_webhook(channel)
-            msg = await hook.send(content, **options)
-        except discord.NotFound:  # cached webhooks got deleted
-            del self.webhooks[channel.id]
-            msg = await self.wsend(channel, content, **options)
-        except discord.Forbidden:  # missing permission
-            await channel.send("```에러: 봇에게 웹훅 관리 권한이 필요합니다```")
-            msg = None
-        return msg
-
-    async def mimic(
-        self,
-        channel: discord.TextChannel,
-        target: Union[discord.User, discord.Member],
-        content: str = MISSING,
-        **options,
-    ) -> Optional[discord.WebhookMessage]:
-        """
-        Send webhook message with name & avatar of target
-        """
-        name = target.display_name
-        avatar = target.display_avatar.url
-        return await self.wsend(
-            channel, content=content, username=name, avatar_url=avatar, **options
+        assert self.user is not None
+        # log.info("Logged in as %s at %s", self.user, self.started)
+        log.info("%s (ID: %s) is now online", self.user, self.user.id)
+        log.info(
+            "Connected to %s servers and %s users",
+            len(self.guilds),
+            len(self.users),
         )
 
-    async def on_command_error(self, ctx: MacLak, error: commands.CommandError):
-        if isinstance(error, commands.CommandNotFound):
-            if cog := self.get_cog(ctx.invoked_with or ""):
-                await ctx.send_help(cog)
-
-        elif isinstance(error, commands.UserInputError):
-            if isinstance(error, (commands.UserNotFound, commands.MemberNotFound)):
-                await ctx.code(f'에러: 유저 "{error.argument}"을(를) 찾을 수 없습니다')
-            else:
-                await ctx.send_help(ctx.command)
-
-        elif isinstance(error, commands.CheckFailure):
-            if isinstance(error, commands.NotOwner):
-                await ctx.code("에러: 봇 관리자 전용 명령어입니다")
-
-            elif isinstance(error, commands.NoPrivateMessage):
-                await ctx.code("에러: 해당 명령어는 서버에서만 사용할 수 있습니다")
-            elif isinstance(error, commands.PrivateMessageOnly):
-                await ctx.code("에러: 해당 명령어는 DM에서만 사용할 수 있습니다")
-
-            elif isinstance(error, commands.BotMissingPermissions):
-                perm_lst = ", ".join(
-                    PERM_KR_NAME[str(perm)] for perm in error.missing_permissions
-                )
-                many = "들" if len(perm_lst) > 1 else ""
-                await ctx.code(f"에러: 봇에게 다음 권한{many}이 필요합니다: {perm_lst}")
-            elif isinstance(error, commands.MissingPermissions):
-                perm_lst = ", ".join(
-                    PERM_KR_NAME[str(perm)] for perm in error.missing_permissions
-                )
-                many = "들" if len(perm_lst) > 1 else ""
-                await ctx.code(f"에러: 다음 권한{many}이 필요합니다: {perm_lst}")
-
-        elif isinstance(error, commands.CommandOnCooldown):
-            t = error.retry_after
-            content = f"**명령어 쿨타임에 걸렸습니다!** 남은시간 {t:.1f}초"
-            delete_after = min(t, 3)
-            try:
-                await ctx.reply(content=content, delete_after=delete_after)
-            except:
-                await ctx.send(content=content, delete_after=delete_after)
-
-        elif isinstance(error, (commands.CommandInvokeError, commands.ConversionError)):
-            e = error.original
-            if isinstance(e, NoProblem):
-                return  # this is fine
-
-            self.dumped.append(ctx)
-            print(f"Unexpected Error by: {ctx.message.content}")
-            print(f"Dumped context #{len(self.dumped)}")
-            try:
-                raise e
-            except:
-                traceback.print_exc()
-            await ctx.code(
-                f"에러: 예상치 못한 오류가 발생했습니다\n"
-                f"{type(e).__name__}: {str(e)}\n"
-                f"버그 맞으니까 제작자에게 멘션 테러를 권장합니다"
-            )  # TODO: send_owner()
+    async def close(self):
+        for vc in self.voice_clients:
+            await vc.disconnect(force=False)
+        await super().close()

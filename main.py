@@ -12,6 +12,8 @@ import sys
 import discord
 from discord.ext import commands
 
+from clockbot import ClockBot
+
 logging.addLevelName(logging.WARNING, "WARN")
 logging.addLevelName(logging.CRITICAL, "FATAL")
 logging.basicConfig(
@@ -34,7 +36,7 @@ async def main():
         logging.critical(f"Environment variable ${env} is missing")
         sys.exit(1)
 
-    bot = commands.Bot(
+    bot = ClockBot(
         command_prefix=commands.when_mentioned_or(PREFIX),
         intents=discord.Intents.all(),
         status=discord.Status.do_not_disturb,

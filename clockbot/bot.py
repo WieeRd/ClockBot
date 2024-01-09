@@ -12,7 +12,7 @@ Well because I can, and I will keep doing it, cry about it.
 __all__ = ["PERM_NAME_KR", "ClockBot"]
 
 import logging
-from datetime import datetime
+import time
 
 import discord
 from discord.ext import commands
@@ -82,15 +82,15 @@ class ClockBot(commands.Bot):
         # FIX: type hint kwargs
         super().__init__(**options)
 
-        # timestamp marking the first invocation of `on_ready()`
+        # unix timestamp marking the first invocation of `on_ready()`
         # used to calculate the uptime of the bot
-        self.started: datetime | None = None
+        self.started: float | None = None
 
     async def on_ready(self):
-        # may be called multiple times due to reconnects
+        # on_ready() may be called multiple times due to reconnects
         if self.started is not None:
             return
-        self.started = datetime.now().astimezone()
+        self.started = time.time()
 
         log.info(
             "%s is now connected to %s servers and %s users",
@@ -121,7 +121,6 @@ class ClockBot(commands.Bot):
         # WARN: make sure it's `Foo():` and not `Foo:` when adding a new handler
         # | there is no lint to check for this, search the pattern case.+[^)_]: with regex
         match error:
-
             case commands.CommandNotFound():
                 # if a category (cog) name was invoked as a command,
                 # send help page for that category. otherwise ignored.
@@ -168,20 +167,21 @@ class ClockBot(commands.Bot):
                         )
 
             case commands.CommandOnCooldown():
-                # FEAT: ASAP: use relative timestamp <t:0:R> for retry_after
+                # TEST: see this in action and decide whether to use round() or ceil()
+                timestamp = int(time.time() + error.retry_after + 1.0)
                 await ctx.send(
-                    f"에러: 명령어 쿨타임에 걸렸습니다! 남은시간 {error.retry_after}",
+                    f"에러: 명령어 쿨타임에 걸렸습니다! 남은시간 <t:{timestamp}:R>",
                     delete_after=error.retry_after,
                 )
 
-            # FEAT: unhandle expected errors - DisabledCommand, MaxConcurrencyReached 
+            # FEAT: unhandle expected errors - DisabledCommand, MaxConcurrencyReached
             # unexpected errors: ConversionError CommandInvokeError HybridCommandError
             case _:
                 # FIX: error.original holds more relevant information
                 log.error(
                     "Unexpected command error caused by: '%s'",
                     ctx.message.content,
-                    exc_info=error
+                    exc_info=error,
                 )
                 await ctx.send(
                     "에러: 예상치 못한 오류가 발생했습니다\n"

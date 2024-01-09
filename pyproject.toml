@@ -2,6 +2,7 @@
 name = "ClockBot"
 version = "0.0.0"
 authors = [{ name = "WieeRd" }]
+requires-python = ">=3.11"
 
 # NOTE: I am using pyproject.toml mostly as a config for ruff/pyright
 # | dependencies and important stuffs are all specified in the Pipfile
@@ -13,11 +14,13 @@ output-format = "grouped"
 # FIX: rewrite and bring back legacy cogs written in dpy v1.7
 extend-exclude = ["cogs/legacy", "cogs/aprilfools"]
 
+# TODO: browse and enable more opt-in rules
+select = ["E4", "E7", "E9", "F", "N"]
+
 # F403: checks for wildcard imports (`from module import *`)
 # F405: checks for undefined names that may be from wildcard imports
 # excuse: I will always be using * with `__all__`
 per-file-ignores = { "__init__.py" = ["F403", "F405"] }
-
 
 [tool.pyright]
 pythonVersion = "3.11"

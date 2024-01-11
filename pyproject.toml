@@ -4,8 +4,9 @@ version = "0.0.0"
 authors = [{ name = "WieeRd" }]
 requires-python = ">=3.11"
 
-# NOTE: I am using pyproject.toml mostly as a config for ruff/pyright
-# | dependencies and important stuffs are all specified in the Pipfile
+# NOTE: I am using `pyproject.toml` as a config for ruff/pyright
+# | dependencies and important things are specified in `Pipfile`
+dependencies = []
 
 
 [tool.ruff]
@@ -18,10 +19,9 @@ extend-exclude = ["cogs/legacy", "cogs/aprilfools"]
 select = ["E4", "E7", "E9", "F", "I", "N"]
 
 # F403: checks for wildcard imports (`from module import *`)
-# F405: checks for undefined names that may be from wildcard imports
-# excuse: I will always be using * with `__all__`
-per-file-ignores = { "__init__.py" = ["F403", "F405"] }
+# excuse: I will always be using * with modules with `__all__`
+per-file-ignores = { "__init__.py" = ["F403"] }
 
 [tool.pyright]
-pythonVersion = "3.11"
+include = ["main.py"] # imported modules are automatically included
 ignore = ["cogs/legacy", "cogs/aprilfools"]

@@ -4,12 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-discord = "~=2.3.2"
-jishaku = "~=2.5.2"
+discord = "~=2.3"
+jishaku = "~=2.5"
 
 [dev-packages]
 ruff = "*"
-rich = "*"
 
 [requires]
 python_version = "3.11"

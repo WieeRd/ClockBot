@@ -26,16 +26,16 @@ logging.basicConfig(
     stream=sys.stdout,
 )
 
+try:
+    TOKEN = os.environ["TOKEN"]
+    PREFIX = os.environ["PREFIX"]
+except KeyError as e:
+    env: str = e.args[0]
+    logging.critical(f"Environment variable ${env} is missing")
+    sys.exit(1)
+
 
 async def main():
-    try:
-        TOKEN = os.environ["TOKEN"]
-        PREFIX = os.environ["PREFIX"]
-    except KeyError as e:
-        env: str = e.args[0]
-        logging.critical(f"Environment variable ${env} is missing")
-        sys.exit(1)
-
     bot = ClockBot(
         command_prefix=commands.when_mentioned_or(PREFIX),
         intents=discord.Intents.all(),

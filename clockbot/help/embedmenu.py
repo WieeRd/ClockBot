@@ -38,7 +38,7 @@ class EmbedMenu(EmbedHelp):
         self.inactive = inactive
         self.cached = {}
 
-    def Embed(self) -> discord.Embed:
+    def get_embed(self) -> discord.Embed:
         embed = discord.Embed()
         embed.color = self.color
         embed.url = self.invite
@@ -46,8 +46,8 @@ class EmbedMenu(EmbedHelp):
         return embed
 
     def bot_page(self, mapping: dict[str, Cog]) -> discord.Embed:
-        embed = self.Embed()
-        embed.url = discord.Embed.Empty
+        embed = self.get_embed()
+        embed.url = None
         embed.title = f"**{self.title}**"
 
         for icon, cog in mapping.items():
@@ -64,7 +64,7 @@ class EmbedMenu(EmbedHelp):
         if cached := self.cached.get(obj):
             return cached
 
-        elif obj == None:
+        elif obj is None:
             self.mapping = self.get_bot_mapping()
             embed = self.bot_page(self.mapping)
         elif isinstance(obj, Cog):
@@ -80,7 +80,7 @@ class EmbedMenu(EmbedHelp):
         return embed
 
     def get_higher_being(self, obj: HelpOBJ) -> HelpOBJ:
-        if obj == None:
+        if obj is None:
             return None
         elif isinstance(obj, Cog):
             return None
@@ -126,7 +126,7 @@ class EmbedMenu(EmbedHelp):
 
             try:
                 await reaction.remove(user)
-            except:
+            except Exception:
                 pass  # TODO: can't remove reaction in DM
 
             icon = reaction.emoji
@@ -146,7 +146,7 @@ class EmbedMenu(EmbedHelp):
             embed = self.get_page(obj)
             await self.msg.edit(embed=embed)
 
-            if obj == None and self.partial:
+            if obj is None and self.partial:
                 self.partial = False
                 for emoji in self.mapping:
                     await self.msg.add_reaction(emoji)
@@ -154,7 +154,7 @@ class EmbedMenu(EmbedHelp):
     async def timeout_handler(self):
         try:
             await self.msg.clear_reactions()
-        except:
+        except Exception:
             pass
         if isinstance(self.cursor, clockbot.InfoCog):
             return

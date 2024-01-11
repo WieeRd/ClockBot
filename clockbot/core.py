@@ -1,5 +1,5 @@
-from typing import TypeVar
 from collections.abc import Callable
+from typing import TypeVar
 
 from discord.ext import commands
 
@@ -68,7 +68,7 @@ T = TypeVar("T")
 
 
 def command(
-    name: str = None, cls: type[T] = Command, **attrs
+    name: str | None = None, cls: type[T] = Command, **attrs
 ) -> Callable[[Callable], T]:
     """
     Identical with commands.command but with TypeVar type hints.
@@ -80,7 +80,7 @@ def command(
     return decorator
 
 
-def alias_as_arg(name: str = None, aliases: list[str] = [], **attrs):
+def alias_as_arg(name: str | None = None, aliases: list[str] = [], **attrs):
     """
     Decorator for AliasAsArg command.
     """

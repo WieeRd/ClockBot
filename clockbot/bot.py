@@ -210,6 +210,6 @@ class ClockBot(commands.Bot):
             "Ignoring exception in %s(%s, %s)",
             event_method,
             ", ".join(map(repr, args)),
-            ", ".join(f"{k}={repr(v)}" for k, v in kwargs.items()),
+            ", ".join(f"{k}={v!r}" for k, v in kwargs.items()),
             exc_info=True,
         )

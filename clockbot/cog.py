@@ -8,18 +8,11 @@ from .bot import ClockBot
 __all__ = ("ExtensionRequireDB", "Cog", "InfoCog")
 
 
-class ExtensionRequireDB(Exception):
+class ExtensionRequireDB(commands.ExtensionError):
     """
     raised in setup() if bot.db is None
     if extension requires DB connection
     """
-
-    def __init__(self, name: str):
-        """
-        Set extension parameter to __name__
-        """
-        super().__init__()
-        self.name = name
 
     def __str__(self) -> str:
         return f"Cog '{self.name}' requires DB connection"
@@ -46,7 +39,7 @@ class Cog(commands.Cog):
         Otherwise same as original get_commands()
         """
         showcase = getattr(self, "showcase", None)
-        if showcase != None:
+        if showcase is not None:
             return showcase
         return super().get_commands()
 
@@ -59,7 +52,7 @@ class Cog(commands.Cog):
         """
 
         if cls.require_db and not bot.db:
-            raise ExtensionRequireDB(cls.__name__)
+            raise ExtensionRequireDB(name=cls.__name__)
 
         cog = cls(bot)
         bot.perms.value |= cog.perms.value

@@ -1,7 +1,7 @@
 import asyncio
 import re
-from typing import TypeVar
 from collections.abc import Callable, Iterable
+from typing import TypeVar
 
 import discord
 from discord.ext import commands
@@ -10,7 +10,7 @@ from jamo import h2j, j2hcj
 __all__ = (
     "partialsearch",
     "fuzzysearch",
-    "NoProblem",
+    "NoProblemError",
     "PartialMember",
     "FuzzyMember",
 )
@@ -27,7 +27,7 @@ def partialsearch(
     Starting index of exact match is considered -1
     """
     if text == "":
-        return list()
+        return []
 
     # # 'smartcase': ignorecase if text is all lowercase
     # if re.match(r"^[^A-Z]+$", text):
@@ -35,7 +35,7 @@ def partialsearch(
     #     key = lambda d: original(d).lower()
 
     text = text.lower()  # let's just use ignorecase because users are stupid
-    minIndex = float("INF")
+    min_index = float("INF")
     candidates = []
 
     for item in pool:
@@ -44,13 +44,13 @@ def partialsearch(
         if index != -1:
             if len(text) == len(target):  # exact match
                 index = -1
-            if index == minIndex:  # equally good match
+            if index == min_index:  # equally good match
                 candidates.append(item)
                 if len(candidates) == limit:
                     break
-            elif index < minIndex:  # better match
+            elif index < min_index:  # better match
                 candidates = [item]
-                minIndex = index
+                min_index = index
 
     return candidates
 
@@ -96,11 +96,12 @@ def fuzzysearch(
             if len(suggestions) == limit:
                 break
 
-    sort_key = lambda tup: tup[1:]
+    def sort_key(tup):
+        return tup[1:]
     return [t[0] for t in sorted(suggestions, key=sort_key)]
 
 
-class NoProblem(Exception):
+class NoProblemError(Exception):
     """
     ConversionError handler should suppress this
     raise this to 'give up' conversion
@@ -161,18 +162,18 @@ class PartialMember(commands.MemberConverter, MemberType):
             embed = discord.Embed()
             embed.set_author(name="선택지 시간제한 초과")
             await question.edit(embed=embed)
-            raise NoProblem
+            raise NoProblemError
 
         try:
             await answer.delete()
-        except:
+        except Exception:
             pass
 
         if answer.content == "c":
             embed = discord.Embed()
             embed.set_author(name="선택지 취소됨")
             await question.edit(embed=embed)
-            raise NoProblem
+            raise NoProblemError
 
         await question.delete()
         return members[int(answer.content) - 1]
@@ -234,7 +235,8 @@ class FuzzyMember(commands.MemberConverter, MemberType):
         # Found better method -> https://taegon.kim/archives/9919
 
         text = j2hcj(h2j(arg))
-        key = lambda m: j2hcj(h2j(m.display_name))
+        def key(m):
+            return j2hcj(h2j(m.display_name))
 
         # TODO: performance test & add timeout (for massive servers)
         # computing maxdist might be slow...
@@ -251,7 +253,7 @@ class FuzzyMember(commands.MemberConverter, MemberType):
             embed.set_author(name=f'"{arg}" 에 일치하는 대상이 너무 많습니다')
             embed.description = "더 구체적인 검색어를 넣어주세요"
             await ctx.send(embed=embed, reference=reference)
-            raise NoProblem("Too many results")
+            raise NoProblemError("Too many results")
 
         embed.set_author(name=f'"{arg}" 에 대한 검색 결과 {len(members)}건')
         embed.description = "의도했던 대상을 선택해주세요"
@@ -268,7 +270,7 @@ class FuzzyMember(commands.MemberConverter, MemberType):
             view.menu.placeholder = "시간제한 초과"
             view.menu.disabled = True
             await msg.edit(view=view)
-            raise NoProblem("MemberMenu timed out")
+            raise NoProblemError("MemberMenu timed out")
         else:
             try:
                 await msg.delete()

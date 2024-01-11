@@ -29,7 +29,7 @@ class EmbedHelp(commands.HelpCommand):
         title: str = "Sample Text",
         invite: str = "https://youtu.be/dQw4w9WgXcQ",
         contact: str = "안받음",
-        thumbnail: str = None,
+        thumbnail: str | None = None,
         menu: list[str] = [],
         tips: list[str] = [],
         **options,
@@ -57,7 +57,7 @@ class EmbedHelp(commands.HelpCommand):
         usage = self.command_attrs.get("usage") or ""
         return f"{prefix}{self.invoked_with} {usage}"
 
-    def Embed(self) -> discord.Embed:
+    def get_embed(self) -> discord.Embed:
         """
         Returns Embed with default settings
         """
@@ -126,8 +126,8 @@ class EmbedHelp(commands.HelpCommand):
         return mapping
 
     def bot_page(self, mapping: dict[str, Cog]) -> discord.Embed:
-        assert self.bot.user != None
-        embed = self.Embed()
+        assert self.bot.user is not None
+        embed = self.get_embed()
         embed.title = f"**{self.title}**"
         embed.description = f"`{self.help_usage}`"
         embed.set_thumbnail(url=self.thumbnail or self.bot.user.display_avatar.url)
@@ -156,7 +156,7 @@ class EmbedHelp(commands.HelpCommand):
         if isinstance(cog, clockbot.InfoCog):
             return cog.info(self.context.message)
 
-        embed = self.Embed()
+        embed = self.get_embed()
         embed.title = f"{self.get_icon(cog)} **{cog.qualified_name} 카테고리**"
         embed.description = cog.description or NO_HELP
 
@@ -171,7 +171,7 @@ class EmbedHelp(commands.HelpCommand):
         return embed
 
     def group_page(self, grp: Group) -> discord.Embed:
-        embed = self.Embed()
+        embed = self.get_embed()
         embed.title = f"{self.clean_prefix}{grp.qualified_name}"
         embed.description = f"**{grp.help or NO_HELP}**"
 
@@ -185,7 +185,7 @@ class EmbedHelp(commands.HelpCommand):
 
     # TODO: command check field (perm, cooldown)
     def command_page(self, cmd: Command) -> discord.Embed:
-        embed = self.Embed()
+        embed = self.get_embed()
         embed.title = f"{self.cmd_usage(cmd)}"
 
         description = f"```{cmd.help or NO_HELP}```"

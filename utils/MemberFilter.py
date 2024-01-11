@@ -13,8 +13,8 @@ MemberFilter.parse(expression: str, guild: discord.Guild)
 # LookupError if user/role is not found     (msg, searched_type, name)
 
 import shlex
-from typing import Any
 from collections.abc import Callable, Iterable
+from typing import Any
 
 import discord
 
@@ -146,7 +146,7 @@ def parse(expression: str, guild: discord.Guild) -> set[discord.Member]:
     lexer = shlex.shlex(expression)
     lexer.quotes += "`"
     try:
-        tokens = [t for t in lexer]
+        tokens = list(lexer)
     except ValueError:
         raise SyntaxError("Unclosed quote", '"')
     return parse_tokens(tokens, guild)

@@ -74,6 +74,7 @@ PERM_NAME_KR: dict[str, str] = {
 # | - ctx.wsend(bot, channel, message, **kwargs) + Webhookable(Protocol)
 
 # FEAT: MAYBE: localization e.g. `i18n("ko", "missing", "user", error.argument)`
+# FEAT: alert_owenr() - critical events should be directly notified
 
 
 class ClockBot(commands.Bot):
@@ -122,14 +123,11 @@ class ClockBot(commands.Bot):
         await self.invoke(ctx)
 
     # https://discordpy.readthedocs.io/en/stable/ext/commands/api.html#exception-hierarchy
-    async def on_command_error(
-        self, ctx: commands.Context, error: commands.CommandError
-    ):
-        # FIXME: LATER: `ctx.send()` calls here can fail again, causing `on_error()`
-
+    async def on_command_error(self, ctx: commands.Context, err: commands.CommandError):
+        # FIX: LATER: `ctx.send()` calls can fail again in here, causing `on_error()`
         # WARN: make sure it's `Foo():` and not `Foo:` when adding a new handler
-        # | there is no lint to check for this, search the pattern case.+[^)_]: with regex
-        match error:
+        # | there is no lint to check for this; search the pattern case.+[^)_]: with regex
+        match err:
             case commands.CommandNotFound():
                 # if a category (cog) name was invoked as a command,
                 # send help page for that category. otherwise ignored.
@@ -137,14 +135,14 @@ class ClockBot(commands.Bot):
                     await ctx.send_help(cog)
 
             case commands.UserInputError():
-                match error:
+                match err:
                     case commands.UserNotFound() | commands.MemberNotFound():
-                        await ctx.send(f"에러: 유저 '{error.argument}'을(를) 찾을 수 없습니다")  # fmt: skip
+                        await ctx.send(f"에러: 유저 '{err.argument}'을(를) 찾을 수 없습니다")  # fmt: skip
                     case _:
                         await ctx.send_help(ctx.command)
 
             case commands.CheckFailure():
-                match error:
+                match err:
                     case commands.NotOwner():
                         await ctx.send("에러: 봇 관리자 전용 명령어입니다")
 
@@ -165,38 +163,53 @@ class ClockBot(commands.Bot):
                     # CheckAnyFailure MissingRole BotMissingRole
                     # MissingAnyRole BotMissingAnyRole NSFWChannelRequired
                     case _:
-                        log.warn(
+                        log.warning(
                             "Command '%s' triggered unhandled check failure '%s'",
                             ctx.command,
-                            type(error).__name__,
+                            type(err).__name__,
                         )
                         await ctx.send(
-                            f"에러: {error}\n"
+                            f"에러: {err}\n"
                             "(허접 제작자가 에러 처리기 번역을 미처 다 못했습니다)"
                         )
 
             case commands.CommandOnCooldown():
                 # TEST: see this in action and decide whether to use round() or ceil()
-                timestamp = int(time.time() + error.retry_after + 1.0)
+                timestamp = int(time.time() + err.retry_after + 1.0)
                 await ctx.send(
                     f"에러: 명령어 쿨타임에 걸렸습니다! 남은시간 <t:{timestamp}:R>",
-                    delete_after=error.retry_after,
+                    delete_after=err.retry_after,
                 )
 
-            # FEAT: unhandle expected errors - DisabledCommand, MaxConcurrencyReached
-            # unexpected errors: ConversionError CommandInvokeError HybridCommandError
+            case commands.DisabledCommand():
+                # FEAT: LATER: show disabled reason using `extra` dict on Command
+                await ctx.send("에러: 임시 비활성화된 명령어입니다")
+
+            case commands.MaxConcurrencyReached():
+                # FEAT: LATER: auto retry button
+                await ctx.send("에러: 현재 봇 사용량이 급증하여 잠시 사용 불가합니다")
+
+            # ConversionError | CommandInvokeError | HybridCommandError | Any
             case _:
-                # FIX: error.original holds more relevant information
+                original = getattr(err, "original", err)
                 log.error(
-                    "Unexpected command error caused by: '%s'",
+                    "Unexpected %s[%s] caused by: '%s'",
+                    type(err).__name__,
+                    type(original).__name__,
                     ctx.message.content,
-                    exc_info=error,
+                    exc_info=err,
                 )
                 await ctx.send(
                     "에러: 예상치 못한 오류가 발생했습니다\n"
-                    f"{type(error).__name__}: {error}\n"
+                    f"[{type(err).__name__}] {type(original).__name__}: {original}\n"
                     "버그 맞으니까 제작자에게 멘션 테러를 권장합니다"
                 )
 
-    # async def on_error(self, event_method: str, /, *args, **kwargs):
-    #     pass
+    async def on_error(self, event_method: str, /, *args, **kwargs):
+        log.error(
+            "Ignoring exception in %s(%s, %s)",
+            event_method,
+            ", ".join(map(repr, args)),
+            ", ".join(f"{k}={repr(v)}" for k, v in kwargs.items()),
+            exc_info=True,
+        )

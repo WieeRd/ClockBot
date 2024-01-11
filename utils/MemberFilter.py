@@ -13,7 +13,8 @@ MemberFilter.parse(expression: str, guild: discord.Guild)
 # LookupError if user/role is not found     (msg, searched_type, name)
 
 import shlex
-from typing import Any, Callable, Iterable, List, Set
+from typing import Any
+from collections.abc import Callable, Iterable
 
 import discord
 
@@ -42,7 +43,7 @@ def bestmatch(key: str, doors: Iterable, lock: Callable = lambda x: x) -> Any:
         return None
 
 
-def get_target(token: str, guild: discord.Guild) -> Set[discord.Member]:
+def get_target(token: str, guild: discord.Guild) -> set[discord.Member]:
     # Receives token str "rolename" 'nickname' `user#0000`
     # and returns set of matching member objects
     name = token[1:-1]
@@ -91,8 +92,8 @@ def list_rindex(li, x):
     return -1
 
 
-def parse_tokens(tokens: List[str], guild: discord.Guild) -> Set[discord.Member]:
-    ret: Set[discord.Member] = set()
+def parse_tokens(tokens: list[str], guild: discord.Guild) -> set[discord.Member]:
+    ret: set[discord.Member] = set()
     index = 0
     operator = "+"
     inverse = False
@@ -141,7 +142,7 @@ def parse_tokens(tokens: List[str], guild: discord.Guild) -> Set[discord.Member]
     return ret
 
 
-def parse(expression: str, guild: discord.Guild) -> Set[discord.Member]:
+def parse(expression: str, guild: discord.Guild) -> set[discord.Member]:
     lexer = shlex.shlex(expression)
     lexer.quotes += "`"
     try:

@@ -1,6 +1,6 @@
 import random
 import re
-from typing import Callable
+from collections.abc import Callable
 
 from jamo import h2j, j2h, j2hcj
 

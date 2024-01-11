@@ -1,5 +1,4 @@
 import asyncio
-from typing import Dict, Union
 
 import discord
 from discord.ext.commands import Cog, Command, Group
@@ -8,7 +7,7 @@ import clockbot
 
 from .embedhelp import NO_HELP, EmbedHelp, hoverlink
 
-HelpOBJ = Union[None, Cog, Group, Command]
+HelpOBJ = Cog | Group | Command | None
 
 
 class EmbedMenu(EmbedHelp):
@@ -17,8 +16,8 @@ class EmbedMenu(EmbedHelp):
     Heavily inspired by Fbot Help
     """
 
-    mapping: Dict[str, Cog]
-    cached: Dict[HelpOBJ, discord.Embed]
+    mapping: dict[str, Cog]
+    cached: dict[HelpOBJ, discord.Embed]
     msg: discord.Message
     cursor: HelpOBJ
     partial: bool
@@ -46,7 +45,7 @@ class EmbedMenu(EmbedHelp):
         embed.set_footer(text="하단 이모지를 눌러보세요 (명령어 시전자만 가능)")
         return embed
 
-    def bot_page(self, mapping: Dict[str, Cog]) -> discord.Embed:
+    def bot_page(self, mapping: dict[str, Cog]) -> discord.Embed:
         embed = self.Embed()
         embed.url = discord.Embed.Empty
         embed.title = f"**{self.title}**"
@@ -165,7 +164,7 @@ class EmbedMenu(EmbedHelp):
         embed.set_footer(text=self.help_usage)
         await self.msg.edit(embed=embed)
 
-    async def send_bot_help(self, mapping: Dict[str, Cog]):
+    async def send_bot_help(self, mapping: dict[str, Cog]):
         embed = self.bot_page(mapping)
         destin = self.get_destination()
         msg = await destin.send(embed=embed)

@@ -1,5 +1,4 @@
 from contextlib import contextmanager
-from typing import List, Union
 
 import discord
 from discord.ext import commands
@@ -19,13 +18,13 @@ class TextPage:
             self.buffer.append(content)
         self.buffer.append("\n")
 
-    def lines(self, content: Union[str, List[str]]):
+    def lines(self, content: str | list[str]):
         if isinstance(content, str):
             content = content.split("\n")
         for line in content:
             self.line(line)
 
-    def indent(self, amount: Union[int, str]):
+    def indent(self, amount: int | str):
         if isinstance(amount, int):
             self.istack.append(" " * amount)
         else:
@@ -64,7 +63,7 @@ class TextHelp(commands.HelpCommand):
     context: commands.Context
 
     def __init__(
-        self, prefix: str = "", suffix: str = "", cogs: List[str] = [], **options
+        self, prefix: str = "", suffix: str = "", cogs: list[str] = [], **options
     ):
         super().__init__(**options)
         self.name = options["command_attrs"]["name"]

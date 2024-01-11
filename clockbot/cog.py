@@ -1,5 +1,3 @@
-from typing import List
-
 import discord
 from discord.ext import commands
 
@@ -38,11 +36,11 @@ class Cog(commands.Cog):
 
     bot: ClockBot
     icon: str  # unicode emoji
-    showcase: List[commands.Command]
+    showcase: list[commands.Command]
     require_db: bool = False  # TODO: require level (+ 'wanted')
     perms: discord.Permissions = discord.Permissions(0)
 
-    def get_commands(self) -> List[commands.Command]:
+    def get_commands(self) -> list[commands.Command]:
         """
         Return 'showcase' attribute if it's available.
         Otherwise same as original get_commands()

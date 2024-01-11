@@ -1,5 +1,4 @@
 import random
-from typing import Dict, List
 
 import discord
 from discord.ext import commands
@@ -31,8 +30,8 @@ class EmbedHelp(commands.HelpCommand):
         invite: str = "https://youtu.be/dQw4w9WgXcQ",
         contact: str = "안받음",
         thumbnail: str = None,
-        menu: List[str] = [],
-        tips: List[str] = [],
+        menu: list[str] = [],
+        tips: list[str] = [],
         **options,
     ):
         super().__init__(command_attrs=command_attrs, **options)
@@ -115,8 +114,8 @@ class EmbedHelp(commands.HelpCommand):
         icon = chr(offset + ord(char))
         return icon
 
-    def get_bot_mapping(self) -> Dict[str, Cog]:
-        mapping: Dict[str, Cog] = {}
+    def get_bot_mapping(self) -> dict[str, Cog]:
+        mapping: dict[str, Cog] = {}
         for name in self.menu or self.bot.cogs:
             if cog := self.bot.get_cog(name):
                 icon = self.get_icon(cog)
@@ -126,7 +125,7 @@ class EmbedHelp(commands.HelpCommand):
                 mapping[icon] = cog
         return mapping
 
-    def bot_page(self, mapping: Dict[str, Cog]) -> discord.Embed:
+    def bot_page(self, mapping: dict[str, Cog]) -> discord.Embed:
         assert self.bot.user != None
         embed = self.Embed()
         embed.title = f"**{self.title}**"
@@ -200,7 +199,7 @@ class EmbedHelp(commands.HelpCommand):
 
         return embed
 
-    async def send_bot_help(self, mapping: Dict[str, Cog]):
+    async def send_bot_help(self, mapping: dict[str, Cog]):
         embed = self.bot_page(mapping)
         destin = self.get_destination()
         await destin.send(embed=embed)

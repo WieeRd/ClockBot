@@ -1,6 +1,7 @@
 import asyncio
 import re
-from typing import Callable, Iterable, List, TypeVar
+from typing import TypeVar
+from collections.abc import Callable, Iterable
 
 import discord
 from discord.ext import commands
@@ -19,7 +20,7 @@ T = TypeVar("T")
 
 def partialsearch(
     text: str, pool: Iterable[T], key: Callable[[T], str], limit: int = 0
-) -> List[T]:
+) -> list[T]:
     """
     Return list of best partial matches.
     'best' is defined as 'minimum match starting index'
@@ -56,7 +57,7 @@ def partialsearch(
 
 def fuzzysearch(
     text: str, pool: Iterable[T], key: Callable[[T], str], limit: int = 0
-) -> List[T]:
+) -> list[T]:
     """
     filtered by:
         - starting pos of match
@@ -180,7 +181,7 @@ class PartialMember(commands.MemberConverter, MemberType):
 class MemberSelect(discord.ui.Select):
     view: "MemberMenu"
 
-    def __init__(self, members: List[discord.Member]):
+    def __init__(self, members: list[discord.Member]):
         super().__init__()
         for i, member in enumerate(members):
             self.add_option(
@@ -196,7 +197,7 @@ class MemberSelect(discord.ui.Select):
 
 
 class MemberMenu(discord.ui.View):
-    def __init__(self, members: List[discord.Member], owner: discord.Member):
+    def __init__(self, members: list[discord.Member], owner: discord.Member):
         super().__init__(timeout=20.0)
         self.index = 0
         self.owner = owner

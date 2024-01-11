@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 
 import motor.motor_asyncio as motor
 
@@ -12,7 +12,7 @@ class DictDB:
     def __init__(self, col: motor.AsyncIOMotorCollection):
         self.col = col
 
-    async def get(self, _id: Any) -> Optional[Dict[str, Any]]:
+    async def get(self, _id: Any) -> dict[str, Any] | None:
         return await self.col.find_one({"_id": _id})
 
     async def set(self, _id: Any, **values):
@@ -42,7 +42,7 @@ class NullDB(DictDB):
     def __init__(self, *args, **kwargs):
         pass
 
-    async def get(self, _id: Any) -> Optional[Dict[str, Any]]:
+    async def get(self, _id: Any) -> dict[str, Any] | None:
         return
 
     async def set(self, _id: Any, **values):

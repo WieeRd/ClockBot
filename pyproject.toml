@@ -16,7 +16,7 @@ output-format = "grouped"
 extend-exclude = ["cogs/legacy", "cogs/aprilfools"]
 
 # TODO: browse and enable more opt-in rules
-select = ["E4", "E7", "E9", "F", "I", "N"]
+select = ["E4", "E7", "E9", "F", "N", "B"]
 
 # F403: checks for wildcard imports (`from module import *`)
 # excuse: I will always be using * with modules with `__all__`

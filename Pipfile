@@ -3,12 +3,12 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
+[requires]
+python_version = "3.11"
+
 [packages]
 discord = "~=2.3"
 jishaku = "~=2.5"
 
 [dev-packages]
 ruff = "*"
-
-[requires]
-python_version = "3.11"

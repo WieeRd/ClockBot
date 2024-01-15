@@ -87,6 +87,7 @@ def alias_as_arg(name: str | None = None, aliases: list[str] | None = None, **at
 
     if aliases is None:
         aliases = []
+
     def decorator(func):
         return AliasAsArg(func, name=name, aliases=aliases, **attrs)
 

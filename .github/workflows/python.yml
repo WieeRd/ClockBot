@@ -27,10 +27,6 @@ jobs:
         run: echo "$(pipenv --venv --quiet)/bin" >> $GITHUB_PATH
 
       - uses: jakebailey/pyright-action@v1
-        with:
-          # CI: v1.1.346 produces strange undocumented error, pinning to .345 for now
-          # | "ValitaError: missing_value at .generalDiagnostics.0.file (missing value)"
-          version: 1.1.345
 
   ruff:
     name: Ruff

@@ -1,12 +1,11 @@
+# NOTE: I am using `pyproject.toml` mostly as a Ruff/Pyright config.
+# | dependencies and important things are specified in `Pipfile`
+
 [project]
 name = "ClockBot"
 version = "0.0.0"
-authors = [{ name = "WieeRd" }]
+authors = [{ name = "WieeRd", email = "verywieerd@gmail.com" }]
 requires-python = ">=3.11"
-
-# NOTE: I am using `pyproject.toml` as a config for ruff/pyright
-# | dependencies and important things are specified in `Pipfile`
-dependencies = []
 
 
 [tool.ruff]
@@ -21,6 +20,7 @@ select = ["E4", "E7", "E9", "F", "N", "B"]
 # F403: checks for wildcard imports (`from module import *`)
 # excuse: I will always be using * with modules with `__all__`
 per-file-ignores = { "__init__.py" = ["F403"] }
+
 
 [tool.pyright]
 include = ["main.py"] # imported modules are automatically included

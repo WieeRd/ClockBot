@@ -24,16 +24,22 @@ class EmbedHelp(commands.HelpCommand):
     def __init__(
         self,
         *,
-        command_attrs={},
+        command_attrs=None,
         color: int = 0xFFFFFF,
         title: str = "Sample Text",
         invite: str = "https://youtu.be/dQw4w9WgXcQ",
         contact: str = "안받음",
         thumbnail: str | None = None,
-        menu: list[str] = [],
-        tips: list[str] = [],
+        menu: list[str] = None,
+        tips: list[str] = None,
         **options,
     ):
+        if tips is None:
+            tips = []
+        if menu is None:
+            menu = []
+        if command_attrs is None:
+            command_attrs = {}
         super().__init__(command_attrs=command_attrs, **options)
         self.color = color
         self.title = title

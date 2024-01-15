@@ -4,7 +4,7 @@ from typing import TypeVar
 from discord.ext import commands
 
 # hooked_wrapped_callback = commands.core.hooked_wrapped_callback
-hooked_wrapped_callback = getattr(commands.core, "hooked_wrapped_callback")
+hooked_wrapped_callback = commands.core.hooked_wrapped_callback
 
 __all__ = (
     "Command",
@@ -80,11 +80,13 @@ def command(
     return decorator
 
 
-def alias_as_arg(name: str | None = None, aliases: list[str] = [], **attrs):
+def alias_as_arg(name: str | None = None, aliases: list[str] | None = None, **attrs):
     """
     Decorator for AliasAsArg command.
     """
 
+    if aliases is None:
+        aliases = []
     def decorator(func):
         return AliasAsArg(func, name=name, aliases=aliases, **attrs)
 

@@ -63,8 +63,10 @@ class TextHelp(commands.HelpCommand):
     context: commands.Context
 
     def __init__(
-        self, prefix: str = "", suffix: str = "", cogs: list[str] = [], **options
+        self, prefix: str = "", suffix: str = "", cogs: list[str] = None, **options
     ):
+        if cogs is None:
+            cogs = []
         super().__init__(**options)
         self.name = options["command_attrs"]["name"]
         self.page = TextPage()  # why not just create new page per sending

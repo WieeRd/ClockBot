@@ -147,6 +147,6 @@ def parse(expression: str, guild: discord.Guild) -> set[discord.Member]:
     lexer.quotes += "`"
     try:
         tokens = list(lexer)
-    except ValueError:
-        raise SyntaxError("Unclosed quote", '"')
+    except ValueError as e:
+        raise SyntaxError("Unclosed quote", '"') from e
     return parse_tokens(tokens, guild)

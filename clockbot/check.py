@@ -11,7 +11,7 @@ def owner_or_permissions(**perms):
     bot owner or has_permissions
     """
     original = commands.has_permissions(**perms)
-    predicate = getattr(original, "predicate")
+    predicate = original.predicate
 
     async def extended_check(ctx: commands.Context):
         if not ctx.guild:

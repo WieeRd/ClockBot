@@ -1,0 +1,27 @@
+name: Python
+
+on:
+  push:
+    branches: ["master", "ci-test"]
+    paths: ["**/*.py"]
+  pull_request:
+    branches: ["master", "ci-test"]
+    paths: ["**/*.py"]
+
+jobs:
+  pyright:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pipenv
+      - name: Install pipenv
+        run: PIPENV_VENV_IN_PROJECT=true pipx run pipenv sync
+      - name: Activate venv
+        run: echo "$PWD/.venv/bin" >> $GITHUB_PATH
+      - uses: jakebailey/pyright-action@v1
+
+  # ruff: ...
+  # format: ...

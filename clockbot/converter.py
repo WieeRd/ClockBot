@@ -98,6 +98,7 @@ def fuzzysearch(
 
     def sort_key(tup):
         return tup[1:]
+
     return [t[0] for t in sorted(suggestions, key=sort_key)]
 
 
@@ -235,6 +236,7 @@ class FuzzyMember(commands.MemberConverter, MemberType):
         # Found better method -> https://taegon.kim/archives/9919
 
         text = j2hcj(h2j(arg))
+
         def key(m):
             return j2hcj(h2j(m.display_name))
 

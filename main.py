@@ -63,7 +63,3 @@ if __name__ == "__main__":
         logging.critical("Unhandled Exception has occured", exc_info=True)
     finally:
         logging.info("Client terminated")
-
-
-
-

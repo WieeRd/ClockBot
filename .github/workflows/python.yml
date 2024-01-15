@@ -10,6 +10,7 @@ on:
 
 jobs:
   pyright:
+    name: Pyright
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,16 +24,20 @@ jobs:
         run: echo "$PWD/.venv/bin" >> $GITHUB_PATH
       - uses: jakebailey/pyright-action@v1
         with:
-          version: 1.1.311
+          # CI: v1.1.346 produces strange undocumented error, pinning to .345 for now
+          # | "ValitaError: missing_value at .generalDiagnostics.0.file (missing value)"
+          version: 1.1.345
 
   ruff:
+    name: Ruff
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run Ruff linter
+      - name: Run Ruff
         run: pipx run ruff check --output-format github
 
-  format:
+  black:
+    name: Black
     needs: ["pyright", "ruff"]
     runs-on: ubuntu-latest
     steps:
@@ -41,7 +46,7 @@ jobs:
         run: pipx install ruff
       - name: Run isort
         run: ruff check --select I --fix-only
-      - name: Run black
+      - name: Run Black
         run: ruff format
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:

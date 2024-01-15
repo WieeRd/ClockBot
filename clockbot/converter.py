@@ -158,11 +158,11 @@ class PartialMember(commands.MemberConverter, MemberType):
 
         try:
             answer = await ctx.bot.wait_for("message", check=check, timeout=20.0)
-        except asyncio.TimeoutError:
+        except asyncio.TimeoutError as e:
             embed = discord.Embed()
             embed.set_author(name="선택지 시간제한 초과")
             await question.edit(embed=embed)
-            raise NoProblemError
+            raise NoProblemError from e
 
         try:
             await answer.delete()

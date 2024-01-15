@@ -3,10 +3,10 @@ name: Python
 on:
   push:
     branches: ["master", "ci-test"]
-    paths: ["Pipfile", "**/*.py"]
+    paths: ["**/*.py", "Pipfile.lock", "pyproject.toml"]
   pull_request:
     branches: ["master", "ci-test"]
-    paths: ["**/*.py"]
+    paths: ["**/*.py", "Pipfile.lock", "pyproject.toml"]
 
 jobs:
   pyright:

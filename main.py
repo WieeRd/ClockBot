@@ -64,4 +64,4 @@ if __name__ == "__main__":
     finally:
         logging.info("Client terminated")
 
-a: int = "Intentionally pissing off Pyright to test CI"
+a: int = "Making pyright angry to test CI"

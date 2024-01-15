@@ -18,10 +18,14 @@ jobs:
         with:
           python-version: "3.11"
           cache: pipenv
+
       - name: Install pipenv
-        run: PIPENV_VENV_IN_PROJECT=true pipx run pipenv sync
+        run: pipx install pipenv
+      - name: Install dependencies
+        run: pipenv sync
       - name: Activate venv
-        run: echo "$PWD/.venv/bin" >> $GITHUB_PATH
+        run: echo "$(pipenv --venv --quiet)/bin" >> $GITHUB_PATH
+
       - uses: jakebailey/pyright-action@v1
         with:
           # CI: v1.1.346 produces strange undocumented error, pinning to .345 for now

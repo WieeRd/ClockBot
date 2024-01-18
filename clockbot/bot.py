@@ -88,7 +88,7 @@ class ClockBot(commands.Bot):
 
     """
 
-    def __init__(self, **options):
+    def __init__(self, **options) -> None:
         # FIX: type hint kwargs
         super().__init__(**options)
 
@@ -96,7 +96,7 @@ class ClockBot(commands.Bot):
         # used to calculate the uptime of the bot
         self.started: float | None = None
 
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         # on_ready() may be called multiple times due to reconnects
         if self.started is not None:
             return
@@ -109,12 +109,12 @@ class ClockBot(commands.Bot):
             len(self.users),
         )
 
-    async def close(self):
+    async def close(self) -> None:
         for vc in self.voice_clients:
             await vc.disconnect(force=False)
         await super().close()
 
-    async def process_commands(self, msg: discord.Message):
+    async def process_commands(self, msg: discord.Message) -> None:
         if msg.author.bot:
             return
 
@@ -123,7 +123,9 @@ class ClockBot(commands.Bot):
         await self.invoke(ctx)
 
     # https://discordpy.readthedocs.io/en/stable/ext/commands/api.html#exception-hierarchy
-    async def on_command_error(self, ctx: commands.Context, err: commands.CommandError):
+    async def on_command_error(
+        self, ctx: commands.Context, err: commands.CommandError
+    ) -> None:
         # FIX: LATER: `ctx.send()` calls can fail again in here, causing `on_error()`
         # WARN: make sure it's `Foo():` and not `Foo:` when adding a new handler
         # | there is no lint to check for this; search the pattern case.+[^)_]: with regex
@@ -205,7 +207,7 @@ class ClockBot(commands.Bot):
                     "버그 맞으니까 제작자에게 멘션 테러를 권장합니다"
                 )
 
-    async def on_error(self, event_method: str, /, *args, **kwargs):
+    async def on_error(self, event_method: str, /, *args, **kwargs) -> None:
         log.error(
             "Ignoring exception in %s(%s, %s)",
             event_method,

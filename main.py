@@ -31,11 +31,11 @@ try:
     PREFIX = os.environ["PREFIX"]
 except KeyError as e:
     env: str = e.args[0]
-    logging.critical(f"Environment variable ${env} is missing")
+    logging.critical("Environment variable %s is missing", env)
     sys.exit(1)
 
 
-async def main():
+async def main() -> None:
     bot = ClockBot(
         command_prefix=commands.when_mentioned_or(PREFIX),
         intents=discord.Intents.all(),
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         asyncio.run(main())
     except KeyboardInterrupt:
         logging.info("Received SIGINT")
-    except Exception:
+    except Exception:  # noqa: BLE001
         logging.critical("Unhandled Exception has occured", exc_info=True)
     finally:
         logging.info("Client terminated")

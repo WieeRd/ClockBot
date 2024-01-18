@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import logging
 import os
 import random
@@ -20,7 +21,7 @@ bot = commands.Bot(
 
 @bot.command(name="합", aliases=["mge"])
 @commands.guild_only()
-async def gotcha(ctx: commands.Context):
+async def gotcha(ctx: commands.Context) -> None:
     """
     1v1 me ye casual
     """
@@ -29,9 +30,8 @@ async def gotcha(ctx: commands.Context):
     player = []
 
     def check(msg: discord.Message) -> bool:
-        if msg.channel == ctx.channel:
-            if GOTCHA_FORMAT.match(msg.content):
-                return True
+        if msg.channel == ctx.channel and GOTCHA_FORMAT.match(msg.content):
+            return True
         return False
 
     await ctx.send("입력 형식: `최소/최대 +-보정값`")
@@ -41,10 +41,8 @@ async def gotcha(ctx: commands.Context):
         try:
             msg = await bot.wait_for("message", timeout=60, check=check)
         except asyncio.TimeoutError:
-            try:
+            with contextlib.suppress(Exception):
                 await prompt.reply("제한시간 60초 초과로 없던 일이 됬습니다")
-            except Exception:
-                pass
             return
 
         matches = GOTCHA_FORMAT.match(msg.content)
@@ -69,7 +67,7 @@ async def gotcha(ctx: commands.Context):
         await ctx.send("무승부!")
 
 
-async def main():
+async def main() -> None:
     async with bot:
         await bot.load_extension("jishaku")
         await bot.start(os.environ["TOKEN"])

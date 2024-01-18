@@ -94,10 +94,7 @@ def kr2num(kr_str):
                 if c == float_num:
                     float_result += str(float_value)
                     break
-        if len(float_result) == 0:
-            float_result = 0.0
-        else:
-            float_result = float("0." + float_result)
+        float_result = 0.0 if len(float_result) == 0 else float("0." + float_result)
     else:
         float_result = 0.0
 
@@ -105,9 +102,10 @@ def kr2num(kr_str):
         for number, true_value in numbers:
             if index + len(number) <= len(kr_str):
                 if kr_str[index : index + len(number)] == number:
-                    decode_result.append(
-                        (true_value, math.log10(true_value).is_integer())
-                    )
+                    decode_result.append((
+                        true_value,
+                        math.log10(true_value).is_integer(),
+                    ))
                     if len(number) == 2:
                         index += 1
                     break

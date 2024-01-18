@@ -1,6 +1,4 @@
-import asyncio
 import io
-from typing import Dict, Set
 
 import discord
 from discord.ext import commands
@@ -17,7 +15,7 @@ class Meme2023(clockbot.Cog):
     2023년 만우절 모음집.
     """
 
-    def __init__(self, bot: clockbot.ClockBot):
+    def __init__(self, bot: clockbot.ClockBot) -> None:
         self.bot = bot
         self.icon = "\N{CLOWN FACE}"
         self.showcase = [
@@ -29,7 +27,7 @@ class Meme2023(clockbot.Cog):
         self.prank_channels = set()
 
     @clockbot.group(name="만우절")
-    async def aprilfools(self, ctx: clockbot.GMacLak):
+    async def aprilfools(self, ctx: clockbot.GMacLak) -> None:
         """
         2023년 만우절 명령어 모음집
         """
@@ -55,10 +53,11 @@ class Meme2023(clockbot.Cog):
         await ctx.send(embed=embed)
 
         self.prank_channels.add(ctx.channel)
+        return None
 
     @aprilfools.command(name="해제")
     @clockbot.owner_or_admin()
-    async def disable_event(self, ctx: clockbot.GMacLak):
+    async def disable_event(self, ctx: clockbot.GMacLak) -> None:
         """
         채널의 만우절 이벤트를 해제한다
         즐겁고 혼란스러운 하루가 되셨기를
@@ -97,12 +96,13 @@ class Meme2023(clockbot.Cog):
         embed = discord.Embed(color=self.bot.color)
         embed.title = "만우절용 서버프사"
         embed.set_footer(text="당장 적용해서 사탄을 실직시켜보자!")
-        embed.set_image(url=f"attachment://server_pfp.png")
+        embed.set_image(url="attachment://server_pfp.png")
 
         await ctx.send(embed=embed, file=file)
+        return None
 
     @commands.Cog.listener(name="on_message")
-    async def reverse_message(self, msg: discord.Message):
+    async def reverse_message(self, msg: discord.Message) -> None:
         """
         만우절 이벤트가 활성화된 채널의 메세지들을
         메세지 내용과 유저 닉네임을 바꿔치기한

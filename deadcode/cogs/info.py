@@ -1,5 +1,4 @@
 import random
-from typing import Dict, List, Tuple
 
 import discord
 from discord.ext import commands, tasks
@@ -36,17 +35,17 @@ class Info(clockbot.InfoCog, name="정보"):
 
     require_db = True
 
-    def __init__(self, bot: ClockBot):
+    def __init__(self, bot: ClockBot) -> None:
         self.bot = bot
         self.icon = "\N{WHITE QUESTION MARK ORNAMENT}"
 
-        self.cmd_usage: Dict[str, int] = {}
+        self.cmd_usage: dict[str, int] = {}
         self.cmd_usage_db = DictDB(bot.db.cmd_usage)
 
         self.ainit.start()
 
     @tasks.loop(count=1)
-    async def ainit(self):
+    async def ainit(self) -> None:
         appinfo = await self.bot.application_info()
         self.owner = appinfo.owner
 
@@ -56,7 +55,7 @@ class Info(clockbot.InfoCog, name="정보"):
             self.cmd_usage[cmd] = usage
 
     @commands.Cog.listener(name="on_command_completion")
-    async def record(self, ctx: MacLak):
+    async def record(self, ctx: MacLak) -> None:
         if await self.bot.is_owner(ctx.author):  # type: ignore
             return
 
@@ -67,20 +66,22 @@ class Info(clockbot.InfoCog, name="정보"):
         else:
             print(f"[DM] @{user} {content}")
 
-        assert ctx.command != None
+        assert ctx.command is not None
         cmd = ctx.command.root_parent or ctx.command
         self.cmd_usage[cmd.name] = self.cmd_usage.get(cmd.name, 0) + 1
         await self.cmd_usage_db.inc(cmd.name, "usage", 1)
 
-    def popular_commands(self) -> List[Tuple[str, int]]:
-        key = lambda item: item[1]
+    def popular_commands(self) -> list[tuple[str, int]]:
+        def key(item):
+            return item[1]
+
         return sorted(self.cmd_usage.items(), key=key, reverse=True)
 
     def primary_prefix(self) -> str:
         prefix = self.bot.command_prefix
         if isinstance(prefix, str):
             return prefix
-        elif isinstance(prefix, (list, tuple)):
+        elif isinstance(prefix, list | tuple):
             return prefix[0]
         raise NotImplementedError("Callable prefix not supported (I'm lazy)")
 
@@ -88,7 +89,7 @@ class Info(clockbot.InfoCog, name="정보"):
         embed = discord.Embed(color=self.bot.color)
         prefix = self.primary_prefix()
 
-        assert self.bot.user != None
+        assert self.bot.user is not None
         embed.set_thumbnail(url=str(self.bot.user.display_avatar.url))
         embed.title = "**시계봇입니다.**"  # replace with time
         embed.description = "반가워요!"
@@ -130,7 +131,7 @@ class Info(clockbot.InfoCog, name="정보"):
         return embed
 
     @commands.command(name="통계")
-    async def stat(self, ctx: MacLak):
+    async def stat(self, ctx: MacLak) -> None:
         """
         명령어 사용량 순위
         """
@@ -143,12 +144,12 @@ class Info(clockbot.InfoCog, name="정보"):
         await ctx.send(embed=embed)
 
     @commands.command(name="팁", aliases=["tip"])
-    async def tip(self, ctx: MacLak):
+    async def tip(self, ctx: MacLak) -> None:
         """
         매우 쓸모있는 정보를 출력한다
         """
         embed = discord.Embed(color=self.bot.color)
-        embed.set_author(name=f"매우 쓸모있는(아마도) 정보")
+        embed.set_author(name="매우 쓸모있는(아마도) 정보")
         embed.description = random.choice(TIPS)
         await ctx.send(embed=embed)
 

@@ -1,7 +1,5 @@
 import asyncio
 import json
-import random
-from typing import Dict
 
 import aiohttp
 import discord
@@ -21,9 +19,9 @@ from discord.ext import commands
 
 
 def load_data():
-    poggers: Dict[int, dict] = dict()
+    poggers: dict[int, dict] = {}
     try:
-        with open("settings/poggers.json", "r") as f:
+        with open("settings/poggers.json") as f:
             tmp = json.load(f)
             for key, val in tmp.items():
                 poggers[int(key)] = val
@@ -38,16 +36,16 @@ def load_data():
 poggers = load_data()
 
 
-def save_change():
+def save_change() -> None:
     with open("settings/poggers.json", "w") as f:
         json.dump(poggers, f, indent=4, ensure_ascii=False)
     print("poggers.json updated")
 
 
 class Meme(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
         self.bot = bot
-        self.dogs: Dict[int, Dict[int, bool]] = dict()
+        self.dogs: dict[int, dict[int, bool]] = {}
 
     # @commands.command(name="개소리")
     # async def bark(self, ctx, target=None):
@@ -89,7 +87,7 @@ class Meme(commands.Cog):
     #     pass
 
     @commands.command(name="만우절")
-    async def aprilfools(self, ctx):
+    async def aprilfools(self, ctx) -> None:
         await asyncio.sleep(0.5)
         if not (
             ctx.author.guild_permissions.administrator
@@ -108,7 +106,7 @@ class Meme(commands.Cog):
         if ctx.guild.id in poggers:
             channel_id = poggers[ctx.guild.id]["channel"]
             channel = self.bot.get_channel(channel_id)
-            if channel != None:
+            if channel is not None:
                 await ctx.send(channel.mention)
                 return
             else:
@@ -120,17 +118,17 @@ class Meme(commands.Cog):
             if hook.user == self.bot.user:
                 my_hook = hook
                 break
-        if my_hook == None:
+        if my_hook is None:
             hook = await ctx.channel.create_webhook(name="ClockBot")
         else:
             hook = my_hook
 
         url = hook.url
         poggers[ctx.guild.id] = {"channel": ctx.channel.id, "webhook": url}
-        msg = await ctx.send("ㅋㅋㄹㅃㅃ")
+        await ctx.send("ㅋㅋㄹㅃㅃ")
 
     @commands.command(name="제발그만")
-    async def itstimetostop(self, ctx):
+    async def itstimetostop(self, ctx) -> None:
         if not (
             ctx.author.guild_permissions.administrator
             or await self.bot.is_owner(ctx.author)
@@ -147,7 +145,7 @@ class Meme(commands.Cog):
             await ctx.send("ㅋㅋㄹㅃㅃ?")
 
     @commands.Cog.listener(name="on_message")
-    async def messup_message(self, msg):
+    async def messup_message(self, msg) -> None:
         if (
             (not isinstance(msg.channel, discord.DMChannel))
             and (not msg.author.bot)
@@ -172,9 +170,9 @@ class Meme(commands.Cog):
                     i += 32
 
 
-def setup(bot):
+def setup(bot) -> None:
     bot.add_cog(Meme(bot))
 
 
-def teardown(bot):
+def teardown(bot) -> None:
     save_change()

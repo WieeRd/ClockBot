@@ -52,6 +52,4 @@ def num2kr(num: int, mode=0) -> str:
             kr_str.append(str(digit_10k[i]) + unit_10k[i])
 
     glue = "" if mode == 1 else " "
-    kr_str = glue.join(reversed(kr_str))
-
-    return kr_str
+    return glue.join(reversed(kr_str))

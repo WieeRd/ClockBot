@@ -28,7 +28,7 @@ class AliasAsArg(Command):
     """
 
     # TODO: reinvoke() is a thing
-    async def invoke(self, ctx: commands.Context):
+    async def invoke(self, ctx: commands.Context) -> None:
         ctx.command = self
         ctx.invoked_subcommand = None
         ctx.subcommand_passed = None

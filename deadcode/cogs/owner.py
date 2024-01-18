@@ -33,7 +33,7 @@ class Owner(clockbot.Cog, name="제작자"):
     봇 제작자가 쓰려고 만든 관리 기능들
     """
 
-    def __init__(self, bot: ClockBot):
+    def __init__(self, bot: ClockBot) -> None:
         self.bot = bot
         self.icon = "\N{CARROT}"
         self.showcase = [
@@ -45,7 +45,7 @@ class Owner(clockbot.Cog, name="제작자"):
 
     @clockbot.alias_as_arg(name="종료", aliases=["퇴근", "재시작", "업데이트"])
     @commands.is_owner()
-    async def shutdown(self, ctx: MacLak):
+    async def shutdown(self, ctx: MacLak) -> None:
         """
         지정된 종료코드로 봇을 종료시킨다
         """
@@ -73,7 +73,7 @@ class Owner(clockbot.Cog, name="제작자"):
         await self.bot.close()
 
     @commands.command(name="코드", usage="<명령어/카테고리>")
-    async def getsource(self, ctx: MacLak, entity: str):
+    async def getsource(self, ctx: MacLak, entity: str) -> None:
         """
         해당 명령어/카테고리의 소스코드를 출력한다
         시계봇은 오픈소스 프로젝트라는 사실
@@ -87,7 +87,7 @@ class Owner(clockbot.Cog, name="제작자"):
         elif cog := self.bot.get_cog(entity):
             target = cog.__class__
             file = inspect.getfile(target)
-            with open(file, "r") as f:
+            with open(file) as f:
                 code = f.read()
         else:
             await ctx.tick(False)
@@ -103,7 +103,7 @@ class Owner(clockbot.Cog, name="제작자"):
 
     @commands.command(name="서버목록")
     @commands.is_owner()
-    async def serverlist(self, ctx: MacLak):
+    async def serverlist(self, ctx: MacLak) -> None:
         """
         봇이 접속해 있는 서버들의 정보를 띄운다
         """
@@ -118,14 +118,14 @@ class Owner(clockbot.Cog, name="제작자"):
         await ctx.send(embed=embed)
 
     @commands.command(name="핑")
-    async def ping(self, ctx: MacLak):
+    async def ping(self, ctx: MacLak) -> None:
         """
         메세지 핑 측정
         """
         await ctx.send(f"{int(self.bot.latency*1000)}ms")
 
     @commands.command(name="업타임")
-    async def uptime(self, ctx: MacLak):
+    async def uptime(self, ctx: MacLak) -> None:
         """
         봇이 켜진지 얼마나 지났는지 출력한다
         """

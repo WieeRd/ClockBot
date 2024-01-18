@@ -8,29 +8,29 @@ from discord.ext import commands
 
 
 class TextPage:
-    def __init__(self):
+    def __init__(self) -> None:
         self.buffer = []
         self.istack = []
 
-    def line(self, content: str = ""):
+    def line(self, content: str = "") -> None:
         if content:
             self.buffer.extend(self.istack)
             self.buffer.append(content)
         self.buffer.append("\n")
 
-    def lines(self, content: str | list[str]):
+    def lines(self, content: str | list[str]) -> None:
         if isinstance(content, str):
             content = content.split("\n")
         for line in content:
             self.line(line)
 
-    def indent(self, amount: int | str):
+    def indent(self, amount: int | str) -> None:
         if isinstance(amount, int):
             self.istack.append(" " * amount)
         else:
             self.istack.append(amount)
 
-    def dedent(self):
+    def dedent(self) -> None:
         self.istack.pop()
 
     @contextmanager
@@ -49,7 +49,7 @@ class TextPage:
     def generate(self) -> str:
         return "".join(self.buffer)
 
-    def clear(self):
+    def clear(self) -> None:
         self.buffer = []
         self.istack = []
 
@@ -63,8 +63,12 @@ class TextHelp(commands.HelpCommand):
     context: commands.Context
 
     def __init__(
-        self, prefix: str = "", suffix: str = "", cogs: list[str] = None, **options
-    ):
+        self,
+        prefix: str = "",
+        suffix: str = "",
+        cogs: list[str] | None = None,
+        **options,
+    ) -> None:
         if cogs is None:
             cogs = []
         super().__init__(**options)
@@ -74,18 +78,17 @@ class TextHelp(commands.HelpCommand):
         self.suffix = suffix
         self.cogs = cogs
 
-    async def prepare_help_command(self, ctx, cmd):
+    async def prepare_help_command(self, ctx, cmd) -> None:
         self.page.clear()
 
     async def send_page(self) -> discord.Message:
         destin = self.get_destination()
         content = self.page.generate()
-        msg = await destin.send(content)
-        return msg
+        return await destin.send(content)
 
     def _add_cmd_info(
         self, cmd: commands.Command, short_doc: str = "", usage: str = ""
-    ):
+    ) -> None:
         """
         Add simple command/group info to the page
         !name usage
@@ -109,7 +112,9 @@ class TextHelp(commands.HelpCommand):
         with self.page.indented(" -> "):
             self.page.line(short_doc)
 
-    def _add_cmd_detail(self, cmd: commands.Command, _help: str = "", usage: str = ""):
+    def _add_cmd_detail(
+        self, cmd: commands.Command, _help: str = "", usage: str = ""
+    ) -> None:
         p = self.clean_prefix
         usage = cmd.usage or usage
         _help = cmd.help or _help
@@ -133,13 +138,13 @@ class TextHelp(commands.HelpCommand):
         with self.page.indented(4):
             self.page.lines(more_info)
 
-    def _add_cog_info(self, cog: commands.Cog):
+    def _add_cog_info(self, cog: commands.Cog) -> None:
         self.page.line(f"[{cog.qualified_name}]: {cog.description}")
         cmd_lst = getattr(cog, "help_menu", cog.get_commands())
         cmd_names = [f"{self.clean_prefix}{c.name}" for c in cmd_lst]
         self.page.line(" -> " + " ".join(cmd_names))
 
-    async def send_command_help(self, cmd: commands.Command):
+    async def send_command_help(self, cmd: commands.Command) -> None:
         with self.page.codeblock():
             category = cmd.cog_name or "없음"
             self.page.line(f"[카테고리: {category}]")
@@ -147,7 +152,7 @@ class TextHelp(commands.HelpCommand):
 
         await self.send_page()
 
-    async def send_group_help(self, grp: commands.Group):
+    async def send_group_help(self, grp: commands.Group) -> None:
         with self.page.codeblock():
             category = grp.cog_name or "없음"
             self.page.line(f"[카테고리: {category}]")
@@ -163,7 +168,7 @@ class TextHelp(commands.HelpCommand):
 
         await self.send_page()
 
-    async def send_cog_help(self, cog: commands.Cog):
+    async def send_cog_help(self, cog: commands.Cog) -> None:
         self.page.line(f"**[{cog.qualified_name}]** : {cog.description}")
         cmd_lst = getattr(cog, "help_menu", cog.get_commands())
 
@@ -177,7 +182,7 @@ class TextHelp(commands.HelpCommand):
 
         await self.send_page()
 
-    async def send_bot_help(self, mapping):
+    async def send_bot_help(self, mapping) -> None:
         ctx = self.context
         bot = ctx.bot
         p = self.clean_prefix
@@ -209,7 +214,7 @@ class TextHelp(commands.HelpCommand):
 
         await self.send_page()
 
-    async def command_not_found(self, cmd: str):
+    async def command_not_found(self, cmd: str) -> str:
         p = self.clean_prefix
         return (
             "```\n"
@@ -218,7 +223,7 @@ class TextHelp(commands.HelpCommand):
             "\n```"
         )
 
-    async def subcommand_not_found(self, cmd: commands.Command, sub: str):
+    async def subcommand_not_found(self, cmd: commands.Command, sub: str) -> str:
         p = self.clean_prefix
         return (
             "```\n"

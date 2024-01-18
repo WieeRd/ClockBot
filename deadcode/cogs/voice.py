@@ -1,6 +1,5 @@
 import asyncio
 import os
-from typing import Dict
 
 import aiogtts
 import aiohttp
@@ -18,12 +17,12 @@ class Text2Speech(aiogtts.aiogTTS):
     for not awaiting aiogTTS.session.close()
     """
 
-    def __init__(self, session: aiohttp.ClientSession):
+    def __init__(self, session: aiohttp.ClientSession) -> None:
         super().__init__()
         super().__del__()
         self.session = session
 
-    def __del__(self):
+    def __del__(self) -> None:
         pass
 
 
@@ -36,7 +35,7 @@ class Voice(clockbot.Cog, name="TTS"):
     마이크가 없다면 봇이 채팅을 읽어드립니다
     """
 
-    def __init__(self, bot: clockbot.ClockBot):
+    def __init__(self, bot: clockbot.ClockBot) -> None:
         self.bot = bot
         self.icon = "\N{SPEAKER WITH THREE SOUND WAVES}"
 
@@ -51,17 +50,17 @@ class Voice(clockbot.Cog, name="TTS"):
         )
 
         self.engine = Text2Speech(bot.session)
-        self.tts_link: Dict[discord.Guild, discord.TextChannel] = {}
+        self.tts_link: dict[discord.Guild, discord.TextChannel] = {}
         self.count = 0
 
     # migration
     @commands.command(name="음성")
-    async def voice(self, ctx: MacLak):
+    async def voice(self, ctx: MacLak) -> None:
         await ctx.send_help("TTS")
 
     @commands.command(name="들어와")
     @commands.guild_only()
-    async def join(self, ctx: GMacLak):
+    async def join(self, ctx: GMacLak) -> None:
         """
         봇을 음성채널에 초대한다
         이후 메세지 앞에 ;를 붙혀
@@ -69,9 +68,9 @@ class Voice(clockbot.Cog, name="TTS"):
         """
         connected = ctx.voice_client
         requested = ctx.author.voice
-        if requested == None:
-            await ctx.code(f"에러: 사용자가 음성 채널에 접속해있지 않습니다")
-        elif connected != None:  # already connected to somewhere
+        if requested is None:
+            await ctx.code("에러: 사용자가 음성 채널에 접속해있지 않습니다")
+        elif connected is not None:  # already connected to somewhere
             if connected.channel == requested.channel:
                 await ctx.code("에러: 이미 봇이 음성채널에 접속해있습니다")
             else:
@@ -97,7 +96,7 @@ class Voice(clockbot.Cog, name="TTS"):
 
     @commands.command(name="나가")
     @commands.guild_only()
-    async def leave(self, ctx: GMacLak):
+    async def leave(self, ctx: GMacLak) -> None:
         """
         봇을 음성채널에서 내보낸다
         아무도 없으면 자동으로 나가지만
@@ -111,18 +110,18 @@ class Voice(clockbot.Cog, name="TTS"):
         else:
             await ctx.code("에러: 봇과 같은 음성 채널에 접속해있지 않습니다")
 
-    async def disconnect_all(self):
+    async def disconnect_all(self) -> None:
         for vc in self.bot.voice_clients:
             await vc.disconnect(force=False)
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         loop = asyncio.get_event_loop()
         loop.create_task(self.disconnect_all())
 
     @commands.Cog.listener()
     async def on_voice_state_update(
         self, who: discord.Member, before: VoiceState, after: VoiceState
-    ):
+    ) -> None:
         vc = who.guild.voice_client
         # print(bool(vc), who.name, str(before.channel), (after.channel))
 
@@ -140,11 +139,11 @@ class Voice(clockbot.Cog, name="TTS"):
             await chat.send("바이바이")
 
     @commands.Cog.listener(name="on_message")
-    async def send_tts(self, msg: discord.Message):
+    async def send_tts(self, msg: discord.Message) -> None:
         if (
             not msg.author.bot
             and msg.content.startswith(TTS_PREFIX)
-            and msg.guild != None
+            and msg.guild is not None
             and self.tts_link.get(msg.guild) == msg.channel
         ):
             if len(msg.content) >= TTS_MAX_LEN:

@@ -1,7 +1,6 @@
 import asyncio
 import datetime
 import random
-from typing import Union
 
 import discord
 import emojis
@@ -122,7 +121,7 @@ class Tools(clockbot.Cog, name="도구"):
     간단하고 흔하고 편리한 기능들
     """
 
-    def __init__(self, bot: clockbot.ClockBot):
+    def __init__(self, bot: clockbot.ClockBot) -> None:
         self.bot = bot
         self.icon = "\N{WRENCH}"
 
@@ -145,7 +144,9 @@ class Tools(clockbot.Cog, name="도구"):
 
     @commands.command(name="유저", usage="닉네임/@멘션")
     @commands.guild_only()
-    async def userinfo(self, ctx: commands.Context, *, target: FuzzyMember = None):
+    async def userinfo(
+        self, ctx: commands.Context, *, target: FuzzyMember = None
+    ) -> None:
         """
         해당 유저의 계정 정보를 출력한다
         """
@@ -171,7 +172,7 @@ class Tools(clockbot.Cog, name="도구"):
         embed.add_field(name="서버 참가일", value=f"<t:{joined}:D>")
 
         user = await self.bot.fetch_user(member.id)
-        if user.banner != None:
+        if user.banner is not None:
             embed.set_image(url=user.banner.url)
 
         # TODO: activity
@@ -179,7 +180,7 @@ class Tools(clockbot.Cog, name="도구"):
         await ctx.send(embed=embed)
 
     @commands.command(name="프사", usage="닉네임/@멘션")
-    async def user_avatar(self, ctx: MacLak, *, user: FuzzyMember):
+    async def user_avatar(self, ctx: MacLak, *, user: FuzzyMember) -> None:
         """
         유저 프로필 사진을 띄운다
         멘션 대신 닉네임으로도 선택 가능하다
@@ -197,7 +198,7 @@ class Tools(clockbot.Cog, name="도구"):
 
     @commands.command(name="서버프사")
     @commands.guild_only()
-    async def server_avatar(self, ctx: GMacLak):
+    async def server_avatar(self, ctx: GMacLak) -> None:
         """
         서버 프로필 사진을 띄운다
         """
@@ -211,7 +212,7 @@ class Tools(clockbot.Cog, name="도구"):
         await ctx.send(embed=embed)
 
     @commands.command(name="이모지", aliases=["이모티콘"], usage=":thonk:")
-    async def get_emoji(self, ctx: MacLak, emoji: Union[discord.PartialEmoji, str]):
+    async def get_emoji(self, ctx: MacLak, emoji: discord.PartialEmoji | str) -> None:
         """
         이모티콘 원본 이미지를 출력한다
         번쩍거리는 이모지에 사용해서 발작을 유발하거나,
@@ -230,7 +231,7 @@ class Tools(clockbot.Cog, name="도구"):
         await ctx.send(f"https://twemoji.maxcdn.com/2/72x72/{ord(e[:1]):x}.png")
 
     @commands.command(name="동전")
-    async def coin(self, ctx: MacLak):
+    async def coin(self, ctx: MacLak) -> None:
         """
         50:50:1 (?)
         옆면 나오면 인증샷 부탁드립니다
@@ -245,7 +246,7 @@ class Tools(clockbot.Cog, name="도구"):
             await ctx.send("뒷면")
 
     @commands.command(name="주사위", usage="<N>")
-    async def dice(self, ctx: MacLak, arg: str):
+    async def dice(self, ctx: MacLak, arg: str) -> None:
         """
         N면체 주사위를 굴린다
         가끔 3면체는 존재할 수 없다는 사람들이 있는데
@@ -285,7 +286,7 @@ class Tools(clockbot.Cog, name="도구"):
                 pass
 
     @commands.command(name="추첨", usage="A B C")
-    async def choose(self, ctx, *, arg: str):
+    async def choose(self, ctx, *, arg: str) -> None:
         """
         돌려돌려~ 돌림판
         제작자의 점심 메뉴를 고르기 위해 만들어졌으나
@@ -302,13 +303,13 @@ class Tools(clockbot.Cog, name="도구"):
     @commands.command(name="청소", usage="<N> or (메세지에 답장하며)")
     @clockbot.owner_or_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True, read_message_history=True)
-    async def purge(self, ctx: GMacLak, amount: int = None):
+    async def purge(self, ctx: GMacLak, amount: int | None = None) -> None:
         """
         최근 챗 N개 삭제 | 공백 -N줄 출력 (N<0)
         메세지에 답장하며 사용하면 그 메세지와
         이후의 모든 메세지가 삭제된다.
         """
-        if amount == None:
+        if amount is None:
             ref = ctx.message.reference
             if ref and isinstance(ref.resolved, discord.Message):
                 await ctx.channel.purge(after=ref.resolved)
@@ -373,7 +374,7 @@ class Tools(clockbot.Cog, name="도구"):
             await ctx.channel.send(answer)
 
     @commands.command(name="여긴어디")
-    async def where(self, ctx: MacLak):
+    async def where(self, ctx: MacLak) -> None:
         if isinstance(ctx.channel, discord.DMChannel):
             # legacy code left just for this lol
             await ctx.send("후훗... 여긴... 너와 나 단 둘뿐이야")

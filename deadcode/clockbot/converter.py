@@ -6,6 +6,7 @@ from typing import TypeVar
 import discord
 from discord.ext import commands
 from jamo import h2j, j2hcj
+import contextlib
 
 __all__ = (
     "partialsearch",
@@ -114,7 +115,7 @@ class MemberType(discord.Member):
     Just to provide member type hints
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
 
@@ -165,10 +166,8 @@ class PartialMember(commands.MemberConverter, MemberType):
             await question.edit(embed=embed)
             raise NoProblemError from e
 
-        try:
+        with contextlib.suppress(Exception):
             await answer.delete()
-        except Exception:
-            pass
 
         if answer.content == "c":
             embed = discord.Embed()
@@ -183,7 +182,7 @@ class PartialMember(commands.MemberConverter, MemberType):
 class MemberSelect(discord.ui.Select):
     view: "MemberMenu"
 
-    def __init__(self, members: list[discord.Member]):
+    def __init__(self, members: list[discord.Member]) -> None:
         super().__init__()
         for i, member in enumerate(members):
             self.add_option(
@@ -193,13 +192,13 @@ class MemberSelect(discord.ui.Select):
                 emoji="\N{ROBOT FACE}" if member.bot else "\N{BUST IN SILHOUETTE}",
             )
 
-    async def callback(self, _: discord.Interaction):
+    async def callback(self, _: discord.Interaction) -> None:
         self.view.index = int(self.values[0])
         self.view.stop()
 
 
 class MemberMenu(discord.ui.View):
-    def __init__(self, members: list[discord.Member], owner: discord.Member):
+    def __init__(self, members: list[discord.Member], owner: discord.Member) -> None:
         super().__init__(timeout=20.0)
         self.index = 0
         self.owner = owner

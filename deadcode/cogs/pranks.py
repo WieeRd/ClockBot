@@ -1,5 +1,5 @@
 import re
-from typing import Callable, Dict, Tuple
+from collections.abc import Callable
 
 import discord
 import emojis
@@ -21,7 +21,7 @@ EMOJI = r"(:\w+:)"
 strObject = re.compile(f"(({MENTION}|{EMOJI})\s*)+$")  # type: ignore
 
 Translator = Callable[[str], str]
-SPECIAL_LANGS: Dict[str, Translator] = {
+SPECIAL_LANGS: dict[str, Translator] = {
     # '랜덤': randslate,
     "개소리": doggoslate,
     "냥소리": kittyslate,
@@ -32,6 +32,7 @@ SPECIAL_LANGS: Dict[str, Translator] = {
 from io import BytesIO
 
 from wand.image import Image
+import contextlib
 
 BONK = Image(filename="assets/image/bonk.png")
 CLOCK = open("assets/avatar.png", "rb").read()
@@ -44,7 +45,7 @@ class Pranks(clockbot.Cog, name="장난"):
 
     require_db = True
 
-    def __init__(self, bot: clockbot.ClockBot):
+    def __init__(self, bot: clockbot.ClockBot) -> None:
         self.bot = bot
         self.icon = "\N{FACE WITH TEARS OF JOY}"
 
@@ -64,13 +65,13 @@ class Pranks(clockbot.Cog, name="장난"):
 
         self.imperDB = DictDB(bot.db.impersonate)
 
-        self.filters: Dict[Tuple[int, int], Tuple[Translator, bool]] = {}
+        self.filters: dict[tuple[int, int], tuple[Translator, bool]] = {}
         self.filterDB = DictDB(bot.db.filters)
 
         self.load_filters.start()
 
     @tasks.loop(count=1)
-    async def load_filters(self):
+    async def load_filters(self) -> None:
         async for doc in self.filterDB.find():
             guild_id = doc["_id"]["guild"]
             user_id = doc["_id"]["user"]
@@ -82,7 +83,7 @@ class Pranks(clockbot.Cog, name="장난"):
 
     @commands.command(name="사칭", usage="닉네임/@멘션 <선동&날조>")
     @commands.bot_has_permissions(manage_webhooks=True, manage_messages=True)
-    async def impersonate(self, ctx: GMacLak, user: FuzzyMember, *, txt):
+    async def impersonate(self, ctx: GMacLak, user: FuzzyMember, *, txt) -> None:
         """
         다른 사람이 보낸 듯한 가짜 메세지를 보낸다
         명령어를 삭제하면 가짜 메세지도 자동 삭제된다.
@@ -93,13 +94,14 @@ class Pranks(clockbot.Cog, name="장난"):
             user, txt, wait=True, allowed_mentions=discord.AllowedMentions.none()
         )
 
-        assert msg != None
-        await self.imperDB.insert_one(
-            {"_id": ctx.message.id, "mimic": msg.id}
-        )  # message id is not globally unique, but chance of collision is still low
+        assert msg is not None
+        await self.imperDB.insert_one({
+            "_id": ctx.message.id,
+            "mimic": msg.id,
+        })  # message id is not globally unique, but chance of collision is still low
 
     @commands.command(name="빼액", usage="<텍스트>")
-    async def yell(self, ctx: MacLak, *, txt: str):
+    async def yell(self, ctx: MacLak, *, txt: str) -> None:
         """
         영문/숫자 텍스트를 이모지로 변환한다
         큼지막한 글자로 강력한 자기주장을 해보자
@@ -114,7 +116,7 @@ class Pranks(clockbot.Cog, name="장난"):
     )
     @commands.bot_has_permissions(manage_messages=True, manage_webhooks=True)
     @commands.guild_only()
-    async def add_filter(self, ctx: GMacLak, *, target: FuzzyMember):
+    async def add_filter(self, ctx: GMacLak, *, target: FuzzyMember) -> None:
         """
         채팅에 필터(말투변환기)를 적용한다
         관리자가 적용한 필터는 관리자만 해제할 수 있으며,
@@ -153,7 +155,7 @@ class Pranks(clockbot.Cog, name="장난"):
 
     @commands.command(name="필터해제", usage="닉네임/@멘션")
     @commands.guild_only()
-    async def rm_filter(self, ctx: GMacLak, *, user: FuzzyMember = None):
+    async def rm_filter(self, ctx: GMacLak, *, user: FuzzyMember = None) -> None:
         """
         적용된 필터를 제거한다
         """
@@ -168,9 +170,10 @@ class Pranks(clockbot.Cog, name="장난"):
                 )
             else:
                 del self.filters[query]
-                await self.filterDB.remove(
-                    {"guild": target.guild.id, "user": target.id}
-                )
+                await self.filterDB.remove({
+                    "guild": target.guild.id,
+                    "user": target.id,
+                })
                 if not await ctx.tick(True):
                     await ctx.send("필터가 해제되었습니다")
         else:
@@ -180,7 +183,7 @@ class Pranks(clockbot.Cog, name="장난"):
     # TODO: more avatar memes (smack, F, patpat)
     @commands.command(name="퍽", usage="닉네임/@멘션", cooldown_after_parsing=True)
     @commands.cooldown(rate=1, per=15, type=commands.BucketType.user)
-    async def bonk(self, ctx: MacLak, *, user: FuzzyMember):
+    async def bonk(self, ctx: MacLak, *, user: FuzzyMember) -> None:
         """
         사람을 이유없이 때린다
         연타는 너무하므로 쿨타임 15초
@@ -213,13 +216,13 @@ class Pranks(clockbot.Cog, name="장난"):
         file = discord.File(result, filename="bonk.png")
         embed = discord.Embed(color=self.bot.color)
         embed.title = f"{user.display_name} << 퍽퍽"
-        embed.set_image(url=f"attachment://bonk.png")
+        embed.set_image(url="attachment://bonk.png")
 
         await ctx.send(embed=embed, file=file)
 
     @commands.command(name="쓰담", usage="닉네임/@멘션", cooldown_after_parsing=True)
     @commands.cooldown(rate=1, per=15, type=commands.BucketType.user)
-    async def pet(self, ctx: MacLak, *, user: FuzzyMember):
+    async def pet(self, ctx: MacLak, *, user: FuzzyMember) -> None:
         """
         해당 유저를 상냥하게 쓰다듬어준다
         너무 오냐오냐하면 버릇없어지므로
@@ -242,41 +245,35 @@ class Pranks(clockbot.Cog, name="장난"):
 
         file = discord.File(result, filename="petpet.gif")
         embed = discord.Embed(color=self.bot.color)
-        embed.title = random.choice(
-            [
-                "쓰담쓰담쓰담쓰담",
-                "옳지옳지옳지옳지",
-                "요시요시요시요시",
-                f"PET THE {user.display_name.upper()}",
-            ]
-        )
+        embed.title = random.choice([
+            "쓰담쓰담쓰담쓰담",
+            "옳지옳지옳지옳지",
+            "요시요시요시요시",
+            f"PET THE {user.display_name.upper()}",
+        ])
         embed.set_footer(
-            text=random.choice(
-                [
-                    "호감도 +1",
-                    "말랑함 +1",
-                    "만족감 +1",
-                    "귀여움 +1",
-                ]
-            )
+            text=random.choice([
+                "호감도 +1",
+                "말랑함 +1",
+                "만족감 +1",
+                "귀여움 +1",
+            ])
         )
 
-        embed.set_image(url=f"attachment://petpet.gif")
+        embed.set_image(url="attachment://petpet.gif")
 
         await ctx.send(embed=embed, file=file)
 
     @commands.Cog.listener()
-    async def on_message(self, msg: discord.Message):
+    async def on_message(self, msg: discord.Message) -> None:
         if not msg.content:
             return
         if not isinstance(msg.channel, discord.TextChannel):
             return
 
         if t := self.filters.get((msg.channel.guild.id, msg.author.id)):
-            try:
+            with contextlib.suppress(Exception):
                 await msg.delete()
-            except:
-                pass
             content = emojis.decode(msg.content)
             if not strObject.match(content):
                 content = t[0](content)
@@ -288,7 +285,9 @@ class Pranks(clockbot.Cog, name="장난"):
             )
 
     @commands.Cog.listener()
-    async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
+    async def on_raw_message_delete(
+        self, payload: discord.RawMessageDeleteEvent
+    ) -> None:
         if query := await self.imperDB.get(payload.message_id):
             channel = self.bot.get_channel(payload.channel_id)
             if isinstance(channel, discord.TextChannel):

@@ -22,7 +22,7 @@ class Clock(clockbot.Cog):
     시계봇은 닉값을 제대로 한다 (프사 주목)
     """
 
-    def __init__(self, bot: ClockBot):
+    def __init__(self, bot: ClockBot) -> None:
         self.bot = bot
         self.icon = "\N{CLOCK FACE NINE OCLOCK}"
         self.showcase = [
@@ -39,7 +39,7 @@ class Clock(clockbot.Cog):
 
     # TODO: time converter
     @commands.command(name="시계", usage="HH:MM")
-    async def drawclock(self, ctx: MacLak, hh_mm: str):
+    async def drawclock(self, ctx: MacLak, hh_mm: str) -> None:
         """
         HH시 MM분의 시계를 그린다
         """
@@ -54,15 +54,15 @@ class Clock(clockbot.Cog):
 
     @commands.group()
     @commands.is_owner()
-    async def clock(self, ctx: MacLak):
+    async def clock(self, ctx: MacLak) -> None:
         """
         프로필 사진 / 상태 메세지 업데이트 제어
         """
-        if ctx.invoked_subcommand == None:
+        if ctx.invoked_subcommand is None:
             await ctx.send_help(self.clock)
 
     @clock.command(usage="<text>")
-    async def status(self, ctx: MacLak, *, status: str = ""):
+    async def status(self, ctx: MacLak, *, status: str = "") -> None:
         """
         AM/PM HH:MM | TEXT
         """
@@ -70,7 +70,7 @@ class Clock(clockbot.Cog):
         await ctx.tick(True)
 
     @tasks.loop()
-    async def liveClock(self):  # TODO: better delay mechanic
+    async def liveClock(self) -> None:  # TODO: better delay mechanic
         await self.bot.wait_until_ready()
         tm = time.localtime()
         hh, mm, ss = tm.tm_hour, tm.tm_min, tm.tm_sec
@@ -93,7 +93,7 @@ class Clock(clockbot.Cog):
             delay += 60
         await asyncio.sleep(delay)
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         self.liveClock.cancel()
 
 

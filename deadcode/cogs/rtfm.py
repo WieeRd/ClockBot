@@ -9,7 +9,8 @@ import io
 import os
 import re
 import zlib
-from typing import Callable, Dict, Iterable, List, TypeVar
+from typing import TypeVar
+from collections.abc import Callable, Iterable
 
 import discord
 from discord.ext import commands
@@ -39,7 +40,7 @@ ALIASES = {
 MAX_RESULTS = 8
 
 
-def finder(text: str, collection: Iterable[T], key: Callable[[T], str]) -> List[T]:
+def finder(text: str, collection: Iterable[T], key: Callable[[T], str]) -> list[T]:
     suggestions = []
     text = str(text)
     pat = ".*?".join(map(re.escape, text))
@@ -49,7 +50,9 @@ def finder(text: str, collection: Iterable[T], key: Callable[[T], str]) -> List[
         if r := regex.search(key(item)):
             suggestions.append((len(r.group()), r.start(), item))
 
-    sort_key = lambda tup: (tup[0], tup[1], key(tup[2]))
+    def sort_key(tup):
+        return tup[0], tup[1], key(tup[2])
+
     return [z for _, _, z in sorted(suggestions, key=sort_key)]
 
 
@@ -57,13 +60,13 @@ class SphinxObjectFileReader:
     # Inspired by Sphinx's InventoryFileReader
     BUFSIZE = 16 * 1024
 
-    def __init__(self, buffer):
+    def __init__(self, buffer) -> None:
         self.stream = io.BytesIO(buffer)
 
     def readline(self):
         return self.stream.readline().decode("utf-8")
 
-    def skipline(self):
+    def skipline(self) -> None:
         self.stream.readline()
 
     def read_compressed_chunks(self):
@@ -96,7 +99,7 @@ def remove_prefix(s: str, prefix: str) -> str:
         return s[:]
 
 
-def parse_object_inv(stream: SphinxObjectFileReader, url: str) -> Dict[str, str]:
+def parse_object_inv(stream: SphinxObjectFileReader, url: str) -> dict[str, str]:
     """
     Parses Sphinx inventory object
     Return: Rictionary of [key:url]
@@ -109,7 +112,7 @@ def parse_object_inv(stream: SphinxObjectFileReader, url: str) -> Dict[str, str]
 
     result = {}
     projname = stream.readline().rstrip()[11:]
-    version = stream.readline().rstrip()[11:]  # not needed
+    stream.readline().rstrip()[11:]  # not needed
 
     line = stream.readline()
     if "zlib" not in line:
@@ -152,13 +155,13 @@ class RTFM(clockbot.Cog):
     Read The F*cking Document
     """
 
-    def __init__(self, bot: clockbot.ClockBot):
+    def __init__(self, bot: clockbot.ClockBot) -> None:
         self.bot = bot
         self.icon = "\N{OPEN BOOK}"
 
-        self.cache: Dict[str, Dict[str, str]] = {}
+        self.cache: dict[str, dict[str, str]] = {}
 
-    async def rtfm_table(self, url: str) -> Dict[str, str]:
+    async def rtfm_table(self, url: str) -> dict[str, str]:
         async with self.bot.session.get(f"{url}/objects.inv") as resp:
             if resp.status != 200:  # not ok :(
                 raise RuntimeError("Failed to download objects.inv")
@@ -169,7 +172,7 @@ class RTFM(clockbot.Cog):
         return parse_object_inv(stream, url)
 
     @commands.command(aliases=["rtfm"], usage="<doc> <search>")
-    async def doc(self, ctx: commands.Context, page: str = "", obj: str = ""):
+    async def doc(self, ctx: commands.Context, page: str = "", obj: str = "") -> None:
         """
         Search docs of python, discord.py and it's forks
         """
@@ -225,7 +228,7 @@ class RTFM(clockbot.Cog):
 
     @commands.command(name="purge-doc", usage="<doc>")
     @commands.is_owner()
-    async def purge_doc(self, ctx: commands.Context, page: str = ""):
+    async def purge_doc(self, ctx: commands.Context, page: str = "") -> None:
         """
         Purge RTFM cache
         """

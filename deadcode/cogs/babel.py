@@ -1,11 +1,10 @@
 import random
-from typing import Optional
 
 from google_trans_new import google_translator
 from google_trans_new.constant import LANGUAGES
 
 LANG_LIST = list(LANGUAGES)
-LANG_DICT = dict((value, key) for key, value in LANGUAGES.items())
+LANG_DICT = {value: key for key, value in LANGUAGES.items()}
 
 translator = google_translator()
 
@@ -46,11 +45,7 @@ def waldoslate(txt: str, craziness=1) -> str:
     the result probably doesn't make any sense
     """
     detect = translator.detect(txt)
-    if isinstance(detect, list):
-        origin = detect[0]
-    else:
-        origin = "ko"
+    origin = detect[0] if isinstance(detect, list) else "ko"
     for _ in range(craziness):
         txt = randslate(txt)
-    txt = translate(txt, origin)
-    return txt
+    return translate(txt, origin)

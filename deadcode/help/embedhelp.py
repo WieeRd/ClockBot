@@ -30,10 +30,10 @@ class EmbedHelp(commands.HelpCommand):
         invite: str = "https://youtu.be/dQw4w9WgXcQ",
         contact: str = "안받음",
         thumbnail: str | None = None,
-        menu: list[str] = None,
-        tips: list[str] = None,
+        menu: list[str] | None = None,
+        tips: list[str] | None = None,
         **options,
-    ):
+    ) -> None:
         if tips is None:
             tips = []
         if menu is None:
@@ -117,8 +117,7 @@ class EmbedHelp(commands.HelpCommand):
             char = cog.__class__.__name__[0].upper()
 
         offset = ord("\U0001f1e6") - ord("A")
-        icon = chr(offset + ord(char))
-        return icon
+        return chr(offset + ord(char))
 
     def get_bot_mapping(self) -> dict[str, Cog]:
         mapping: dict[str, Cog] = {}
@@ -196,7 +195,7 @@ class EmbedHelp(commands.HelpCommand):
 
         description = f"```{cmd.help or NO_HELP}```"
         if cmd.aliases and not (
-            isinstance(cmd, clockbot.AliasAsArg) or isinstance(cmd, clockbot.AliasGroup)
+            isinstance(cmd, clockbot.AliasAsArg | clockbot.AliasGroup)
         ):
             parent = cmd.full_parent_name + " " if cmd.parent else ""
             aliases = ", ".join(f"`{parent}{alias}`" for alias in cmd.aliases)
@@ -205,22 +204,22 @@ class EmbedHelp(commands.HelpCommand):
 
         return embed
 
-    async def send_bot_help(self, mapping: dict[str, Cog]):
+    async def send_bot_help(self, mapping: dict[str, Cog]) -> None:
         embed = self.bot_page(mapping)
         destin = self.get_destination()
         await destin.send(embed=embed)
 
-    async def send_cog_help(self, cog: Cog):
+    async def send_cog_help(self, cog: Cog) -> None:
         embed = self.cog_page(cog)
         destin = self.get_destination()
         await destin.send(embed=embed)
 
-    async def send_group_help(self, grp: Group):
+    async def send_group_help(self, grp: Group) -> None:
         embed = self.group_page(grp)
         destin = self.get_destination()
         await destin.send(embed=embed)
 
-    async def send_command_help(self, cmd: Command):
+    async def send_command_help(self, cmd: Command) -> None:
         embed = self.command_page(cmd)
         destin = self.get_destination()
         await destin.send(embed=embed)
@@ -240,6 +239,6 @@ class EmbedHelp(commands.HelpCommand):
         return embed
 
     # TODO: fuzzy suggestion
-    async def send_error_message(self, error: discord.Embed):
+    async def send_error_message(self, error: discord.Embed) -> None:
         destin = self.get_destination()
         await destin.send(embed=error)

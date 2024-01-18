@@ -44,7 +44,7 @@ class Cog(commands.Cog):
         return super().get_commands()
 
     @classmethod
-    def setup(cls, bot: ClockBot):
+    def setup(cls, bot: ClockBot) -> None:
         """
         Instead of defining setup() for each extension,
         just add 'setup = cog.setup' at the end.

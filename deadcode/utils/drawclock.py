@@ -2,13 +2,16 @@
 """
 https//github.com/WieeRd/DrawClock
 """
+
 from io import BytesIO
 
 from PIL import Image
 
 
 class DrawClock:
-    def __init__(self, frame: Image.Image, h_hand: Image.Image, m_hand: Image.Image):
+    def __init__(
+        self, frame: Image.Image, h_hand: Image.Image, m_hand: Image.Image
+    ) -> None:
         self.frame = frame
         self.h_hand = h_hand
         self.m_hand = m_hand

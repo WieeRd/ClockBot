@@ -7,14 +7,14 @@ from utils.KoreanNumber import kr2num, num2kr
 
 
 @commands.command(name="시계", aliases=["닉값"])
-async def when(self, ctx):
+async def when(self, ctx) -> None:
     now = time.localtime()
     now_str = time.strftime("%Y-%m-%d %a, %I:%M:%S %p", now)
     await ctx.send(f"현재시각 {now_str}")
 
 
 @commands.command(name="여긴어디")
-async def where(self, ctx):
+async def where(self, ctx) -> None:
     if isinstance(ctx.channel, discord.channel.DMChannel):
         await ctx.send("후훗... 여긴... 너와 나 단 둘뿐이야")
         return
@@ -24,7 +24,7 @@ async def where(self, ctx):
 
 
 @commands.command(name="한글로")
-async def n2kr(self, ctx, val=None, mode="0"):
+async def n2kr(self, ctx, val=None, mode="0") -> None:
     try:
         num = int(val)
         mode = int(mode)
@@ -40,8 +40,8 @@ async def n2kr(self, ctx, val=None, mode="0"):
 
 
 @commands.command(name="숫자로")
-async def kr2n(self, ctx, kr_str=None):
-    if kr_str == None:
+async def kr2n(self, ctx, kr_str=None) -> None:
+    if kr_str is None:
         await ctx.send("사용법: !숫자로 <한글 숫자>")
         return
     await ctx.send(f"{kr2num.kr2num(kr_str)}")

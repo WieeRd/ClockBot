@@ -1,6 +1,5 @@
 import enum
 from contextlib import suppress
-from typing import List, Optional
 
 import discord
 from discord.ext import commands
@@ -47,17 +46,17 @@ class Mark(enum.IntEnum):
 class TicTacToeButton(discord.ui.Button):
     view: "TicTacToe"
 
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: int, y: int) -> None:
         super().__init__(style=discord.ButtonStyle.grey, label="\u200b", row=y)
         self.x = x
         self.y = y
 
-    async def callback(self, it: discord.Interaction):
+    async def callback(self, it: discord.Interaction) -> None:
         await self.view.on_press(self, it)
 
 
 class TicTacToe(discord.ui.View):
-    children: List[TicTacToeButton]
+    children: list[TicTacToeButton]
 
     def __init__(
         self,
@@ -66,8 +65,8 @@ class TicTacToe(discord.ui.View):
         size: int = 3,
         timeout: float = 60,
         color: int = 0,
-    ):
-        if (size < 1) or (5 < size):
+    ) -> None:
+        if (size < 1) or (size > 5):
             raise ValueError("size must be in between 1~5")
         super().__init__(timeout=timeout)
 
@@ -92,7 +91,7 @@ class TicTacToe(discord.ui.View):
             for x in range(size):
                 self.add_item(TicTacToeButton(x, y))
 
-        self.board: List[List[Mark]] = []
+        self.board: list[list[Mark]] = []
         for _ in range(size):
             self.board.append([Mark.none] * size)
 
@@ -116,7 +115,7 @@ class TicTacToe(discord.ui.View):
     async def interaction_check(self, it: discord.Interaction) -> bool:
         return it.user == self.player
 
-    def is_game_over(self, m: Mark, x: int, y: int) -> Optional[Mark]:
+    def is_game_over(self, m: Mark, x: int, y: int) -> Mark | None:
         """
         Called when a new mark m is drawn on (x, y).
         If the game has ended, returns mark of winner
@@ -153,7 +152,7 @@ class TicTacToe(discord.ui.View):
 
         return None
 
-    async def on_press(self, button: TicTacToeButton, it: discord.Interaction):
+    async def on_press(self, button: TicTacToeButton, it: discord.Interaction) -> None:
         assert isinstance(it.user, discord.Member)
 
         x = button.x
@@ -168,7 +167,7 @@ class TicTacToe(discord.ui.View):
         button.label = self.mark.name
         self.winner = self.is_game_over(self.mark, x, y)
 
-        if self.winner != None:
+        if self.winner is not None:
             if self.winner == Mark.none:
                 self.embed.set_footer(text="무승부 (아 재미없어)")
             else:
@@ -188,8 +187,7 @@ class TicTacToe(discord.ui.View):
 
         await it.response.edit_message(embed=self.embed, view=self)
 
-    async def on_timeout(self):
-        ...
+    async def on_timeout(self) -> None: ...
 
 
 class Game(clockbot.Cog, name="게임"):
@@ -197,7 +195,7 @@ class Game(clockbot.Cog, name="게임"):
     디스코드에서도 가능한 간단한 게임들
     """
 
-    def __init__(self, bot: clockbot.ClockBot):
+    def __init__(self, bot: clockbot.ClockBot) -> None:
         self.bot = bot
         self.icon = "\N{GAME DIE}"
         self.showcase = [
@@ -213,9 +211,9 @@ class Game(clockbot.Cog, name="게임"):
         번갈아 O/X를 그려서 먼저 한 줄을 만들면 이긴다.
         (쉽게 말해 서양식 미니 오목이다)
         """
-        if (size < 1) or (5 < size):
+        if (size < 1) or (size > 5):
             await ctx.code("에러: 게임 크기는 1~5 범위 내여야 합니다")
-            return
+            return None
 
         if target.bot:  # TODO: TicTacToe AI coming soon-ish
             embed = discord.Embed(color=self.bot.color)
@@ -249,7 +247,7 @@ class Game(clockbot.Cog, name="게임"):
                     embed=embed,
                     view=view,
                 )
-            return
+            return None
 
         # TODO: different lines depending on the result
 
@@ -257,11 +255,12 @@ class Game(clockbot.Cog, name="게임"):
             ...
 
         if view.winner == Mark.X:
-            winner, loser = playerX, playerO
+            _winner, _loser = playerX, playerO
         else:
-            winner, loser = playerO, playerX
+            _winner, _loser = playerO, playerX
 
         ...
+        return None
 
 
 setup = Game.setup

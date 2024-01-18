@@ -6,6 +6,7 @@ from discord.ext.commands import Cog, Command, Group
 import clockbot
 
 from .embedhelp import NO_HELP, EmbedHelp, hoverlink
+import contextlib
 
 HelpOBJ = Cog | Group | Command | None
 
@@ -30,7 +31,7 @@ class EmbedMenu(EmbedHelp):
         timeout: float = 60,
         inactive: int = 0x000000,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(**kwargs)
         self.main = main
         self.exit = exit
@@ -89,7 +90,7 @@ class EmbedMenu(EmbedHelp):
         else:
             raise TypeError
 
-    async def menu_handler(self, timeout: float):
+    async def menu_handler(self, timeout: float) -> None:
         """
         Handles reaction button interaction
         """
@@ -151,11 +152,9 @@ class EmbedMenu(EmbedHelp):
                 for emoji in self.mapping:
                     await self.msg.add_reaction(emoji)
 
-    async def timeout_handler(self):
-        try:
+    async def timeout_handler(self) -> None:
+        with contextlib.suppress(Exception):
             await self.msg.clear_reactions()
-        except Exception:
-            pass
         if isinstance(self.cursor, clockbot.InfoCog):
             return
 
@@ -164,7 +163,7 @@ class EmbedMenu(EmbedHelp):
         embed.set_footer(text=self.help_usage)
         await self.msg.edit(embed=embed)
 
-    async def send_bot_help(self, mapping: dict[str, Cog]):
+    async def send_bot_help(self, mapping: dict[str, Cog]) -> None:
         embed = self.bot_page(mapping)
         destin = self.get_destination()
         msg = await destin.send(embed=embed)
@@ -177,7 +176,7 @@ class EmbedMenu(EmbedHelp):
 
         await self.menu_handler(timeout=self.timeout)
 
-    async def send_cog_help(self, cog: Cog):
+    async def send_cog_help(self, cog: Cog) -> None:
         embed = self.cog_page(cog)
         destin = self.get_destination()
         msg = await destin.send(embed=embed)
@@ -189,7 +188,7 @@ class EmbedMenu(EmbedHelp):
 
         await self.menu_handler(timeout=self.timeout)
 
-    async def send_group_help(self, grp: Group):
+    async def send_group_help(self, grp: Group) -> None:
         embed = self.group_page(grp)
         destin = self.get_destination()
         msg = await destin.send(embed=embed)
@@ -201,7 +200,7 @@ class EmbedMenu(EmbedHelp):
 
         await self.menu_handler(timeout=self.timeout)
 
-    async def send_command_help(self, cmd: Command):
+    async def send_command_help(self, cmd: Command) -> None:
         embed = self.command_page(cmd)
         destin = self.get_destination()
         msg = await destin.send(embed=embed)

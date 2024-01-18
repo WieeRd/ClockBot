@@ -16,7 +16,7 @@ class Mention(clockbot.Cog, name="고급멘션"):
     """
 
     # 멘션 대상을 더 '섬세하게' 지정하는 방법
-    def __init__(self, bot: clockbot.ClockBot):
+    def __init__(self, bot: clockbot.ClockBot) -> None:
         self.bot = bot
         self.icon = "\N{PUSHPIN}"
         self.showcase = [
@@ -28,7 +28,7 @@ class Mention(clockbot.Cog, name="고급멘션"):
 
     @commands.command(name="멤버", usage="<조건식>")
     @commands.guild_only()
-    async def member(self, ctx: GMacLak, *, expression: str):
+    async def member(self, ctx: GMacLak, *, expression: str) -> None:
         """
         조건식에 맞는 멤버 목록을 출력한다
         멘션 알림이 가지 않으니 안심하자.
@@ -39,16 +39,16 @@ class Mention(clockbot.Cog, name="고급멘션"):
             await ctx.send(f"```{type(e).__name__}: {e.args[0]}```")
             return
         if len(target) > 0:
-            msg = " ".join(
-                [f"{m.mention}(`{m.name}#{m.discriminator}`)" for m in target]
-            )
+            msg = " ".join([
+                f"{m.mention}(`{m.name}#{m.discriminator}`)" for m in target
+            ])
             msg += "\n`이 메세지는 알림(핑)이 가지 않습니다`"
             await ctx.send(msg, allowed_mentions=discord.AllowedMentions.none())
         else:
             await ctx.code("에러: 조건에 일치하는 유저가 없습니다")
 
     @commands.command(name="멘션", usage="<조건식>")
-    async def mention(self, ctx: GMacLak, *, expression: str):
+    async def mention(self, ctx: GMacLak, *, expression: str) -> None:
         """
         조건식에 맞는 멤버들을 멘션한다
         실수로 몇십명씩 멘션해서 매도당하지 말고
@@ -69,7 +69,7 @@ class Mention(clockbot.Cog, name="고급멘션"):
             await ctx.code("에러: 조건에 일치하는 유저가 없습니다")
 
     @commands.command(name="DM", usage="<조건식>")
-    async def DMention(self, ctx: GMacLak, *, expression: str):
+    async def DMention(self, ctx: GMacLak, *, expression: str) -> None:
         """
         조건식에 맞는 멤버들에게 DM으로 알림을 보낸다
         현재 채널과 메세지로 바로가기 링크를 보내주며,
@@ -87,7 +87,9 @@ class Mention(clockbot.Cog, name="고급멘션"):
             url = ctx.message.jump_url
             msg = f"{who}님이 [{where}]에서 당신을 멘션했습니다.\n바로가기: {url}"
 
-            send = lambda user: getattr(user, "send")(msg)
+            def send(user):
+                return user.send(msg)
+
             await asyncio.gather(*map(send, target))
             # for user in target:
             #     await user.send(msg)
@@ -96,7 +98,7 @@ class Mention(clockbot.Cog, name="고급멘션"):
             await ctx.code("에러: 조건에 일치하는 유저가 없습니다")
 
     @commands.command(name="조건식")
-    async def expr_usage(self, ctx: MacLak):
+    async def expr_usage(self, ctx: MacLak) -> None:
         """
         조건식 사용법을 출력한다
         이게 어렵다는 사람들이 많아서
@@ -104,7 +106,7 @@ class Mention(clockbot.Cog, name="고급멘션"):
         언젠가 개선할 계획
         """
         # use module docstring maybe?
-        await ctx.send("미안하지만 이젠 나도 잘 모르겠어\n" " - 제작자 - ")
+        await ctx.send("미안하지만 이젠 나도 잘 모르겠어\n - 제작자 - ")
 
 
 setup = Mention.setup

@@ -19,10 +19,8 @@ jobs:
           python-version: "3.11"
           cache: pipenv
 
-      - name: Install pipenv
-        run: pipx install pipenv
-      - name: Install dependencies
-        run: pipenv sync
+      - name: Setup pipenv
+        run: pipx install pipenv && pipenv sync
       - name: Activate venv
         run: echo "$(pipenv --venv --quiet)/bin" >> $GITHUB_PATH
 
@@ -45,7 +43,7 @@ jobs:
       - name: Install Ruff
         run: pipx install ruff
       - name: Run isort
-        run: ruff check --select I --fix-only
+        run: ruff check --select I --fix
       - name: Run Black
         run: ruff format
       - uses: stefanzweifel/git-auto-commit-action@v5

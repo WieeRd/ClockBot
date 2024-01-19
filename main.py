@@ -27,6 +27,7 @@ logging.basicConfig(
 )
 
 try:
+    # FIX: secret in environment variable does not feel so secure
     TOKEN = os.environ["TOKEN"]
     PREFIX = os.environ["PREFIX"]
 except KeyError as e:

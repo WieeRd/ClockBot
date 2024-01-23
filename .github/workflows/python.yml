@@ -24,7 +24,7 @@ jobs:
       - name: Activate venv
         run: echo "$(pipenv --venv --quiet)/bin" >> $GITHUB_PATH
 
-      - uses: jakebailey/pyright-action@v1
+      - uses: jakebailey/pyright-action@v2
 
   ruff:
     name: Ruff

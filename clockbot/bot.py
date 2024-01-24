@@ -13,6 +13,7 @@ __all__ = ["PERM_NAME_KR", "ClockBot"]
 
 import logging
 import time
+from typing import Any
 
 import discord
 from discord.ext import commands
@@ -20,7 +21,6 @@ from discord.ext import commands
 log = logging.getLogger(__name__)
 
 
-# FIX: ASAP: translation required on newly added permissions
 PERM_NAME_KR: dict[str, str] = {
     "add_reactions": "반응 추가",
     "administrator": "관리자",
@@ -74,7 +74,7 @@ PERM_NAME_KR: dict[str, str] = {
 # | - ctx.wsend(bot, channel, message, **kwargs) + Webhookable(Protocol)
 
 # FEAT: MAYBE: localization e.g. `i18n("ko", "missing", "user", error.argument)`
-# FEAT: alert_owenr() - critical events should be directly notified
+# FEAT: alert_owner() - critical events should be directly notified
 
 
 class ClockBot(commands.Bot):
@@ -88,7 +88,7 @@ class ClockBot(commands.Bot):
 
     """
 
-    def __init__(self, **options) -> None:
+    def __init__(self, **options: Any) -> None:
         # FIX: type hint kwargs
         super().__init__(**options)
 
@@ -124,7 +124,7 @@ class ClockBot(commands.Bot):
 
     # https://discordpy.readthedocs.io/en/stable/ext/commands/api.html#exception-hierarchy
     async def on_command_error(
-        self, ctx: commands.Context, err: commands.CommandError
+        self, ctx: commands.Context[Any], err: commands.CommandError
     ) -> None:
         # FIX: LATER: `ctx.send()` calls can fail again in here, causing `on_error()`
         # WARN: make sure it's `Foo():` and not `Foo:` when adding a new handler
@@ -193,21 +193,21 @@ class ClockBot(commands.Bot):
 
             # ConversionError | CommandInvokeError | HybridCommandError | Any
             case _:
-                original = getattr(err, "original", err)
+                cause = err.__cause__
                 log.error(
-                    "Unexpected %s[%s] caused by: '%s'",
+                    "Unexpected %s(%s) caused by: `%s`",
                     type(err).__name__,
-                    type(original).__name__,
+                    type(cause).__name__,
                     ctx.message.content,
                     exc_info=err,
                 )
                 await ctx.send(
                     "에러: 예상치 못한 오류가 발생했습니다\n"
-                    f"[{type(err).__name__}] {type(original).__name__}: {original}\n"
+                    f"[{type(err).__name__}] {type(cause).__name__}: {cause}\n"
                     "버그 맞으니까 제작자에게 멘션 테러를 권장합니다"
                 )
 
-    async def on_error(self, event_method: str, /, *args, **kwargs) -> None:
+    async def on_error(self, event_method: str, /, *args: Any, **kwargs: Any) -> None:
         log.error(
             "Ignoring exception in %s(%s, %s)",
             event_method,

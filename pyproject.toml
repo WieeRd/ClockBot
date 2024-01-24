@@ -1,9 +1,7 @@
 [project]
 name = "ClockBot"
 version = "0.0.0"
-authors = [{ name = "WieeRd", email = "verywieerd@gmail.com" }]
 requires-python = ">=3.11"
-dependencies = [] # see `Pipfile`
 
 
 [tool.ruff]
